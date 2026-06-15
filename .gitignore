@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# pacchetto sito statico per upload manuale
+/eco-visa-sito.zip
+
 # production
 /build
 
