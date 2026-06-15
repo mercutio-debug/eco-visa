@@ -15,7 +15,7 @@ export function Header() {
         <Link href="/" aria-label="ECO-VISA home">
           <EcoVisaLogo />
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-5 lg:flex">
           {nav.map((n) => (
             <Link
               key={n.href}
@@ -25,12 +25,12 @@ export function Header() {
               {n.label}
             </Link>
           ))}
-          <Link href="/calcola" className="btn-lime text-sm">
-            Inizia ora
+          <Link href="/registrati" className="btn-lime text-sm">
+            Sei un&apos;azienda? Iscriviti e carica i tuoi prodotti!
           </Link>
         </nav>
-        <Link href="/calcola" className="btn-lime text-sm md:hidden">
-          Inizia
+        <Link href="/registrati" className="btn-lime text-xs lg:hidden">
+          Iscrivi la tua azienda
         </Link>
       </div>
     </header>
