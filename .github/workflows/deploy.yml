@@ -1,13 +1,20 @@
-name: Deploy su Hostinger
+name: Pubblica build per Hostinger
 
-# Si attiva ad ogni push sul branch main (o manualmente dal tab "Actions").
+# Builda il sito statico e pubblica il risultato (cartella out/) sul branch
+# "hostinger-deploy". Hostinger è collegato a quel branch tramite la sua
+# integrazione Git nativa: ad ogni aggiornamento del branch, Hostinger
+# scarica i file GIA' COMPILATI in public_html. Così ogni push su main
+# aggiorna automaticamente il sito online.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-and-deploy:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del codice
@@ -22,21 +29,14 @@ jobs:
       - name: Installa dipendenze
         run: npm ci
 
-      - name: Build (genera l'export statico nella cartella out/)
+      - name: Build (export statico, percorsi root per Hostinger)
         run: npm run build
 
-      - name: Carica su Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Pubblica out/ sul branch hostinger-deploy
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          # Cartella locale da pubblicare (l'output della build).
-          local-dir: ./out/
-          # Cartella sul server Hostinger dove vive il sito.
-          # In genere "public_html/". Impostala con il secret FTP_SERVER_DIR.
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          # Svuota la cartella remota prima di caricare: garantisce che
-          # public_html contenga ESATTAMENTE il sito compilato (rimuove
-          # eventuali file sorgente residui di vecchie integrazioni).
-          dangerous-clean-slate: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: hostinger-deploy
+          force_orphan: true
+          commit_message: "Deploy sito compilato per Hostinger"
