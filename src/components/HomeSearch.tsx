@@ -2,11 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { PRODUCTS } from "@/lib/data";
 import { KM0_STORES } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { distanceKm } from "@/lib/footprint";
-import { nearestPlace } from "@/lib/geo";
+import { nearestPlace, geocode, prefetchGeocode } from "@/lib/geo";
+
+// La mappa Leaflet usa `window`: si carica solo lato browser.
+const Km0Map = dynamic(() => import("./Km0Map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[320px] items-center justify-center rounded-2xl bg-white text-sm text-green-900/50">
+      Carico la mappa…
+    </div>
+  ),
+});
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 const KM0_RADIUS = 70;
@@ -157,6 +168,20 @@ export function HomeSearch() {
 function Km0Finder({ query, onClose }: { query: string; onClose: () => void }) {
   const [city, setCity] = useState("");
   const [geoMsg, setGeoMsg] = useState<string | null>(null);
+  const [, setVer] = useState(0);
+
+  // risolve la città via OpenStreetMap (per qualsiasi località) e ricalcola
+  useEffect(() => {
+    if (!city) return;
+    let cancel = false;
+    (async () => {
+      await prefetchGeocode(city);
+      if (!cancel) setVer((v) => v + 1);
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [city]);
 
   function useMyPosition() {
     if (!navigator.geolocation) {
@@ -176,10 +201,32 @@ function Km0Finder({ query, onClose }: { query: string; onClose: () => void }) {
   }
 
   const stores = city
-    ? KM0_STORES.map((s) => ({ ...s, dist: distanceKm(s.city, city) }))
+    ? KM0_STORES.map((s) => {
+        const g = geocode(s.city);
+        return {
+          ...s,
+          dist: distanceKm(s.city, city),
+          lat: g?.lat ?? null,
+          lon: g?.lon ?? null,
+        };
+      })
         .filter((s) => s.dist !== null && (s.dist as number) <= KM0_RADIUS)
         .sort((a, b) => (a.dist as number) - (b.dist as number))
     : [];
+
+  const center = city ? geocode(city) : null;
+  const mapStores = stores
+    .filter((s) => s.lat != null && s.lon != null)
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      city: s.city,
+      type: s.type,
+      category: s.category,
+      dist: s.dist as number,
+      lat: s.lat as number,
+      lon: s.lon as number,
+    }));
 
   return (
     <div className="mt-4 rounded-2xl border border-[#e3eed7] bg-leaf/50 p-5">
@@ -218,6 +265,16 @@ function Km0Finder({ query, onClose }: { query: string; onClose: () => void }) {
 
       {city && (
         <div className="mt-4">
+          {center && mapStores.length > 0 && (
+            <div className="mb-3">
+              <Km0Map
+                center={{ lat: center.lat, lon: center.lon }}
+                centerLabel={city}
+                radiusKm={KM0_RADIUS}
+                stores={mapStores}
+              />
+            </div>
+          )}
           {stores.length === 0 ? (
             <p className="text-sm text-green-900/70">
               Nessun punto vendita entro {KM0_RADIUS} km da {city}. Prova un&apos;altra città.
