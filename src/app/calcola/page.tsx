@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { computeFootprint, type IngredientInput } from "@/lib/footprint";
 import { allPlaceNames } from "@/lib/geo";
+import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 
 type Row = IngredientInput & { id: number };
@@ -23,9 +24,15 @@ export default function CalcolaPage() {
   ]);
 
   const places = useMemo(() => allPlaceNames(), []);
+  // risolve via OpenStreetMap qualunque località digitata (stabilimento + origini)
+  const { version, loading: geoLoading } = useGeoResolve([
+    plant,
+    ...rows.map((r) => r.origin),
+  ]);
   const fp = useMemo(
     () => computeFootprint(plant, rows.map(({ name, origin }) => ({ name, origin }))),
-    [plant, rows]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [plant, rows, version]
   );
 
   function update(id: number, patch: Partial<Row>) {
@@ -145,6 +152,11 @@ export default function CalcolaPage() {
             <p className="text-sm text-[#e6f4d3]">
               {company} · stabilimento {plant}
             </p>
+            {geoLoading && (
+              <p className="mt-1 text-xs text-lime-200">
+                🔎 Cerco le località su OpenStreetMap…
+              </p>
+            )}
 
             <div className="my-4 rounded-xl bg-white p-4">
               <Semaforo level={fp.level} score={fp.score} />

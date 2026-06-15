@@ -118,14 +118,98 @@ export function haversineKm(a: GeoPoint, b: GeoPoint): number {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+/* ============================================================
+   Geocoder OpenStreetMap (Nominatim) — risolve QUALSIASI località.
+   Il dizionario qui sopra resta come risposta istantanea; per i nomi non
+   presenti si interroga Nominatim e si memorizza il risultato in cache
+   (in memoria + localStorage) per non ripetere le richieste.
+   ============================================================ */
+
+// Codici paese ISO appartenenti all'UE (per la regola camion vs nave).
+const EU_COUNTRY_CODES = new Set([
+  "it", "fr", "de", "es", "pt", "at", "be", "nl", "lu", "ie", "dk", "se",
+  "fi", "gr", "cz", "sk", "hu", "ro", "bg", "hr", "si", "ee", "lv", "lt",
+  "mt", "cy", "pl",
+]);
+
+const OSM_CACHE_KEY = "ecovisa_osm_geocache_v1";
+const osmCache: Record<string, GeoPoint> = {};
+let osmCacheLoaded = false;
+
+function loadOsmCache() {
+  if (osmCacheLoaded || typeof window === "undefined") return;
+  osmCacheLoaded = true;
+  try {
+    const raw = window.localStorage.getItem(OSM_CACHE_KEY);
+    if (raw) Object.assign(osmCache, JSON.parse(raw));
+  } catch {
+    /* localStorage non disponibile: si usa solo la cache in memoria */
+  }
+}
+
+function storeOsm(key: string, point: GeoPoint) {
+  osmCache[key] = point;
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(OSM_CACHE_KEY, JSON.stringify(osmCache));
+  } catch {
+    /* quota piena o non disponibile: ignora */
+  }
+}
+
 /** cerca una località per nome (case/accent-insensitive). null se sconosciuta. */
 export function geocode(name: string): GeoPoint | null {
   if (!name) return null;
   const k = norm(name);
   if (DB[k]) return DB[k];
+  loadOsmCache();
+  if (osmCache[k]) return osmCache[k];
   // match parziale: "siena (toscana)" o "burro romania"
   const found = Object.keys(DB).find((key) => k.includes(key) || key.includes(k));
   return found ? DB[found] : null;
+}
+
+/**
+ * Risolve una località via OpenStreetMap (Nominatim) e la mette in cache, così
+ * le successive chiamate sincrone a geocode() la trovano subito.
+ * Restituisce il punto (dal dizionario/cache senza rete, oppure da Nominatim).
+ */
+export async function prefetchGeocode(name: string): Promise<GeoPoint | null> {
+  if (!name || !name.trim()) return null;
+  const cached = geocode(name);
+  if (cached) return cached;
+  const k = norm(name);
+  try {
+    const url =
+      "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=it&q=" +
+      encodeURIComponent(name);
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const arr = (await res.json()) as Array<{
+      lat: string;
+      lon: string;
+      name?: string;
+      display_name?: string;
+      address?: { country?: string; country_code?: string };
+    }>;
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    const hit = arr[0];
+    const cc = (hit.address?.country_code || "").toLowerCase();
+    const point: GeoPoint = {
+      name: (hit.name || hit.display_name?.split(",")[0] || name).trim(),
+      lat: parseFloat(hit.lat),
+      lon: parseFloat(hit.lon),
+      country: hit.address?.country || "",
+      eu: EU_COUNTRY_CODES.has(cc),
+    };
+    if (Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
+      storeOsm(k, point);
+      return point;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /** porto italiano più vicino allo stabilimento (per merci via nave) */

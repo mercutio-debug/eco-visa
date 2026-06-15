@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
 import { computeFootprint } from "@/lib/footprint";
+import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
 
 type Azienda = {
@@ -32,6 +33,8 @@ export default function AdminPage() {
   const [stab, setStab] = useState<Stab[]>([]);
   const [prod, setProd] = useState<Prod[]>([]);
   const [ingr, setIngr] = useState<Ingr[]>([]);
+  // forza il ricalcolo CO₂ quando OpenStreetMap risolve le località salvate
+  const [, setGeoV] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,9 +46,20 @@ export default function AdminPage() {
     ]);
     setAziende((a.data as Azienda[]) ?? []);
     setStab((s.data as Stab[]) ?? []);
-    setProd((p.data as Prod[]) ?? []);
-    setIngr((i.data as Ingr[]) ?? []);
+    const prods = (p.data as Prod[]) ?? [];
+    const ingrs = (i.data as Ingr[]) ?? [];
+    setProd(prods);
+    setIngr(ingrs);
     setLoading(false);
+
+    // risolvi via OpenStreetMap tutte le località (stabilimenti + origini)
+    const names = new Set<string>();
+    prods.forEach((p) => p.stabilimento_citta && names.add(p.stabilimento_citta));
+    ingrs.forEach((x) => x.origine && names.add(x.origine));
+    (async () => {
+      for (const n of names) await prefetchGeocode(n);
+      setGeoV((v) => v + 1);
+    })();
   }, []);
 
   useEffect(() => {

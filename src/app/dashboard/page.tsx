@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
 import { computeFootprint } from "@/lib/footprint";
+import { prefetchGeocode } from "@/lib/geo";
+import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 
 type Azienda = {
@@ -33,6 +35,8 @@ export default function DashboardPage() {
   const [azienda, setAzienda] = useState<Azienda | null>(null);
   const [stabilimenti, setStabilimenti] = useState<Stabilimento[]>([]);
   const [prodotti, setProdotti] = useState<Prodotto[]>([]);
+  // setGeoV forza il re-render (e il ricalcolo CO₂) quando OSM risolve le località salvate
+  const [, setGeoV] = useState(0);
 
   // ---- caricamento dati ----
   const loadAll = useCallback(async () => {
@@ -64,6 +68,18 @@ export default function DashboardPage() {
         withIngr.push({ ...p, ingredienti: (ing as Ingrediente[]) ?? [] });
       }
       setProdotti(withIngr);
+
+      // Risolve via OpenStreetMap le località dei prodotti salvati (stabilimento
+      // + origini) e poi forza il ricalcolo della CO₂ in elenco.
+      const names = new Set<string>();
+      withIngr.forEach((p) => {
+        if (p.stabilimento_citta) names.add(p.stabilimento_citta);
+        p.ingredienti.forEach((i) => i.origine && names.add(i.origine));
+      });
+      (async () => {
+        for (const n of names) await prefetchGeocode(n);
+        setGeoV((v) => v + 1);
+      })();
     }
     setLoading(false);
   }, []);
@@ -385,7 +401,13 @@ function NuovoProdotto({
     if (!stab && stabilimenti[0]) setStab(stabilimenti[0].citta);
   }, [stabilimenti, stab]);
 
-  // calcolo CO2 live
+  // risolve via OpenStreetMap stabilimento + origini digitate
+  const { version: geoVersion, loading: geoLoading } = useGeoResolve([
+    stab,
+    ...ingredienti.map((i) => i.origine),
+  ]);
+
+  // calcolo CO2 live (ricalcola anche quando OSM risolve nuove località)
   const fp = useMemo(
     () =>
       computeFootprint(
@@ -394,7 +416,8 @@ function NuovoProdotto({
           .filter((i) => i.nome && i.origine)
           .map((i) => ({ name: i.nome, origin: i.origine }))
       ),
-    [stab, ingredienti]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stab, ingredienti, geoVersion]
   );
 
   function setIng(i: number, field: keyof Ingrediente, value: string) {
@@ -537,6 +560,9 @@ function NuovoProdotto({
           <div className="text-xs text-green-900/60">
             CO₂ di trasporto stimata · {fp.totalKm.toLocaleString("it-IT")} km
           </div>
+          {geoLoading && (
+            <div className="text-[11px] text-lime-600">🔎 Cerco le località su OpenStreetMap…</div>
+          )}
         </div>
       </div>
 
