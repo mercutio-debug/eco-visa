@@ -6,6 +6,7 @@ const nav = [
   { href: "/calcola", label: "Calcola impronta" },
   { href: "/biofido", label: "BioFido" },
   { href: "/#come-funziona", label: "Come funziona" },
+  { href: "/accedi", label: "Accedi" },
 ];
 
 export function Header() {
