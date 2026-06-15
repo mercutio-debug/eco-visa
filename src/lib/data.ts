@@ -19,14 +19,14 @@ export type Product = {
 
 export const PRODUCTS: Product[] = [
   {
-    slug: "biscotti-al-farro-di-zia-pina",
-    name: "Biscotti al farro di zia Pina",
+    slug: "biscotti-al-farro-del-melograno",
+    name: "Biscotti al farro del Melograno",
     category: "Biscotti",
     company: {
-      name: "Dolciaria Zia Pina S.r.l.",
+      name: "Dolciaria Il Melograno S.r.l.",
       vat: "IT0123456789",
       city: "Cuneo",
-      website: "www.ziapina.example",
+      website: "www.ilmelograno.example",
     },
     plant: "Cuneo",
     ingredients: [

@@ -68,7 +68,7 @@ export default function RegistratiPage() {
             className="field mt-1"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            placeholder="Es. Dolciaria Zia Pina S.r.l."
+            placeholder="Es. Dolciaria Il Melograno S.r.l."
             required
           />
         </label>

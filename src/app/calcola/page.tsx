@@ -13,9 +13,9 @@ let _id = 100;
 const newRow = (name = "", origin = ""): Row => ({ id: _id++, name, origin });
 
 export default function CalcolaPage() {
-  const [company, setCompany] = useState("Dolciaria Zia Pina S.r.l.");
+  const [company, setCompany] = useState("Dolciaria Il Melograno S.r.l.");
   const [vat, setVat] = useState("IT0123456789");
-  const [product, setProduct] = useState("Biscotti al farro di zia Pina");
+  const [product, setProduct] = useState("Biscotti al farro del Melograno");
   const [plant, setPlant] = useState("Cuneo");
   const [rows, setRows] = useState<Row[]>([
     newRow("Farina di farro", "Siena"),

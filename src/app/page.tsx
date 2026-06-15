@@ -5,7 +5,7 @@ import { Semaforo } from "@/components/Semaforo";
 import { BioFidoBadge } from "@/components/Logo";
 
 export default function Home() {
-  const demo = getProduct("biscotti-al-farro-di-zia-pina")!;
+  const demo = getProduct("biscotti-al-farro-del-melograno")!;
   const fp = computeFootprint(demo.plant, demo.ingredients);
 
   return (
