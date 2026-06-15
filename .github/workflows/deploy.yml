@@ -1,0 +1,38 @@
+name: Deploy su Hostinger
+
+# Si attiva ad ogni push sul branch main (o manualmente dal tab "Actions").
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Build (genera l'export statico nella cartella out/)
+        run: npm run build
+
+      - name: Carica su Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Cartella locale da pubblicare (l'output della build).
+          local-dir: ./out/
+          # Cartella sul server Hostinger dove vive il sito.
+          # In genere "public_html/". Impostala con il secret FTP_SERVER_DIR.
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
