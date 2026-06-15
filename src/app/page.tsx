@@ -3,6 +3,7 @@ import Image from "next/image";
 import { computeFootprint } from "@/lib/footprint";
 import { getProduct } from "@/lib/data";
 import { Semaforo } from "@/components/Semaforo";
+import { HomeSearch } from "@/components/HomeSearch";
 
 const BIOFIDO_URL = "https://mercutio-debug.github.io/biofido/";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -14,7 +15,7 @@ export default function Home() {
   return (
     <div>
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
           <div>
             <span className="inline-block rounded-full bg-leaf px-3 py-1 text-xs font-bold uppercase tracking-wide text-green-800">
@@ -31,12 +32,16 @@ export default function Home() {
               un semaforo ecologico ai tuoi prodotti. Più una materia prima
               arriva da lontano, peggiore è il punteggio.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/calcola" className="btn-lime">
-                Calcola l'impronta del tuo prodotto
-              </Link>
+
+            {/* barra di ricerca prodotti */}
+            <HomeSearch />
+
+            <div className="mt-7 flex flex-col items-start gap-3">
               <Link href="/prodotti" className="btn-ghost">
                 Esplora le schede prodotto
+              </Link>
+              <Link href="/calcola" className="btn-lime">
+                Calcola l'impronta del tuo prodotto
               </Link>
             </div>
           </div>
