@@ -381,15 +381,30 @@ function ProdottiCard({
 
 function EmbedSnippet({ id }: { id: string }) {
   const [copied, setCopied] = useState(false);
+  // URL assoluto per il codice da copiare (va sul sito dell'azienda)
   const code = `<iframe src="https://ecovisa.it/embed/?id=${id}" width="100%" height="430" style="border:0;max-width:480px" title="Passaporto ecologico ECO-VISA"></iframe>`;
+  // URL relativo (con eventuale basePath) per l'anteprima dal vivo qui in dashboard
+  const previewSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/embed/?id=${id}`;
   return (
     <details className="mt-3 rounded-xl bg-leaf/50 p-3">
       <summary className="cursor-pointer text-sm font-semibold text-green-700">
-        🔗 Codice da incollare sul tuo sito
+        🔗 Striscia per il tuo sito (anteprima + codice)
       </summary>
-      <p className="mt-2 text-xs text-green-900/70">
-        Copia questa striscia e incollala nel tuo sito web: mostrerà questa scheda
-        con il semaforo, sempre aggiornata in automatico.
+
+      <p className="mt-2 text-xs font-semibold text-green-900/70">Anteprima dal vivo</p>
+      <div className="mt-1 flex justify-center rounded-xl bg-white p-2">
+        <iframe
+          src={previewSrc}
+          width="100%"
+          height={430}
+          style={{ border: 0, maxWidth: 480 }}
+          title="Anteprima passaporto ecologico"
+        />
+      </div>
+
+      <p className="mt-3 text-xs text-green-900/70">
+        Copia questa striscia e incollala nel tuo sito web: mostrerà la scheda qui
+        sopra, sempre aggiornata in automatico.
       </p>
       <textarea
         readOnly
