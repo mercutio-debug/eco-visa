@@ -16,23 +16,22 @@ export function Header() {
         <Link href="/" aria-label="ECO-VISA home">
           <EcoVisaLogo />
         </Link>
-        <nav className="hidden items-center gap-5 lg:flex">
-          {nav.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="text-sm font-semibold text-green-800 hover:text-lime-500"
-            >
-              {n.label}
-            </Link>
-          ))}
-          <Link href="/registrati" className="btn-lime text-sm">
+        <div className="flex items-center gap-5">
+          <nav className="hidden items-center gap-5 lg:flex">
+            {nav.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="text-sm font-semibold text-green-800 hover:text-lime-500"
+              >
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+          <Link href="/registrati" className="btn-lime text-xs sm:text-sm">
             Sei un&apos;azienda? Iscriviti e carica i tuoi prodotti!
           </Link>
-        </nav>
-        <Link href="/registrati" className="btn-lime text-xs lg:hidden">
-          Iscrivi la tua azienda
-        </Link>
+        </div>
       </div>
     </header>
   );
