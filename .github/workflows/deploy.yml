@@ -41,5 +41,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
           publish_branch: hostinger-deploy
-          force_orphan: true
+          # NIENTE force_orphan: la storia del branch resta continua, così
+          # l'auto-deploy di Hostinger riesce a fare pull/fast-forward pulito.
           commit_message: "Deploy sito compilato per Hostinger"
