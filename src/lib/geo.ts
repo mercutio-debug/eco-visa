@@ -169,47 +169,111 @@ export function geocode(name: string): GeoPoint | null {
   return found ? DB[found] : null;
 }
 
+type NominatimHit = {
+  lat: string;
+  lon: string;
+  name?: string;
+  display_name?: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    hamlet?: string;
+    municipality?: string;
+    county?: string;
+    state?: string;
+    region?: string;
+    country?: string;
+    country_code?: string;
+  };
+};
+
+/** etichetta concisa e disambiguante: "Alba, Cuneo, Italia" */
+function labelFromHit(hit: NominatimHit): string {
+  const a = hit.address ?? {};
+  const place =
+    a.city || a.town || a.village || a.hamlet || a.municipality ||
+    hit.name || (hit.display_name ?? "").split(",")[0];
+  const region = a.state || a.region || a.county;
+  return [place, region && region !== place ? region : null, a.country]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function pointFromHit(hit: NominatimHit, fallbackName: string): GeoPoint | null {
+  const a = hit.address ?? {};
+  const cc = (a.country_code || "").toLowerCase();
+  const point: GeoPoint = {
+    name:
+      a.city || a.town || a.village || hit.name ||
+      hit.display_name?.split(",")[0] || fallbackName,
+    lat: parseFloat(hit.lat),
+    lon: parseFloat(hit.lon),
+    country: a.country || "",
+    eu: EU_COUNTRY_CODES.has(cc),
+  };
+  return Number.isFinite(point.lat) && Number.isFinite(point.lon) ? point : null;
+}
+
 /**
  * Risolve una località via OpenStreetMap (Nominatim) e la mette in cache, così
  * le successive chiamate sincrone a geocode() la trovano subito.
- * Restituisce il punto (dal dizionario/cache senza rete, oppure da Nominatim).
  */
 export async function prefetchGeocode(name: string): Promise<GeoPoint | null> {
   if (!name || !name.trim()) return null;
   const cached = geocode(name);
   if (cached) return cached;
-  const k = norm(name);
   try {
     const url =
       "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=it&q=" +
       encodeURIComponent(name);
     const res = await fetch(url, { headers: { Accept: "application/json" } });
     if (!res.ok) return null;
-    const arr = (await res.json()) as Array<{
-      lat: string;
-      lon: string;
-      name?: string;
-      display_name?: string;
-      address?: { country?: string; country_code?: string };
-    }>;
+    const arr = (await res.json()) as NominatimHit[];
     if (!Array.isArray(arr) || arr.length === 0) return null;
-    const hit = arr[0];
-    const cc = (hit.address?.country_code || "").toLowerCase();
-    const point: GeoPoint = {
-      name: (hit.name || hit.display_name?.split(",")[0] || name).trim(),
-      lat: parseFloat(hit.lat),
-      lon: parseFloat(hit.lon),
-      country: hit.address?.country || "",
-      eu: EU_COUNTRY_CODES.has(cc),
-    };
-    if (Number.isFinite(point.lat) && Number.isFinite(point.lon)) {
-      storeOsm(k, point);
+    const point = pointFromHit(arr[0], name);
+    if (point) {
+      storeOsm(norm(name), point);
       return point;
     }
     return null;
   } catch {
     return null;
   }
+}
+
+export type PlaceSuggestion = { label: string; point: GeoPoint };
+
+/** suggerimenti di località per l'autocomplete (max 5). */
+export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
+  if (!query || query.trim().length < 3) return [];
+  try {
+    const url =
+      "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&accept-language=it&q=" +
+      encodeURIComponent(query);
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return [];
+    const arr = (await res.json()) as NominatimHit[];
+    if (!Array.isArray(arr)) return [];
+    const out: PlaceSuggestion[] = [];
+    const seen = new Set<string>();
+    for (const hit of arr) {
+      const point = pointFromHit(hit, query);
+      const label = labelFromHit(hit);
+      if (!point || !label || seen.has(label)) continue;
+      seen.add(label);
+      storeOsm(norm(label), point); // così selezionando, geocode(label) trova il punto
+      out.push({ label, point });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** memorizza manualmente un punto sotto un nome (usato alla selezione). */
+export function rememberPlace(name: string, point: GeoPoint) {
+  if (name) storeOsm(norm(name), point);
 }
 
 /** porto italiano più vicino allo stabilimento (per merci via nave) */

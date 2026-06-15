@@ -9,6 +9,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
+import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 
 type Azienda = {
   id: string;
@@ -289,12 +290,9 @@ function StabilimentiCard({
       <div className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
         <label className="block">
           <span className="label">Città dello stabilimento *</span>
-          <input
-            className="field mt-1"
-            value={citta}
-            onChange={(e) => setCitta(e.target.value)}
-            placeholder="Es. Cuneo"
-          />
+          <div className="mt-1">
+            <PlaceAutocomplete value={citta} onChange={setCitta} placeholder="Es. Cuneo" />
+          </div>
         </label>
         <label className="block">
           <span className="label">Nome (facoltativo)</span>
@@ -520,10 +518,9 @@ function NuovoProdotto({
                   onChange={(e) => setIng(i, "nome", e.target.value)}
                   placeholder="Materia prima (es. Farina di farro)"
                 />
-                <input
-                  className="field"
+                <PlaceAutocomplete
                   value={row.origine}
-                  onChange={(e) => setIng(i, "origine", e.target.value)}
+                  onChange={(v) => setIng(i, "origine", v)}
                   placeholder="Origine (es. Siena)"
                 />
                 <div className="flex items-center gap-2">

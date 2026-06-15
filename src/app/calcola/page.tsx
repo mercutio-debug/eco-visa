@@ -5,6 +5,7 @@ import { computeFootprint, type IngredientInput } from "@/lib/footprint";
 import { allPlaceNames } from "@/lib/geo";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
+import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 
 type Row = IngredientInput & { id: number };
 
@@ -74,13 +75,9 @@ export default function CalcolaPage() {
               </label>
               <label className="block">
                 <span className="label">Stabilimento di produzione</span>
-                <input
-                  className="field mt-1"
-                  list="places"
-                  value={plant}
-                  onChange={(e) => setPlant(e.target.value)}
-                  placeholder="es. Cuneo"
-                />
+                <div className="mt-1">
+                  <PlaceAutocomplete value={plant} onChange={setPlant} placeholder="es. Cuneo" />
+                </div>
               </label>
             </div>
             {!fp.resolvedPlant && (
@@ -111,12 +108,10 @@ export default function CalcolaPage() {
                       value={row.name}
                       onChange={(e) => update(row.id, { name: e.target.value })}
                     />
-                    <input
-                      className="field"
-                      list="places"
-                      placeholder="Origine (es. Siena)"
+                    <PlaceAutocomplete
                       value={row.origin}
-                      onChange={(e) => update(row.id, { origin: e.target.value })}
+                      onChange={(v) => update(row.id, { origin: v })}
+                      placeholder="Origine (es. Siena)"
                     />
                     <div className="flex items-center gap-2">
                       <span className="min-w-20 text-right text-sm font-semibold text-green-800">
