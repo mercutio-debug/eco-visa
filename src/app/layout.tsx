@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Anton, Barlow } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { SiteChrome } from "@/components/SiteChrome";
 
 const anton = Anton({
   weight: "400",
@@ -30,9 +29,7 @@ export default function RootLayout({
   return (
     <html lang="it" className={`${anton.variable} ${barlow.variable}`}>
       <body className="min-h-full flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

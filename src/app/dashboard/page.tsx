@@ -363,6 +363,7 @@ function ProdottiCard({
                     </button>
                   </div>
                 </div>
+                <EmbedSnippet id={p.id} />
               </li>
             );
           })}
@@ -375,6 +376,43 @@ function ProdottiCard({
         onSaved={onChange}
       />
     </section>
+  );
+}
+
+function EmbedSnippet({ id }: { id: string }) {
+  const [copied, setCopied] = useState(false);
+  const code = `<iframe src="https://ecovisa.it/embed/?id=${id}" width="100%" height="430" style="border:0;max-width:480px" title="Passaporto ecologico ECO-VISA"></iframe>`;
+  return (
+    <details className="mt-3 rounded-xl bg-leaf/50 p-3">
+      <summary className="cursor-pointer text-sm font-semibold text-green-700">
+        🔗 Codice da incollare sul tuo sito
+      </summary>
+      <p className="mt-2 text-xs text-green-900/70">
+        Copia questa striscia e incollala nel tuo sito web: mostrerà questa scheda
+        con il semaforo, sempre aggiornata in automatico.
+      </p>
+      <textarea
+        readOnly
+        value={code}
+        onFocus={(e) => e.currentTarget.select()}
+        className="field mt-2 h-24 w-full font-mono text-[11px]"
+      />
+      <button
+        type="button"
+        className="btn-lime mt-2 text-sm"
+        onClick={async () => {
+          try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } catch {
+            /* clipboard non disponibile */
+          }
+        }}
+      >
+        {copied ? "Copiato ✓" : "Copia codice"}
+      </button>
+    </details>
   );
 }
 
