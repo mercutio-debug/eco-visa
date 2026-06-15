@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
   // Prefisso solo per il build GitHub Pages (sottocartella /eco-visa).
   basePath: isGitHubPages ? `/${repoName}` : undefined,
   assetPrefix: isGitHubPages ? `/${repoName}/` : undefined,
+  // Espone il basePath al client: serve per gli asset in public/ (es. immagini),
+  // perché next/image NON antepone il basePath ai percorsi di public/.
+  // Vuoto su Hostinger (sito a root), "/eco-visa" sul build GitHub Pages.
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGitHubPages ? `/${repoName}` : "",
+  },
 };
 
 export default nextConfig;

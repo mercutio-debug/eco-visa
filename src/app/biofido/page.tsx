@@ -52,7 +52,7 @@ export default function BioFidoPage() {
         </div>
         <div className="relative mx-auto w-full max-w-sm overflow-hidden rounded-3xl border-4 border-cape-red shadow-lg">
           <Image
-            src="/brand/biofido.jpg"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/biofido.jpg`}
             alt="BioFido — il cane supereroe del biologico"
             width={669}
             height={669}
