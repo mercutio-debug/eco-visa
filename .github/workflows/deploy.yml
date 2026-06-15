@@ -36,3 +36,7 @@ jobs:
           # Cartella sul server Hostinger dove vive il sito.
           # In genere "public_html/". Impostala con il secret FTP_SERVER_DIR.
           server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          # Svuota la cartella remota prima di caricare: garantisce che
+          # public_html contenga ESATTAMENTE il sito compilato (rimuove
+          # eventuali file sorgente residui di vecchie integrazioni).
+          dangerous-clean-slate: true
