@@ -121,16 +121,19 @@ export default function Home() {
             </Link>
           </div>
           <div className="rounded-2xl border border-[#e3eed7] bg-white p-8">
-            <Image
-              src={`${BASE}/brand/biofido-solologo.png`}
-              alt="BioFido"
-              width={300}
-              height={210}
-              className="h-20 w-auto"
-            />
-            <h3 className="mt-3 font-display text-3xl text-green-800">
-              Installa BioFido sul tuo smartphone
+            <h3 className="font-display text-3xl text-green-800">
+              Cerchi prodotti biologici intorno a te, scarica la nostra app BioFido!
             </h3>
+            {/* cornice attorno all'icona BioFido */}
+            <div className="mt-4 flex justify-center rounded-2xl border-2 border-[var(--lime-500)] bg-leaf/40 p-6">
+              <Image
+                src={`${BASE}/brand/biofido-solologo.png`}
+                alt="BioFido"
+                width={300}
+                height={210}
+                className="h-24 w-auto"
+              />
+            </div>
             <p className="mt-2 max-w-md text-green-900/80">
               Il segugio del biologico: trova i produttori, i negozi e le
               attività bio intorno a te (fino a 70 km) e fatti guidare fin lì.
