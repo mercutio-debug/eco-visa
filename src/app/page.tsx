@@ -1,8 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { computeFootprint } from "@/lib/footprint";
 import { getProduct } from "@/lib/data";
 import { Semaforo } from "@/components/Semaforo";
-import { BioFidoBadge } from "@/components/Logo";
+
+const BIOFIDO_URL = "https://mercutio-debug.github.io/biofido/";
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Home() {
   const demo = getProduct("biscotti-al-farro-del-melograno")!;
@@ -113,21 +116,35 @@ export default function Home() {
             </Link>
           </div>
           <div className="rounded-2xl border border-[#e3eed7] bg-white p-8">
-            <div className="flex items-center gap-3">
-              <BioFidoBadge size={56} />
-              <h3 className="font-display text-3xl">
-                <span className="text-cape-red">Bio</span>
-                <span className="text-green-700">fido</span>
-              </h3>
-            </div>
+            <Image
+              src={`${BASE}/brand/biofido-solologo.png`}
+              alt="BioFido"
+              width={300}
+              height={210}
+              className="h-20 w-auto"
+            />
+            <h3 className="mt-3 font-display text-3xl text-green-800">
+              Installa BioFido sul tuo smartphone
+            </h3>
             <p className="mt-2 max-w-md text-green-900/80">
-              Il segugio del biologico: una ricerca geolocalizzata dei soli
-              produttori biologici intorno a te, con la loro categoria
-              merceologica. Imposta il raggio e annusa il bio più vicino.
+              Il segugio del biologico: trova i produttori, i negozi e le
+              attività bio intorno a te (fino a 70 km) e fatti guidare fin lì.
+              Aprila dal telefono e tocca <strong>“Aggiungi a schermata Home”</strong>:
+              la usi come un&apos;app, gratis.
             </p>
-            <Link href="/biofido" className="btn-ghost mt-5">
-              Apri BioFido
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <a
+                href={BIOFIDO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-lime"
+              >
+                🐾 Apri e installa BioFido
+              </a>
+            </div>
+            <p className="mt-3 text-xs text-green-900/55">
+              Funziona su Android e iPhone dal browser. Presto anche sugli store.
+            </p>
           </div>
         </div>
       </section>
