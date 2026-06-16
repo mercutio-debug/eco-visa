@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 /**
  * Popup di benvenuto mostrato all'ingresso nel portale (una volta per sessione).
@@ -12,10 +13,15 @@ import Link from "next/link";
  */
 export function WelcomePopup() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!sessionStorage.getItem("ecovisa_welcome")) setOpen(true);
-  }, []);
+    // solo in homepage e dopo 10 secondi di navigazione (una volta per sessione)
+    if (pathname !== "/") return;
+    if (sessionStorage.getItem("ecovisa_welcome")) return;
+    const t = setTimeout(() => setOpen(true), 10000);
+    return () => clearTimeout(t);
+  }, [pathname]);
 
   function close() {
     sessionStorage.setItem("ecovisa_welcome", "1");
