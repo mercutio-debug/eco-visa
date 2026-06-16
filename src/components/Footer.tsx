@@ -31,7 +31,10 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-[#dceac9] py-4 text-center text-xs text-green-900/60">
-        © {new Date().getFullYear()} ECO-VISA — concept basato sul progetto Pangea Etico.
+        Tutti i diritti sono riservati - Ligusto Srl 2026 ·{" "}
+        <Link href="/privacy" className="hover:text-lime-500 hover:underline">
+          Privacy e cookie
+        </Link>
       </div>
     </footer>
   );
