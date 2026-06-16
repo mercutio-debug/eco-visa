@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-// durata di ogni scena (ms) — totale 20 secondi
-const DUR = [3200, 3600, 3000, 3800, 3400, 3000];
+// durata di ogni scena (ms) — totale 40 secondi
+const DUR = [6000, 7200, 6000, 7600, 7200, 6000];
 
 export default function PromoPage() {
   const [i, setI] = useState(0);
@@ -135,17 +135,25 @@ export default function PromoPage() {
 
       {/* 5 — BioFido */}
       <div className={`scene ${on(4)}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${BASE}/promo/biofido-logo.png`} alt="BioFido" style={{ height: "min(22vh,160px)", width: "auto", marginBottom: 8 }} />
-        <p style={{ marginTop: 6, fontSize: "clamp(17px,2.5vw,27px)", maxWidth: 760, color: "#eaffd6" }}>
-          Un <strong>segugio</strong> che trova nella tua zona produttori, negozi e ristoranti <strong>bio</strong>: un hub diffuso di realtà locali.
-        </p>
-        <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`${BASE}/promo/biofido-icon.png`} alt="App BioFido" style={{ height: 64, width: 64, borderRadius: 14, boxShadow: "0 6px 18px rgba(0,0,0,.35)" }} />
-          <span style={{ fontWeight: 700, color: "#8cc63f", fontSize: "clamp(15px,2vw,20px)" }}>
-            Scarica l&apos;app gratuita
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "4vw", flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ borderRadius: 18, overflow: "hidden", border: "4px solid #8cc63f", boxShadow: "0 12px 34px rgba(0,0,0,.4)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${BASE}/brand/biofido.jpg`} alt="BioFido — il segugio del biologico" style={{ height: "min(40vh,300px)", width: "auto", display: "block" }} />
+          </div>
+          <div style={{ textAlign: "left", maxWidth: 440 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`${BASE}/promo/biofido-logo.png`} alt="BioFido" style={{ height: 60, width: "auto", marginBottom: 12 }} />
+            <p style={{ fontSize: "clamp(17px,2.4vw,27px)", color: "#eaffd6" }}>
+              Un <strong>segugio</strong> che trova nella tua zona produttori, negozi e ristoranti <strong>bio</strong>: un hub diffuso di realtà locali.
+            </p>
+            <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 12 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`${BASE}/promo/biofido-icon.png`} alt="App BioFido" style={{ height: 56, width: 56, borderRadius: 14 }} />
+              <span style={{ fontWeight: 700, color: "#8cc63f", fontSize: "clamp(15px,2vw,20px)" }}>
+                Scarica l&apos;app gratuita
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -162,7 +170,7 @@ export default function PromoPage() {
 
       {/* barra avanzamento */}
       <div style={{ position: "absolute", left: 0, bottom: 0, height: 5, width: "100%", background: "rgba(255,255,255,.12)" }}>
-        {!ended && <div key={runId} style={{ height: "100%", background: "#8cc63f", animation: "barfill 20s linear forwards" }} />}
+        {!ended && <div key={runId} style={{ height: "100%", background: "#8cc63f", animation: "barfill 40s linear forwards" }} />}
       </div>
 
       {ended && (
