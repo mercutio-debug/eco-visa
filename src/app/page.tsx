@@ -75,6 +75,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* MANIFESTO — sintesi del testo motivazionale (vedi /abbonamenti) */}
+      <section className="mx-auto max-w-6xl px-4 py-6">
+        <div className="card relative overflow-hidden p-7 md:p-9">
+          <span className="absolute inset-y-0 left-0 w-2 bg-lime-500" />
+          <div className="grid items-center gap-5 md:grid-cols-[1fr_auto]">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
+                Per chi fa qualità
+              </div>
+              <p className="mt-2 text-xl font-semibold leading-snug text-green-900 md:text-2xl">
+                Hai investito una vita per fornire qualità e prodotti di altissimo
+                livello. In un mercato che ragiona solo sul prezzo più basso,
+                ECO-VISA ti fa{" "}
+                <span className="text-green-700">mostrare il tuo valore vero</span>:
+                la qualità e la sostenibilità di ciò che produci. Qui non vince chi
+                taglia i costi a discapito della qualità, della sicurezza e
+                dell&apos;ambiente, ma{" "}
+                <span className="text-green-700">
+                  chi offre il miglior prodotto possibile
+                </span>
+                .
+              </p>
+            </div>
+            <Link href="/abbonamenti" className="btn-lime whitespace-nowrap">
+              Scopri gli abbonamenti
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* COME FUNZIONA */}
       <section id="come-funziona" className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="title-pangea text-4xl text-green-700">Come funziona</h2>

@@ -5,6 +5,7 @@ const nav = [
   { href: "/prodotti", label: "Prodotti" },
   { href: "/calcola", label: "Calcola impronta" },
   { href: "/biofido", label: "BioFido" },
+  { href: "/abbonamenti", label: "Abbonamenti" },
   { href: "/#come-funziona", label: "Come funziona" },
   { href: "/accedi", label: "Accedi" },
 ];
