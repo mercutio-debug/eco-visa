@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { WelcomePopup } from "./WelcomePopup";
 
 /**
  * Mostra header e footer del sito, tranne sulle pagine /embed (le strisce
@@ -18,6 +19,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <WelcomePopup />
     </>
   );
 }
