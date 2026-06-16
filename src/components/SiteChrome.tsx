@@ -11,7 +11,8 @@ import { WelcomePopup } from "./WelcomePopup";
  */
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname?.startsWith("/embed")) {
+  // pagine "nude" (senza header/footer): embed incorporabile e promo da registrare
+  if (pathname?.startsWith("/embed") || pathname?.startsWith("/promo")) {
     return <main className="min-h-full">{children}</main>;
   }
   return (
