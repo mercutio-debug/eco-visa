@@ -101,7 +101,7 @@ export default function PromoPage() {
             ))}
           </div>
           <p style={{ textAlign: "left", maxWidth: 540, fontSize: "clamp(18px,2.5vw,28px)", color: "#eaffd6" }}>
-            ECO-VISA calcola i <strong>chilometri e la CO₂</strong> del trasporto di ogni materia prima e assegna un <strong>semaforo</strong>: verde, giallo o rosso.
+            Vedi l&apos;<strong>impatto e l&apos;origine</strong> di ogni ingrediente. Più bassa è la <strong>CO₂</strong>, più alto è il punteggio — con <strong>sconti e premi</strong>.
           </p>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function PromoPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${BASE}/promo/spesa-km0.jpg`} alt="Spesa km0" style={{ height: 84, width: "auto", borderRadius: "50%", marginBottom: 12 }} />
             <p style={{ fontSize: "clamp(18px,2.5vw,28px)", color: "#eaffd6" }}>
-              Più un prodotto è <strong>vicino</strong>, minore è il suo impatto. ECO-VISA premia la <strong>filiera corta</strong> e la spesa a km0.
+              Il portale suggerisce <strong>alternative simili</strong> a minor impatto, magari da un produttore più <strong>vicino</strong> a te.
             </p>
           </div>
         </div>
@@ -136,15 +136,16 @@ export default function PromoPage() {
       {/* 5 — BioFido */}
       <div className={`scene ${on(4)}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`${BASE}/brand/biofido-solologo.png`} alt="BioFido" style={{ height: "min(24vh,180px)", width: "auto", marginBottom: 14 }} />
-        <div className="disp" style={{ fontSize: "clamp(28px,5.5vw,64px)", color: "#8cc63f" }}>BioFido</div>
-        <p style={{ marginTop: 12, fontSize: "clamp(17px,2.5vw,27px)", maxWidth: 720, color: "#eaffd6" }}>
-          Il segugio del biologico: trova i produttori e i negozi bio a km0 intorno a te.
+        <img src={`${BASE}/promo/biofido-logo.png`} alt="BioFido" style={{ height: "min(22vh,160px)", width: "auto", marginBottom: 8 }} />
+        <p style={{ marginTop: 6, fontSize: "clamp(17px,2.5vw,27px)", maxWidth: 760, color: "#eaffd6" }}>
+          Un <strong>segugio</strong> che trova nella tua zona produttori, negozi e ristoranti <strong>bio</strong>: un hub diffuso di realtà locali.
         </p>
-        <div style={{ marginTop: 14 }}>
-          {[0, 1, 2, 3, 4].map((n) => (
-            <span key={n} className="pin" style={{ animationDelay: `${n * 0.12}s`, display: "inline-block", width: 16, height: 16, margin: "0 6px", borderRadius: "50% 50% 50% 0", transform: "rotate(-45deg)", background: "#327413", border: "2px solid #8cc63f" }} />
-          ))}
+        <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`${BASE}/promo/biofido-icon.png`} alt="App BioFido" style={{ height: 64, width: 64, borderRadius: 14, boxShadow: "0 6px 18px rgba(0,0,0,.35)" }} />
+          <span style={{ fontWeight: 700, color: "#8cc63f", fontSize: "clamp(15px,2vw,20px)" }}>
+            Scarica l&apos;app gratuita
+          </span>
         </div>
       </div>
 
