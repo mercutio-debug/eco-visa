@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
-// durata di ogni scena (ms) — totale 40 secondi
-const DUR = [6000, 7200, 6000, 7600, 7200, 6000];
+// durata di ogni scena (ms) — bilanciata in base al testo (totale ~47s)
+const DUR = [6000, 9500, 7000, 8500, 9000, 7000];
+const TOTAL = DUR.reduce((a, b) => a + b, 0);
 
 export default function PromoPage() {
   const [i, setI] = useState(0);
@@ -62,7 +63,7 @@ export default function PromoPage() {
       <style>{`
         .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
           text-align:center;padding:6vh 6vw;opacity:0;transform:scale(.96) translateY(14px);
-          transition:opacity .7s ease,transform .7s ease;pointer-events:none}
+          transition:opacity .9s ease,transform .9s ease;pointer-events:none}
         .scene.on{opacity:1;transform:none}
         .disp{font-family:var(--font-anton),Impact,sans-serif;font-style:italic;text-transform:uppercase;line-height:.92;letter-spacing:.5px}
         .whitecard{background:#fff;border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -170,7 +171,7 @@ export default function PromoPage() {
 
       {/* barra avanzamento */}
       <div style={{ position: "absolute", left: 0, bottom: 0, height: 5, width: "100%", background: "rgba(255,255,255,.12)" }}>
-        {!ended && <div key={runId} style={{ height: "100%", background: "#8cc63f", animation: "barfill 40s linear forwards" }} />}
+        {!ended && <div key={runId} style={{ height: "100%", background: "#8cc63f", animation: "barfill linear forwards", animationDuration: `${TOTAL}ms` }} />}
       </div>
 
       {ended && (
