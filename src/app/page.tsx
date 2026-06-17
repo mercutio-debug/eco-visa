@@ -4,6 +4,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { getProduct } from "@/lib/data";
 import { Semaforo } from "@/components/Semaforo";
 import { HomeSearch } from "@/components/HomeSearch";
+import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 
 const BIOFIDO_URL = "https://mercutio-debug.github.io/biofido/";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -71,6 +72,27 @@ export default function Home() {
             >
               Vedi la scheda completa →
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SEMAFORO IN PRIMO PIANO — gratis, senza registrazione */}
+      <section id="semaforo" className="mx-auto max-w-6xl px-4 pb-4 pt-2">
+        <div className="rounded-3xl border-2 border-lime-500 bg-leaf/40 p-6 md:p-8">
+          <div className="text-center">
+            <span className="inline-block rounded-full bg-lime-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+              Provalo subito — gratis, senza registrazione
+            </span>
+            <h2 className="title-pangea mt-3 text-4xl text-green-700 md:text-5xl">
+              Che semaforo ha il tuo prodotto?
+            </h2>
+            <p className="mx-auto mt-2 max-w-2xl text-green-900/80">
+              Inserisci lo stabilimento e le materie prime: scopri in tempo reale
+              se l&apos;impronta del prodotto è verde, gialla o rossa.
+            </p>
+          </div>
+          <div className="mt-7">
+            <CalcolatoreImpronta />
           </div>
         </div>
       </section>

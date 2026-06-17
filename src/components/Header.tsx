@@ -14,19 +14,10 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#e3eed7] bg-white/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Link href="/" aria-label="ECO-VISA home">
-            <EcoVisaLogo />
-          </Link>
-          <Link
-            href="/accedi"
-            title="Accesso amministratore"
-            className="rounded-full border border-green-700 px-3 py-1 text-xs font-bold text-green-700 hover:bg-leaf"
-          >
-            🔐 Admin
-          </Link>
-        </div>
-        <div className="flex items-center gap-5">
+        <Link href="/" aria-label="ECO-VISA home">
+          <EcoVisaLogo />
+        </Link>
+        <div className="flex items-center gap-4">
           <nav className="hidden items-center gap-5 lg:flex">
             {nav.map((n) => (
               <Link
@@ -40,6 +31,13 @@ export function Header() {
           </nav>
           <Link href="/registrati" className="btn-lime text-xs sm:text-sm">
             Sei un&apos;azienda? Iscriviti e carica i tuoi prodotti!
+          </Link>
+          <Link
+            href="/accedi"
+            title="Accesso amministratore"
+            className="rounded-full border border-green-700 px-3 py-1 text-xs font-bold text-green-700 hover:bg-leaf"
+          >
+            🔐 Admin
           </Link>
         </div>
       </div>

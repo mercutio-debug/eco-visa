@@ -15,6 +15,7 @@ import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { CatalogoCard } from "@/components/CatalogoCard";
+import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { getMyPlan } from "@/lib/plan";
 import { billingEnabled, startCheckout } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
@@ -33,6 +34,7 @@ type Prodotto = {
   nome: string;
   categoria: string | null;
   stabilimento_citta: string;
+  immagine: string | null;
   ingredienti: Ingrediente[];
 };
 
@@ -502,11 +504,17 @@ function ProdottiCard({
             return (
               <li key={p.id} className="rounded-2xl border border-[#e3eed7] bg-white p-4">
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="font-display text-xl text-green-800">{p.nome}</div>
-                    <div className="text-xs text-green-900/60">
-                      {p.categoria ? p.categoria + " · " : ""}prodotto a {p.stabilimento_citta} ·{" "}
-                      {p.ingredienti.length} materie prime
+                  <div className="flex items-start gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {p.immagine && (
+                      <img src={p.immagine} alt="" className="h-14 w-14 flex-none rounded-lg object-cover" />
+                    )}
+                    <div>
+                      <div className="font-display text-xl text-green-800">{p.nome}</div>
+                      <div className="text-xs text-green-900/60">
+                        {p.categoria ? p.categoria + " · " : ""}prodotto a {p.stabilimento_citta} ·{" "}
+                        {p.ingredienti.length} materie prime
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -612,6 +620,8 @@ function NuovoProdotto({
     { nome: "", origine: "" },
   ]);
   const [saving, setSaving] = useState(false);
+  const [immagine, setImmagine] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!stab && stabilimenti[0]) setStab(stabilimenti[0].citta);
@@ -659,6 +669,7 @@ function NuovoProdotto({
         nome,
         categoria: categoria || null,
         stabilimento_citta: stab,
+        immagine: immagine,
       })
       .select("id")
       .single();
@@ -676,6 +687,7 @@ function NuovoProdotto({
     setSaving(false);
     setNome("");
     setCategoria("");
+    setImmagine(null);
     setIngredienti([{ nome: "", origine: "" }]);
     onSaved();
   }
@@ -716,6 +728,44 @@ function NuovoProdotto({
             ))}
           </select>
         </label>
+      </div>
+
+      {/* immagine del prodotto, ridimensionata in automatico */}
+      <div className="mt-3">
+        <span className="label">Immagine del prodotto (facoltativa)</span>
+        <div className="mt-1 flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {immagine ? (
+            <img src={immagine} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          ) : (
+            <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">
+              nessuna
+            </span>
+          )}
+          <label className="btn-ghost cursor-pointer text-sm">
+            {uploading ? "Carico…" : immagine ? "Cambia foto" : "Carica foto"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                setUploading(true);
+                try {
+                  setImmagine(await caricaImmagineCatalogo(aziendaId, f));
+                } catch (err) {
+                  alert((err as Error).message);
+                } finally {
+                  setUploading(false);
+                }
+              }}
+            />
+          </label>
+        </div>
+        <p className="mt-1 text-[11px] text-green-900/50">
+          Ridimensionata e alleggerita in automatico.
+        </p>
       </div>
 
       <div className="mt-4">
