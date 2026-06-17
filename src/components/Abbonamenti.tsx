@@ -48,7 +48,7 @@ const FEATURES: Record<Plan, string[]> = {
     "Migliore posizione nella directory",
   ],
   gold: [
-    "Prodotti illimitati",
+    "Fino a 100 prodotti",
     "Widget avanzato + massima priorità in directory",
     "In evidenza tra gli spacci «Spesa km0»",
     "Statistiche avanzate",
@@ -221,7 +221,7 @@ export function PianiAbbonamento({
                     {isFree ? "Gratis" : euroMese(monthlyShown)}
                   </span>
                   {!isFree && (
-                    <span className="mb-1 text-sm text-green-900/60">/mese</span>
+                    <span className="mb-1 text-sm text-green-900/60">+ IVA /mese</span>
                   )}
                 </div>
                 {!isFree && (
