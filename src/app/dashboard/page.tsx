@@ -11,6 +11,10 @@ import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 import { PianiAbbonamento } from "@/components/Abbonamenti";
+import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
+import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
+import { getMyPlan } from "@/lib/plan";
+import { billingEnabled, startCheckout } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -40,6 +44,10 @@ export default function DashboardPage() {
   const [prodotti, setProdotti] = useState<Prodotto[]>([]);
   // setGeoV forza il re-render (e il ricalcolo CO₂) quando OSM risolve le località salvate
   const [, setGeoV] = useState(0);
+  // piano: attivo (da subscriptions, condiviso con BioFido) e scelto per la configurazione
+  const [activePlan, setActivePlan] = useState<Plan>("free");
+  const [pianoScelto, setPianoScelto] = useState<Plan>("free");
+  const [periodo, setPeriodo] = useState<"monthly" | "annual">("annual");
 
   // ---- caricamento dati ----
   const loadAll = useCallback(async () => {
@@ -96,6 +104,22 @@ export default function DashboardPage() {
     loadAll();
   }, [authLoading, user, router, loadAll]);
 
+  // piano attivo (condiviso con BioFido) + inizializzazione del piano scelto
+  useEffect(() => {
+    if (!user) return;
+    getMyPlan().then((p) => {
+      setActivePlan(p);
+      const saved = window.localStorage.getItem("ecovisa_plan") as Plan | null;
+      setPianoScelto(p !== "free" ? p : saved && saved in PLAN_MAP ? saved : "silver");
+    });
+  }, [user]);
+
+  function scegliPiano(p: Plan, per: "monthly" | "annual") {
+    setPianoScelto(p);
+    setPeriodo(per);
+    window.localStorage.setItem("ecovisa_plan", p);
+  }
+
   if (authLoading || loading) {
     return <div className="mx-auto max-w-4xl px-4 py-16 text-green-900/70">Caricamento…</div>;
   }
@@ -122,13 +146,13 @@ export default function DashboardPage() {
         </button>
       </div>
 
+      <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
+
       <AnagraficaCard
         azienda={azienda}
         initialNome={(user?.user_metadata as { nome?: string })?.nome}
         onSaved={loadAll}
       />
-
-      <AbbonamentoCard />
 
       {azienda && (
         <>
@@ -145,55 +169,131 @@ export default function DashboardPage() {
           />
         </>
       )}
+
+      {user && (
+        <PagamentoFinale
+          ownerId={user.id}
+          scelto={pianoScelto}
+          attivo={activePlan}
+          periodo={periodo}
+        />
+      )}
     </div>
   );
 }
 
-/* ------------------- ABBONAMENTO ------------------- */
-function AbbonamentoCard() {
-  const [current, setCurrent] = useState<Plan>("free");
-  const [selected, setSelected] = useState<Plan | undefined>(undefined);
+/* ------------------- SCELTA PIANO (senza pagamento) ------------------- */
+function PianoSelector({
+  scelto,
+  attivo,
+  onScegli,
+}: {
+  scelto: Plan;
+  attivo: Plan;
+  onScegli: (p: Plan, per: "monthly" | "annual") => void;
+}) {
+  return (
+    <section className="card mt-6 p-6">
+      <h2 className="font-display text-2xl text-green-800">Scegli il tuo piano</h2>
+      <p className="mt-1 text-sm text-green-900/70">
+        Lo stesso abbonamento vale anche su BioFido. Scegli ora, compili la
+        scheda e i prodotti, e paghi alla fine.
+      </p>
+      <div className="mt-6">
+        <PianiAbbonamento currentPlan={attivo} selectedPlan={scelto} onSelect={onScegli} />
+      </div>
+    </section>
+  );
+}
+
+/* ------------------- PAGAMENTO FINALE (dati fatturazione + checkout) ------------------- */
+function PagamentoFinale({
+  ownerId,
+  scelto,
+  attivo,
+  periodo,
+}: {
+  ownerId: string;
+  scelto: Plan;
+  attivo: Plan;
+  periodo: "monthly" | "annual";
+}) {
+  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [fatturazioneOk, setFatturazioneOk] = useState(false);
 
-  // La scelta del piano è salvata localmente in attesa dell'attivazione dei
-  // pagamenti (come su BioFido).
-  useEffect(() => {
-    const saved = window.localStorage.getItem("ecovisa_plan") as Plan | null;
-    if (saved && saved in PLAN_MAP) setCurrent(saved);
-  }, []);
+  const giaAttivo = attivo === scelto && attivo !== "free";
 
-  function choose(plan: Plan, period: "monthly" | "annual") {
-    setSelected(plan);
-    window.localStorage.setItem("ecovisa_plan", plan);
-    setCurrent(plan);
-    setMsg(
-      plan === "free"
-        ? "Sei sul piano Free."
-        : `Hai scelto il piano ${PLAN_MAP[plan].label} (${
-            period === "annual" ? "annuale" : "mensile"
-          }). Attiveremo il pagamento a breve.`
+  async function paga() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await startCheckout(scelto, periodo);
+    } catch (e) {
+      setBusy(false);
+      setMsg((e as Error).message);
+    }
+  }
+
+  if (scelto === "free") {
+    return (
+      <section className="card mt-6 p-6 text-center">
+        <h2 className="font-display text-2xl text-green-800">Tutto pronto, gratis</h2>
+        <p className="mt-1 text-sm text-green-900/70">
+          Con il piano Free la tua scheda e i tuoi prodotti sono già attivi.
+          Niente da pagare.
+        </p>
+      </section>
     );
   }
 
-  return (
-    <section className="card mt-6 p-6">
-      <h2 className="font-display text-2xl text-green-800">Il tuo abbonamento</h2>
-      <p className="mt-1 text-sm text-green-900/70">
-        Mostra il valore vero dei tuoi prodotti, non il prezzo più basso. Cambia
-        piano quando vuoi: i costi sono sempre qui sotto.
-      </p>
-      <div className="mt-6">
-        <PianiAbbonamento
-          currentPlan={current}
-          selectedPlan={selected}
-          onSelect={choose}
-        />
-      </div>
-      {msg && (
-        <p className="mt-4 rounded-xl bg-leaf px-4 py-3 text-sm font-semibold text-green-800">
-          {msg}
+  if (giaAttivo) {
+    return (
+      <section className="card mt-6 p-6 text-center">
+        <h2 className="font-display text-2xl text-green-800">
+          Piano {PLAN_MAP[scelto].label} attivo ✅
+        </h2>
+        <p className="mt-1 text-sm text-green-900/70">
+          Il tuo abbonamento è attivo: vale sia su ECO-VISA sia su BioFido.
         </p>
-      )}
+      </section>
+    );
+  }
+
+  const prezzo =
+    periodo === "annual"
+      ? `${PLAN_MAP[scelto].annualPrice} € + IVA/anno`
+      : `${PLAN_MAP[scelto].monthlyPrice} € + IVA/mese`;
+
+  return (
+    <section className="mt-6 space-y-4">
+      <DatiFatturazioneForm ownerId={ownerId} onValid={setFatturazioneOk} />
+
+      <div className="panel-dark rounded-2xl p-6 text-center">
+        <h2 className="font-display text-2xl">Attiva il piano {PLAN_MAP[scelto].label}</h2>
+        <p className="mt-1 text-[#eaf7d8]">
+          Un solo abbonamento, valido su ECO-VISA e BioFido.
+        </p>
+        {billingEnabled ? (
+          <>
+            <button
+              className="btn-lime mt-4"
+              onClick={paga}
+              disabled={busy || !fatturazioneOk}
+            >
+              {busy ? "Apro il pagamento…" : `Vai al pagamento — ${prezzo}`}
+            </button>
+            {!fatturazioneOk && (
+              <p className="mt-3 text-sm text-badge-yellow">
+                Salva prima i dati di fatturazione qui sopra.
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="mt-3 text-sm text-[#eaf7d8]">Pagamenti non ancora attivi.</p>
+        )}
+        {msg && <p className="mt-3 text-sm font-semibold text-badge-yellow">{msg}</p>}
+      </div>
     </section>
   );
 }
@@ -263,7 +363,13 @@ function AnagraficaCard({
         </label>
         <label className="block">
           <span className="label">Città sede</span>
-          <input className="field mt-1" value={citta} onChange={(e) => setCitta(e.target.value)} />
+          <div className="mt-1">
+            <ComuneAutocomplete
+              value={citta}
+              onSelect={(c) => setCitta(c.nome)}
+              placeholder="Inizia a scrivere la città…"
+            />
+          </div>
         </label>
         <label className="block">
           <span className="label">Sito web</span>
