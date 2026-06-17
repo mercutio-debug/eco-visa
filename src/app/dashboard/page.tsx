@@ -13,6 +13,7 @@ import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
+import { SezioneBio } from "@/components/SezioneBio";
 import { getMyPlan } from "@/lib/plan";
 import { billingEnabled, startCheckout } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
@@ -153,6 +154,8 @@ export default function DashboardPage() {
         initialNome={(user?.user_metadata as { nome?: string })?.nome}
         onSaved={loadAll}
       />
+
+      {user && <SezioneBio ownerId={user.id} />}
 
       {azienda && (
         <>
