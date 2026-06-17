@@ -14,6 +14,7 @@ import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
+import { CatalogoCard } from "@/components/CatalogoCard";
 import { getMyPlan } from "@/lib/plan";
 import { billingEnabled, startCheckout } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
@@ -172,6 +173,8 @@ export default function DashboardPage() {
           />
         </>
       )}
+
+      {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
       {user && (
         <PagamentoFinale
