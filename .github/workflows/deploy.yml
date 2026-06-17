@@ -33,6 +33,8 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_BILLING_ENABLED: "true"
+          NEXT_PUBLIC_TURNSTILE_SITEKEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITEKEY }}
         run: npm run build
 
       - name: Pubblica out/ sul branch hostinger-deploy

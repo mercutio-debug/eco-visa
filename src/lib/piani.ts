@@ -47,7 +47,7 @@ export const PLAN_MAP: Record<Plan, PlanInfo> = {
   },
   gold: {
     id: "gold", label: "Gold", monthlyPrice: 24, annualPrice: 240,
-    maxProducts: Infinity, badgeEmbed: true, richProfile: true,
+    maxProducts: 100, badgeEmbed: true, richProfile: true,
     directoryBoost: 25, featuredKm0: true, statsLevel: "advanced",
   },
 };
