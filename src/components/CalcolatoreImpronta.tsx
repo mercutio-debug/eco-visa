@@ -157,9 +157,15 @@ export function CalcolatoreImpronta() {
             </div>
 
             <p className="mt-4 text-xs text-[#dceec2]">
-              Camion in Europa: 800 g CO₂/km · Nave fuori UE: 30 g CO₂/km + camion
-              dal porto allo stabilimento.
+              Il colore dipende dalla distanza media delle materie prime: verde
+              ≤ 200 km, giallo ≤ 700 km, rosso oltre o fuori UE.
             </p>
+            <Link
+              href="/semaforo"
+              className="mt-1 inline-block text-xs font-semibold text-lime-300 hover:underline"
+            >
+              Come funziona il semaforo →
+            </Link>
 
             {/* Verificare è gratis; pubblicare richiede registrazione */}
             <Link href="/registrati" className="btn-lime mt-5 inline-flex w-full justify-center">

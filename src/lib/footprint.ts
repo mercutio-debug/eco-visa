@@ -47,6 +47,7 @@ export type ProductFootprint = {
   ingredients: IngredientResult[];
   totalKm: number;
   totalCo2Kg: number;
+  avgKm: number; // distanza MEDIA di trasporto delle materie prime (criterio semaforo)
   score: number; // 0..100 (più alto = meglio)
   level: EcoLevel;
 };
@@ -116,16 +117,21 @@ export function computeIngredient(
   };
 }
 
-/** soglie del semaforo, in kg di CO2 totali del trasporto */
-export function levelFromCo2Kg(kg: number): EcoLevel {
-  if (kg < 1500) return "verde";
-  if (kg <= 4000) return "giallo";
-  return "rosso";
+/* SOGLIE DEL SEMAFORO — criterio OGGETTIVO: distanza MEDIA di trasporto delle
+   materie prime (km), indipendente da quantità e numero di ingredienti, allineata
+   alla filiera corta / km0. Una sola materia prima da fuori UE porta al rosso. */
+export const SOGLIA_VERDE_KM = 200; //  ≤ 200 km: filiera corta (≤ 70 km = km0 puro)
+export const SOGLIA_GIALLO_KM = 700; // ≤ 700 km: scala nazionale / europea
+
+export function levelFromAvgKm(avgKm: number, presenzaExtraUe: boolean): EcoLevel {
+  if (presenzaExtraUe || avgKm > SOGLIA_GIALLO_KM) return "rosso";
+  if (avgKm > SOGLIA_VERDE_KM) return "giallo";
+  return "verde";
 }
 
-export function scoreFromCo2Kg(kg: number): number {
-  // 0 kg → 100 ; 5000 kg → 0
-  return Math.max(0, Math.min(100, Math.round(100 - kg / 50)));
+export function scoreFromAvgKm(avgKm: number): number {
+  // 0 km → 100 ; 1000 km → 0
+  return Math.max(0, Math.min(100, Math.round(100 - avgKm / 10)));
 }
 
 /** calcola l'impronta completa di un prodotto */
@@ -141,6 +147,7 @@ export function computeFootprint(
       ingredients: [],
       totalKm: 0,
       totalCo2Kg: 0,
+      avgKm: 0,
       score: 0,
       level: "rosso",
     };
@@ -154,14 +161,22 @@ export function computeFootprint(
   const totalCo2g = results.reduce((s, r) => s + r.co2g, 0);
   const totalCo2Kg = Math.round(totalCo2g / 1000);
 
+  // Criterio semaforo: distanza media delle materie prime riconosciute.
+  const risolti = results.filter((r) => r.resolved);
+  const avgKm = risolti.length
+    ? Math.round(risolti.reduce((s, r) => s + r.totalKm, 0) / risolti.length)
+    : 0;
+  const presenzaExtraUe = risolti.some((r) => !r.eu);
+
   return {
     plant: plant.name,
     resolvedPlant: true,
     ingredients: results,
     totalKm,
     totalCo2Kg,
-    score: scoreFromCo2Kg(totalCo2Kg),
-    level: levelFromCo2Kg(totalCo2Kg),
+    avgKm,
+    score: scoreFromAvgKm(avgKm),
+    level: levelFromAvgKm(avgKm, presenzaExtraUe),
   };
 }
 
