@@ -19,6 +19,7 @@ export function Footer() {
             <li><Link href="/prodotti" className="hover:text-lime-500">Schede prodotto</Link></li>
             <li><Link href="/calcola" className="hover:text-lime-500">Calcola impronta</Link></li>
             <li><Link href="/biofido" className="hover:text-lime-500">BioFido</Link></li>
+            <li><Link href="/accedi" className="hover:text-lime-500">Admin</Link></li>
           </ul>
         </div>
         <div>
