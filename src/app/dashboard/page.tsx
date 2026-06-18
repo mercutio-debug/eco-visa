@@ -118,7 +118,7 @@ export default function DashboardPage() {
     getMyPlan().then((p) => {
       setActivePlan(p);
       const saved = window.localStorage.getItem("ecovisa_plan") as Plan | null;
-      setPianoScelto(p !== "free" ? p : saved && saved in PLAN_MAP ? saved : "silver");
+      setPianoScelto(p !== "free" ? p : saved && saved in PLAN_MAP ? saved : "free");
     });
   }, [user]);
 
