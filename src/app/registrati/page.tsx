@@ -16,6 +16,7 @@ export default function RegistratiPage() {
   const [loading, setLoading] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
+  const [anchePerBiofido, setAnchePerBiofido] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,15 +36,36 @@ export default function RegistratiPage() {
     const { data, error: signErr } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nome }, captchaToken: captcha ?? undefined },
+      options: {
+        data: { nome, vuole_biofido: anchePerBiofido },
+        captchaToken: captcha ?? undefined,
+      },
     });
     setLoading(false);
     if (signErr) {
-      setError(signErr.message);
+      // Supabase a volte restituisce direttamente "User already registered"
+      setError(
+        /already registered/i.test(signErr.message)
+          ? "Utente già registrato. Accedi con le tue credenziali."
+          : signErr.message,
+      );
       setCaptcha(null);
       setCaptchaKey((k) => k + 1);
       return;
     }
+    // email già presente: Supabase risponde con un utente SENZA identità (anti-enumerazione)
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      setInfo(null);
+      setError(
+        "Utente già registrato. Lo stesso account vale su ECO-VISA e BioFido: accedi con le tue credenziali.",
+      );
+      setCaptcha(null);
+      setCaptchaKey((k) => k + 1);
+      return;
+    }
+    const notaBiofido = anchePerBiofido
+      ? " Potrai accedere anche su BioFido con queste stesse credenziali."
+      : "";
     if (data.session) {
       // conferma email disattivata: si entra subito
       router.push("/dashboard");
@@ -52,7 +74,8 @@ export default function RegistratiPage() {
       setInfo(
         "Account creato! Ti abbiamo inviato un'email di conferma a " +
           email +
-          ". Conferma l'indirizzo, poi accedi."
+          ". Conferma l'indirizzo, poi accedi." +
+          notaBiofido,
       );
     }
   }
@@ -102,6 +125,20 @@ export default function RegistratiPage() {
             placeholder="Almeno 6 caratteri"
             required
           />
+        </label>
+
+        <label className="flex items-start gap-2 rounded-xl bg-leaf/50 p-3">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+            checked={anchePerBiofido}
+            onChange={(e) => setAnchePerBiofido(e.target.checked)}
+          />
+          <span className="text-sm text-green-900/90">
+            <strong>Iscrivimi anche a BioFido</strong> — la mappa del biologico a
+            chilometro zero. Stesso account, stesse credenziali (richiede la
+            certificazione bio nella scheda).
+          </span>
         </label>
 
         {error && <p className="text-sm font-semibold text-traffic-red">{error}</p>}
