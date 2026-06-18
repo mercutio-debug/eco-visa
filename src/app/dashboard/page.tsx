@@ -16,6 +16,7 @@ import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { CatalogoCard } from "@/components/CatalogoCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
+import { lookupPiva } from "@/lib/fatturazione";
 import { getMyPlan } from "@/lib/plan";
 import { billingEnabled, startCheckout } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
@@ -308,6 +309,8 @@ function PagamentoFinale({
 }
 
 /* ------------------- ANAGRAFICA AZIENDA ------------------- */
+const BOZZA_ANAGRAFICA = "ecovisa_anagrafica_bozza";
+
 function AnagraficaCard({
   azienda,
   initialNome,
@@ -326,16 +329,68 @@ function AnagraficaCard({
   const [citta, setCitta] = useState(azienda?.citta_sede ?? "");
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
   const [saving, setSaving] = useState(false);
+  const [lookupBusy, setLookupBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Se l'azienda è già salvata uso i suoi dati; altrimenti ripristino la BOZZA
+  // locale, così cambiando pagina o ricaricando NON si perde quanto digitato.
   useEffect(() => {
-    setNome(azienda?.nome ?? initialNome ?? "");
-    setPiva(azienda?.piva ?? "");
-    setCf(azienda?.codice_fiscale ?? "");
-    setCfUguale(!!azienda?.codice_fiscale && azienda.codice_fiscale === azienda.piva);
-    setCitta(azienda?.citta_sede ?? "");
-    setSito(azienda?.sito_web ?? "");
+    if (azienda) {
+      setNome(azienda.nome ?? initialNome ?? "");
+      setPiva(azienda.piva ?? "");
+      setCf(azienda.codice_fiscale ?? "");
+      setCfUguale(!!azienda.codice_fiscale && azienda.codice_fiscale === azienda.piva);
+      setCitta(azienda.citta_sede ?? "");
+      setSito(azienda.sito_web ?? "");
+      return;
+    }
+    try {
+      const b = JSON.parse(localStorage.getItem(BOZZA_ANAGRAFICA) || "null");
+      if (b) {
+        setNome(b.nome ?? initialNome ?? "");
+        setPiva(b.piva ?? "");
+        setCf(b.cf ?? "");
+        setCfUguale(!!b.cfUguale);
+        setCitta(b.citta ?? "");
+        setSito(b.sito ?? "");
+      }
+    } catch {
+      /* bozza assente o corrotta */
+    }
   }, [azienda, initialNome]);
+
+  // salva la bozza ad ogni modifica (finché l'azienda non è registrata sul server)
+  useEffect(() => {
+    if (azienda) return;
+    try {
+      localStorage.setItem(
+        BOZZA_ANAGRAFICA,
+        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito }),
+      );
+    } catch {
+      /* localStorage non disponibile */
+    }
+  }, [azienda, nome, piva, cf, cfUguale, citta, sito]);
+
+  async function recuperaDaPiva() {
+    if (piva.replace(/\D/g, "").length !== 11) return;
+    setLookupBusy(true);
+    setMsg(null);
+    try {
+      const d = await lookupPiva(piva);
+      if (!d) {
+        setMsg("Partita IVA non trovata: inserisci i dati a mano.");
+      } else {
+        if (d.ragione_sociale) setNome(d.ragione_sociale);
+        if (d.citta) setCitta(d.citta);
+        setMsg("Dati recuperati dal registro VIES ✓");
+      }
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setLookupBusy(false);
+    }
+  }
 
   async function save() {
     setSaving(true);
@@ -366,6 +421,11 @@ function AnagraficaCard({
     setSaving(false);
     if (error) setMsg("Errore: " + error.message);
     else {
+      try {
+        localStorage.removeItem(BOZZA_ANAGRAFICA);
+      } catch {
+        /* ignore */
+      }
       setMsg("Salvato ✓");
       onSaved();
     }
@@ -385,7 +445,23 @@ function AnagraficaCard({
         </label>
         <label className="block">
           <span className="label">Partita IVA</span>
-          <input className="field mt-1" value={piva} onChange={(e) => setPiva(e.target.value)} />
+          <div className="mt-1 flex gap-2">
+            <input
+              className="field flex-1"
+              value={piva}
+              inputMode="numeric"
+              placeholder="11 cifre"
+              onChange={(e) => setPiva(e.target.value)}
+            />
+            <button
+              type="button"
+              className="btn-ghost whitespace-nowrap text-sm"
+              onClick={recuperaDaPiva}
+              disabled={lookupBusy || piva.replace(/\D/g, "").length !== 11}
+            >
+              {lookupBusy ? "Cerco…" : "Recupera dati"}
+            </button>
+          </div>
         </label>
         <div className="block">
           <span className="label">Codice fiscale</span>
