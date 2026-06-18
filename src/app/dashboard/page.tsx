@@ -14,6 +14,7 @@ import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
+import { SchedaServizi } from "@/components/SchedaServizi";
 import { CatalogoCard } from "@/components/CatalogoCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
@@ -153,6 +154,8 @@ export default function DashboardPage() {
       </div>
 
       <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
+
+      <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
       <AnagraficaCard
         azienda={azienda}
