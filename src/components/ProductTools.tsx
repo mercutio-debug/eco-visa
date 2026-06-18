@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LocationInput } from "./LocationInput";
 import { Semaforo } from "./Semaforo";
 import { Radar, type RadarPoint } from "./Radar";
-import { deliveryCo2Kg, distanceKm, type EcoLevel } from "@/lib/footprint";
+import { deliveryCo2Kg, distanceKm, type Giudizio } from "@/lib/footprint";
 
 export type AltDTO = {
   slug: string;
@@ -14,7 +14,7 @@ export type AltDTO = {
   plant: string;
   totalCo2Kg: number;
   score: number;
-  level: EcoLevel;
+  level: Giudizio;
 };
 
 export type Km0DTO = {

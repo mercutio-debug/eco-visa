@@ -5,7 +5,7 @@ import Link from "next/link";
 import { computeFootprint, type IngredientInput } from "@/lib/footprint";
 import { allPlaceNames } from "@/lib/geo";
 import { useGeoResolve } from "@/lib/useGeoResolve";
-import { Semaforo } from "@/components/Semaforo";
+import { Semaforo, SemaforoIngrediente } from "@/components/Semaforo";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 
 /**
@@ -104,9 +104,10 @@ export function CalcolatoreImpronta() {
                       placeholder="Origine (es. Siena)"
                     />
                     <div className="flex items-center gap-2">
-                      <span className="min-w-20 text-right text-sm font-semibold text-green-800">
-                        {res && res.resolved
-                          ? `${(res.co2g / 1000).toLocaleString("it-IT", { maximumFractionDigits: 0 })} kg`
+                      {res?.resolved && <SemaforoIngrediente tier={res.tier} />}
+                      <span className="min-w-16 text-right text-xs font-semibold text-green-800">
+                        {res?.resolved
+                          ? `${res.totalKm.toLocaleString("it-IT")} km`
                           : row.origin
                           ? "—"
                           : ""}
