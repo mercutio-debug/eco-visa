@@ -6,9 +6,13 @@ import { BIO_PRODUCERS } from "@/lib/data";
 import { distanceKm } from "@/lib/footprint";
 import { LocationInput } from "@/components/LocationInput";
 import { Radar, type RadarPoint } from "@/components/Radar";
-import { BioFidoBadge } from "@/components/Logo";
 
 const CATEGORIES = ["Tutte", ...Array.from(new Set(BIO_PRODUCERS.map((b) => b.category)))];
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+// Link allo store dell'app BioFido. Vuoto = "presto sullo store"; appena la
+// pagina su Google Play è pubblica, basta incollare qui l'URL.
+const APP_STORE_URL = "";
 
 export default function BioFidoPage() {
   const [loc, setLoc] = useState("Genova");
@@ -37,13 +41,17 @@ export default function BioFidoPage() {
       {/* HERO */}
       <div className="grid items-center gap-8 md:grid-cols-2">
         <div>
-          <div className="flex items-center gap-3">
-            <BioFidoBadge size={64} />
-            <h1 className="font-display text-5xl md:text-6xl">
-              <span className="text-cape-red">Bio</span>
-              <span className="text-green-700">fido</span>
-            </h1>
-          </div>
+          <h1 className="flex items-center">
+            <Image
+              src={`${BASE}/brand/biofido-solologo.png`}
+              alt="BioFido"
+              width={300}
+              height={200}
+              priority
+              className="h-20 w-auto md:h-24"
+            />
+            <span className="sr-only">BioFido</span>
+          </h1>
           <p className="mt-4 max-w-md text-lg text-green-900/80">
             Il segugio del biologico. Annusa per te i produttori biologici
             intorno alla tua posizione e ti dice di che categoria merceologica
@@ -60,6 +68,40 @@ export default function BioFidoPage() {
             priority
           />
         </div>
+      </div>
+
+      {/* SCARICA L'APP */}
+      <div className="mt-8 flex flex-col items-center gap-5 rounded-3xl border-2 border-cape-red bg-white p-6 text-center sm:flex-row sm:text-left">
+        <Image
+          src={`${BASE}/brand/biofido-app-icon.png`}
+          alt="App BioFido"
+          width={96}
+          height={96}
+          className="h-20 w-20 flex-none rounded-2xl shadow"
+        />
+        <div className="flex-1">
+          <h3 className="font-display text-2xl text-green-800">
+            Porta BioFido nel taschino
+          </h3>
+          <p className="mt-1 text-sm text-green-900/70">
+            Installa l&apos;app sul telefono e trova i produttori biologici a
+            chilometro zero ovunque tu sia.
+          </p>
+        </div>
+        {APP_STORE_URL ? (
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lime whitespace-nowrap"
+          >
+            📲 Scarica l&apos;app
+          </a>
+        ) : (
+          <span className="whitespace-nowrap rounded-full border-2 border-green-700 px-4 py-2 text-sm font-bold text-green-700">
+            🐾 Presto sullo store
+          </span>
+        )}
       </div>
 
       {/* CONTROLLI */}
