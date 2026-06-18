@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { EcoVisaLogo } from "./Logo";
+import { UserMenu } from "./UserMenu";
 
 const nav = [
   { href: "/prodotti", label: "Prodotti" },
@@ -7,7 +8,6 @@ const nav = [
   { href: "/biofido", label: "BioFido" },
   { href: "/abbonamenti", label: "Abbonamenti" },
   { href: "/#come-funziona", label: "Come funziona" },
-  { href: "/accedi", label: "Accedi" },
 ];
 
 export function Header() {
@@ -29,9 +29,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <Link href="/registrati" className="btn-lime text-xs sm:text-sm">
-            Sei un&apos;azienda? Iscriviti e carica i tuoi prodotti!
-          </Link>
+          <UserMenu />
         </div>
       </div>
     </header>
