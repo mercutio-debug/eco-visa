@@ -19,7 +19,9 @@ type Row = IngredientInput & { id: number };
 let _id = 100;
 const newRow = (name = "", origin = ""): Row => ({ id: _id++, name, origin });
 
-export function CalcolatoreImpronta() {
+export function CalcolatoreImpronta({
+  nascondiPubblica = false,
+}: { nascondiPubblica?: boolean } = {}) {
   const [company, setCompany] = useState("Dolciaria Il Melograno S.r.l.");
   const [product, setProduct] = useState("Biscotti al farro del Melograno");
   const [plant, setPlant] = useState("Cuneo");
@@ -172,13 +174,17 @@ export function CalcolatoreImpronta() {
             </Link>
 
             {/* Verificare è gratis; pubblicare richiede registrazione */}
-            <Link href="/registrati" className="btn-lime mt-5 inline-flex w-full justify-center">
-              Pubblica questo prodotto su ECO-VISA
-            </Link>
-            <p className="mt-2 text-center text-[11px] text-[#dceec2]">
-              Calcolare il semaforo è gratis e senza registrazione. Per pubblicare
-              prodotto e semaforo serve un account.
-            </p>
+            {!nascondiPubblica && (
+              <>
+                <Link href="/registrati" className="btn-lime mt-5 inline-flex w-full justify-center">
+                  Pubblica questo prodotto su ECO-VISA
+                </Link>
+                <p className="mt-2 text-center text-[11px] text-[#dceec2]">
+                  Calcolare il semaforo è gratis e senza registrazione. Per pubblicare
+                  prodotto e semaforo serve un account.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
+import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { CatalogoCard } from "@/components/CatalogoCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
@@ -152,6 +153,29 @@ export default function DashboardPage() {
           Esci
         </button>
       </div>
+
+      {/* IL SEMAFORO È LA PRIMA COSA SU ECO-VISA: compila il prodotto e ottieni il giudizio */}
+      <section className="card mt-6 border-2 border-lime-500 p-6">
+        <h2 className="font-display text-2xl text-green-700 md:text-3xl">
+          🚦 Il tuo semaforo di sostenibilità
+        </h2>
+        <p className="mt-1 text-sm text-green-900/75">
+          Compila la scheda del tuo prodotto e ottieni subito il semaforo ecologico.{" "}
+          <strong>
+            Come utente Free puoi caricare e condividere sul tuo sito un solo prodotto
+          </strong>{" "}
+          — scegli un abbonamento qui sotto e potrai caricare più schede.
+        </p>
+        <div className="mt-5">
+          <CalcolatoreImpronta nascondiPubblica />
+        </div>
+        <p className="mt-4 rounded-xl bg-leaf/50 p-3 text-sm text-green-900/75">
+          👉 Per <strong>salvare il prodotto e generare il codice</strong> da copiare
+          e incollare sul tuo sito (che mostra questa cornice-semaforo, sempre
+          aggiornata), aggiungilo nella sezione <strong>«I tuoi prodotti»</strong> qui
+          sotto.
+        </p>
+      </section>
 
       <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
 
