@@ -6,6 +6,7 @@ import { computeFootprint, type IngredientInput } from "@/lib/footprint";
 import { allPlaceNames } from "@/lib/geo";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo, SemaforoIngrediente } from "@/components/Semaforo";
+import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 
 /**
@@ -156,6 +157,8 @@ export function CalcolatoreImpronta() {
                 <div className="text-xs text-[#e6f4d3]">km percorsi</div>
               </div>
             </div>
+
+            <AlberiCompensazione co2Kg={fp.totalCo2Kg} scuro />
 
             <p className="mt-4 text-xs text-[#dceec2]">
               Il colore dipende dalla distanza media delle materie prime: verde
