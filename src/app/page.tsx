@@ -5,6 +5,7 @@ import { getProduct } from "@/lib/data";
 import { Semaforo } from "@/components/Semaforo";
 import { HomeSearch } from "@/components/HomeSearch";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
+import { MappaAziende } from "@/components/MappaAziende";
 
 const BIOFIDO_URL = "https://mercutio-debug.github.io/biofido/";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -206,6 +207,22 @@ export default function Home() {
               Funziona su Android e iPhone dal browser. Presto anche sugli store.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* MAPPA DELLE AZIENDE ISCRITTE (anche solo ECO-VISA) */}
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="title-pangea text-4xl text-green-700 md:text-5xl">
+          Le aziende su ECO-VISA
+        </h2>
+        <p className="mt-2 max-w-2xl text-green-900/80">
+          Anche chi è iscritto solo su ECO-VISA si vede sulla mappa. In{" "}
+          <strong className="text-green-700">verde</strong> le aziende che hanno già
+          caricato almeno un prodotto col semaforo; in grigio quelle iscritte ancora
+          senza prodotti.
+        </p>
+        <div className="mt-6">
+          <MappaAziende />
         </div>
       </section>
     </div>
