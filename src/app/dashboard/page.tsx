@@ -24,6 +24,7 @@ type Azienda = {
   id: string;
   nome: string;
   piva: string | null;
+  codice_fiscale: string | null;
   citta_sede: string | null;
   sito_web: string | null;
 };
@@ -318,6 +319,10 @@ function AnagraficaCard({
 }) {
   const [nome, setNome] = useState(azienda?.nome ?? initialNome ?? "");
   const [piva, setPiva] = useState(azienda?.piva ?? "");
+  const [cf, setCf] = useState(azienda?.codice_fiscale ?? "");
+  const [cfUguale, setCfUguale] = useState(
+    !!azienda?.codice_fiscale && azienda.codice_fiscale === azienda.piva,
+  );
   const [citta, setCitta] = useState(azienda?.citta_sede ?? "");
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
   const [saving, setSaving] = useState(false);
@@ -326,6 +331,8 @@ function AnagraficaCard({
   useEffect(() => {
     setNome(azienda?.nome ?? initialNome ?? "");
     setPiva(azienda?.piva ?? "");
+    setCf(azienda?.codice_fiscale ?? "");
+    setCfUguale(!!azienda?.codice_fiscale && azienda.codice_fiscale === azienda.piva);
     setCitta(azienda?.citta_sede ?? "");
     setSito(azienda?.sito_web ?? "");
   }, [azienda, initialNome]);
@@ -336,14 +343,25 @@ function AnagraficaCard({
     const payload = {
       nome,
       piva: piva || null,
+      codice_fiscale: (cfUguale ? piva : cf) || null,
       citta_sede: citta || null,
       sito_web: sito || null,
     };
-    let error;
-    if (azienda) {
-      ({ error } = await supabase.from("aziende").update(payload).eq("id", azienda.id));
-    } else {
-      ({ error } = await supabase.from("aziende").insert(payload));
+    const esegui = (p: Record<string, unknown>) =>
+      azienda
+        ? supabase.from("aziende").update(p).eq("id", azienda.id)
+        : supabase.from("aziende").insert(p);
+
+    let { error } = await esegui(payload);
+    // se la colonna codice_fiscale non è ancora presente nel DB, salvo senza
+    if (error && /codice_fiscale/i.test(error.message)) {
+      const senzaCf = {
+        nome: payload.nome,
+        piva: payload.piva,
+        citta_sede: payload.citta_sede,
+        sito_web: payload.sito_web,
+      };
+      ({ error } = await esegui(senzaCf));
     }
     setSaving(false);
     if (error) setMsg("Errore: " + error.message);
@@ -369,6 +387,25 @@ function AnagraficaCard({
           <span className="label">Partita IVA</span>
           <input className="field mt-1" value={piva} onChange={(e) => setPiva(e.target.value)} />
         </label>
+        <div className="block">
+          <span className="label">Codice fiscale</span>
+          <input
+            className="field mt-1 disabled:opacity-60"
+            value={cfUguale ? piva : cf}
+            disabled={cfUguale}
+            onChange={(e) => setCf(e.target.value)}
+            placeholder="Codice fiscale dell'azienda"
+          />
+          <label className="mt-1.5 flex items-center gap-2 text-xs font-semibold text-green-900/75">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-[var(--lime-500)]"
+              checked={cfUguale}
+              onChange={(e) => setCfUguale(e.target.checked)}
+            />
+            Codice fiscale uguale alla Partita IVA
+          </label>
+        </div>
         <label className="block">
           <span className="label">Città sede</span>
           <div className="mt-1">
