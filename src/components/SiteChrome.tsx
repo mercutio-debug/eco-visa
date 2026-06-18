@@ -6,6 +6,7 @@ import { Footer } from "./Footer";
 import { WelcomePopup } from "./WelcomePopup";
 import { AccessibilityWidget } from "./AccessibilityWidget";
 import { UpdateChecker } from "./UpdateChecker";
+import { CookieBanner } from "./CookieBanner";
 
 /**
  * Mostra header e footer del sito, tranne sulle pagine /embed (le strisce
@@ -25,6 +26,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       <WelcomePopup />
       <AccessibilityWidget />
       <UpdateChecker />
+      <CookieBanner />
     </>
   );
 }
