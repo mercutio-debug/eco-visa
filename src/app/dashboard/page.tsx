@@ -128,6 +128,36 @@ export default function DashboardPage() {
     window.localStorage.setItem("ecovisa_plan", p);
   }
 
+  // Salva il prodotto del calcolatore-semaforo tra "I tuoi prodotti" (poi
+  // l'utente vi aggiunge foto e dettagli). Lo stabilimento è la città del
+  // calcolatore; categoria/foto si completano dopo nella sezione prodotti.
+  async function aggiungiProdottoDaSemaforo(data: {
+    nome: string;
+    stabilimento: string;
+    ingredienti: { nome: string; origine: string }[];
+  }): Promise<{ error?: string }> {
+    if (!azienda) return { error: "Salva prima la scheda anagrafica qui sotto." };
+    const { data: prod, error } = await supabase
+      .from("prodotti")
+      .insert({
+        azienda_id: azienda.id,
+        nome: data.nome,
+        categoria: null,
+        stabilimento_citta: data.stabilimento,
+        immagine: null,
+      })
+      .select("id")
+      .single();
+    if (error || !prod) return { error: error?.message ?? "Errore nel salvataggio del prodotto." };
+    if (data.ingredienti.length) {
+      await supabase.from("ingredienti").insert(
+        data.ingredienti.map((i) => ({ prodotto_id: prod.id, nome: i.nome, origine: i.origine })),
+      );
+    }
+    await loadAll();
+    return {};
+  }
+
   if (authLoading || loading) {
     return <div className="mx-auto max-w-4xl px-4 py-16 text-green-900/70">Caricamento…</div>;
   }
@@ -167,7 +197,12 @@ export default function DashboardPage() {
           — scegli un abbonamento qui sotto e potrai caricare più schede.
         </p>
         <div className="mt-5">
-          <CalcolatoreImpronta nascondiPubblica vuoto aziendaNome={azienda?.nome ?? undefined} />
+          <CalcolatoreImpronta
+            nascondiPubblica
+            vuoto
+            aziendaNome={azienda?.nome ?? undefined}
+            onAggiungiProdotto={aggiungiProdottoDaSemaforo}
+          />
         </div>
         <p className="mt-4 rounded-xl bg-leaf/50 p-3 text-sm text-green-900/75">
           👉 Per <strong>salvare il prodotto e generare il codice</strong> da copiare
@@ -713,15 +748,23 @@ function ProdottiCard({
                       </div>
                       <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
                     </div>
-                    <button
-                      className="text-xs font-bold text-traffic-red hover:underline"
-                      onClick={async () => {
-                        await supabase.from("prodotti").delete().eq("id", p.id);
-                        onChange();
-                      }}
-                    >
-                      Elimina
-                    </button>
+                    <div className="flex flex-col items-end gap-1">
+                      <FotoProdottoBtn
+                        prodottoId={p.id}
+                        aziendaId={aziendaId}
+                        immagine={p.immagine}
+                        onChange={onChange}
+                      />
+                      <button
+                        className="text-xs font-bold text-traffic-red hover:underline"
+                        onClick={async () => {
+                          await supabase.from("prodotti").delete().eq("id", p.id);
+                          onChange();
+                        }}
+                      >
+                        Elimina
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <EmbedSnippet id={p.id} />
@@ -737,6 +780,44 @@ function ProdottiCard({
         onSaved={onChange}
       />
     </section>
+  );
+}
+
+function FotoProdottoBtn({
+  prodottoId,
+  aziendaId,
+  immagine,
+  onChange,
+}: {
+  prodottoId: string;
+  aziendaId: string;
+  immagine: string | null;
+  onChange: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  return (
+    <label className="cursor-pointer text-xs font-bold text-green-700 hover:underline">
+      {uploading ? "Carico…" : immagine ? "📷 Cambia foto" : "📷 Aggiungi foto"}
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          setUploading(true);
+          try {
+            const url = await caricaImmagineCatalogo(aziendaId, f);
+            await supabase.from("prodotti").update({ immagine: url }).eq("id", prodottoId);
+            onChange();
+          } catch (err) {
+            alert((err as Error).message);
+          } finally {
+            setUploading(false);
+          }
+        }}
+      />
+    </label>
   );
 }
 

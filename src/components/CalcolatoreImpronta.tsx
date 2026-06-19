@@ -23,11 +23,18 @@ export function CalcolatoreImpronta({
   nascondiPubblica = false,
   vuoto = false,
   aziendaNome,
+  onAggiungiProdotto,
 }: {
   nascondiPubblica?: boolean;
   vuoto?: boolean;
   /** nome dell'azienda loggata: precompila "Azienda produttrice" nella dashboard */
   aziendaNome?: string;
+  /** se presente, mostra il flag "Aggiungi ai miei prodotti" e salva il prodotto */
+  onAggiungiProdotto?: (data: {
+    nome: string;
+    stabilimento: string;
+    ingredienti: { nome: string; origine: string }[];
+  }) => Promise<{ error?: string }>;
 } = {}) {
   // Nella dashboard la cornice parte VUOTA (niente esempio Melograno); in home
   // resta l'esempio precompilato come dimostrazione. Il nome azienda, però, viene
@@ -45,6 +52,36 @@ export function CalcolatoreImpronta({
           newRow("Olio extravergine d'oliva", "Bari"),
         ],
   );
+
+  // Flag "Aggiungi ai miei prodotti" (solo in dashboard, quando c'è il handler)
+  const [aggiungi, setAggiungi] = useState(false);
+  const [salvandoProd, setSalvandoProd] = useState(false);
+  const [prodMsg, setProdMsg] = useState<string | null>(null);
+  const prodValido =
+    product.trim() !== "" &&
+    plant.trim() !== "" &&
+    rows.some((r) => r.name.trim() && r.origin.trim());
+
+  async function aggiungiAiProdotti() {
+    if (!onAggiungiProdotto || !prodValido) return;
+    setSalvandoProd(true);
+    setProdMsg(null);
+    const ingredienti = rows
+      .filter((r) => r.name.trim() && r.origin.trim())
+      .map((r) => ({ nome: r.name, origine: r.origin }));
+    const { error } = await onAggiungiProdotto({ nome: product, stabilimento: plant, ingredienti });
+    setSalvandoProd(false);
+    if (error) {
+      setProdMsg(error);
+      return;
+    }
+    setProdMsg("Aggiunto ai tuoi prodotti ✓ — aggiungi foto e dettagli nella sezione «I tuoi prodotti».");
+    setAggiungi(false);
+    // svuoto per poterne aggiungere un altro (tengo il nome azienda)
+    setProduct("");
+    setPlant("");
+    setRows([newRow(), newRow(), newRow()]);
+  }
 
   // Se il nome azienda arriva dopo il primo render (caricamento dashboard), lo
   // precompilo UNA volta sola e solo se il campo è ancora vuoto — così l'utente
@@ -218,6 +255,44 @@ export function CalcolatoreImpronta({
                   prodotto e semaforo serve un account.
                 </p>
               </>
+            )}
+
+            {/* Flag "Aggiungi ai miei prodotti" (nella dashboard personale) */}
+            {onAggiungiProdotto && (
+              <div className="mt-5 border-t border-white/15 pt-4">
+                <label className="flex items-center gap-2 text-sm font-semibold text-[#eaf7d8]">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-[var(--lime-500)]"
+                    checked={aggiungi}
+                    onChange={(e) => {
+                      setAggiungi(e.target.checked);
+                      setProdMsg(null);
+                    }}
+                  />
+                  ➕ Aggiungi ai miei prodotti
+                </label>
+                {aggiungi && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-lime mt-3 inline-flex w-full justify-center"
+                      disabled={salvandoProd || !prodValido}
+                      onClick={aggiungiAiProdotti}
+                    >
+                      {salvandoProd ? "Salvo…" : "Salva nel mio catalogo"}
+                    </button>
+                    {!prodValido && (
+                      <p className="mt-2 text-center text-[11px] text-[#dceec2]">
+                        Compila nome prodotto, stabilimento e almeno una materia prima con origine.
+                      </p>
+                    )}
+                  </>
+                )}
+                {prodMsg && (
+                  <p className="mt-2 text-center text-xs font-semibold text-lime-200">{prodMsg}</p>
+                )}
+              </div>
             )}
           </div>
         </div>
