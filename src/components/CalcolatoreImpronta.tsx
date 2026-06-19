@@ -21,16 +21,23 @@ const newRow = (name = "", origin = ""): Row => ({ id: _id++, name, origin });
 
 export function CalcolatoreImpronta({
   nascondiPubblica = false,
-}: { nascondiPubblica?: boolean } = {}) {
-  const [company, setCompany] = useState("Dolciaria Il Melograno S.r.l.");
-  const [product, setProduct] = useState("Biscotti al farro del Melograno");
-  const [plant, setPlant] = useState("Cuneo");
-  const [rows, setRows] = useState<Row[]>([
-    newRow("Farina di farro", "Siena"),
-    newRow("Zucchero di canna", "Brasile"),
-    newRow("Burro", "Romania"),
-    newRow("Olio extravergine d'oliva", "Bari"),
-  ]);
+  vuoto = false,
+}: { nascondiPubblica?: boolean; vuoto?: boolean } = {}) {
+  // Nella dashboard la cornice parte VUOTA (niente esempio Melograno); in home
+  // resta l'esempio precompilato come dimostrazione.
+  const [company, setCompany] = useState(vuoto ? "" : "Dolciaria Il Melograno S.r.l.");
+  const [product, setProduct] = useState(vuoto ? "" : "Biscotti al farro del Melograno");
+  const [plant, setPlant] = useState(vuoto ? "" : "Cuneo");
+  const [rows, setRows] = useState<Row[]>(
+    vuoto
+      ? [newRow(), newRow(), newRow()]
+      : [
+          newRow("Farina di farro", "Siena"),
+          newRow("Zucchero di canna", "Brasile"),
+          newRow("Burro", "Romania"),
+          newRow("Olio extravergine d'oliva", "Bari"),
+        ],
+  );
 
   const places = useMemo(() => allPlaceNames(), []);
   const { version, loading: geoLoading } = useGeoResolve([plant, ...rows.map((r) => r.origin)]);
@@ -83,7 +90,7 @@ export function CalcolatoreImpronta({
                 </div>
               </label>
             </div>
-            {!fp.resolvedPlant && (
+            {plant.trim() && !fp.resolvedPlant && (
               <p className="mt-2 text-sm text-traffic-red">
                 Stabilimento non riconosciuto: scegli una località dall&apos;elenco (es. Cuneo).
               </p>

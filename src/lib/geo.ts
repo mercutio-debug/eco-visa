@@ -271,6 +271,27 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
   }
 }
 
+/**
+ * CAP indicativo di un comune (via Nominatim). Molti comuni hanno più CAP: si
+ * restituisce quello rappresentativo (modificabile dall'utente). null se ignoto.
+ */
+export async function lookupCap(citta: string, prov?: string): Promise<string | null> {
+  if (!citta || !citta.trim()) return null;
+  try {
+    const q = (prov ? `${citta} ${prov}` : citta) + ", Italia";
+    const url =
+      "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=it&countrycodes=it&q=" +
+      encodeURIComponent(q);
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const arr = (await res.json()) as Array<{ address?: { postcode?: string } }>;
+    const pc = arr?.[0]?.address?.postcode;
+    return typeof pc === "string" && pc.trim() ? pc.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 /** memorizza manualmente un punto sotto un nome (usato alla selezione). */
 export function rememberPlace(name: string, point: GeoPoint) {
   if (name) storeOsm(norm(name), point);

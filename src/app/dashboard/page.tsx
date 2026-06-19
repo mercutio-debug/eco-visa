@@ -12,7 +12,7 @@ import { Semaforo } from "@/components/Semaforo";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
-import { DatiFatturazioneForm } from "@/components/DatiFatturazioneForm";
+import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
@@ -167,7 +167,7 @@ export default function DashboardPage() {
           — scegli un abbonamento qui sotto e potrai caricare più schede.
         </p>
         <div className="mt-5">
-          <CalcolatoreImpronta nascondiPubblica />
+          <CalcolatoreImpronta nascondiPubblica vuoto />
         </div>
         <p className="mt-4 rounded-xl bg-leaf/50 p-3 text-sm text-green-900/75">
           👉 Per <strong>salvare il prodotto e generare il codice</strong> da copiare
@@ -218,6 +218,12 @@ export default function DashboardPage() {
           ownerId={user.id}
           scelto={pianoScelto}
           attivo={activePlan}
+          prefill={{
+            ragione_sociale: azienda?.nome ?? undefined,
+            partita_iva: azienda?.piva ?? undefined,
+            codice_fiscale: azienda?.codice_fiscale ?? undefined,
+            citta: azienda?.citta_sede ?? undefined,
+          }}
         />
       )}
     </div>
@@ -253,10 +259,12 @@ function PagamentoFinale({
   ownerId,
   scelto,
   attivo,
+  prefill,
 }: {
   ownerId: string;
   scelto: Plan;
   attivo: Plan;
+  prefill?: PrefillFatturazione;
 }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -306,7 +314,7 @@ function PagamentoFinale({
 
   return (
     <section className="mt-6 space-y-4">
-      <DatiFatturazioneForm ownerId={ownerId} onValid={setFatturazioneOk} />
+      <DatiFatturazioneForm ownerId={ownerId} onValid={setFatturazioneOk} prefill={prefill} />
 
       <div className="panel-dark rounded-2xl p-6 text-center">
         <h2 className="font-display text-2xl">Attiva il piano {PLAN_MAP[scelto].label}</h2>
@@ -337,6 +345,11 @@ function PagamentoFinale({
                 Con l&apos;annuale risparmi: {mensileSuAnno - annuale} € all&apos;anno.
               </p>
             </div>
+            <p className="mx-auto mt-3 max-w-sm text-xs text-[#cfe3b4]">
+              Rinnovo automatico: il mensile si rinnova ogni mese, l&apos;annuale ogni
+              anno. Puoi disdire quando vuoi; <strong>per non rinnovare, annulla
+              almeno 10 giorni prima della scadenza</strong>.
+            </p>
             {!fatturazioneOk && (
               <p className="mt-3 text-sm text-badge-yellow">
                 Salva prima i dati di fatturazione qui sopra.
