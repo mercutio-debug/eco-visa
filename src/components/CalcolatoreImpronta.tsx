@@ -40,6 +40,16 @@ export function CalcolatoreImpronta({
     [plant, rows, version],
   );
 
+  // Righe effettivamente calcolate (stesso filtro di computeFootprint): servono
+  // per allineare ogni riga al suo risultato PER INDICE. Non si può confrontare
+  // per origine perché il calcolo restituisce il nome RISOLTO (es. "Brasile" →
+  // "San Paolo", "Romania" → "Bucarest"): il confronto fallirebbe e la riga
+  // mostrerebbe "—" pur avendo una distanza valida.
+  const computedRows = useMemo(
+    () => rows.filter((r) => r.name.trim() && r.origin.trim()),
+    [rows],
+  );
+
   function update(id: number, patch: Partial<Row>) {
     setRows((r) => r.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   }
@@ -90,9 +100,8 @@ export function CalcolatoreImpronta({
 
             <div className="mt-4 space-y-3">
               {rows.map((row) => {
-                const res = fp.ingredients.find(
-                  (i) => i.name === row.name && i.origin.toLowerCase() === row.origin.toLowerCase(),
-                );
+                const idx = computedRows.indexOf(row);
+                const res = idx >= 0 ? fp.ingredients[idx] : undefined;
                 return (
                   <div key={row.id} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
                     <input
