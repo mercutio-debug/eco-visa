@@ -9,7 +9,7 @@ import {
   salvaDatiBio,
   bioValido,
 } from "@/lib/bio";
-import { SOLO_BIO, PORTALE } from "@/lib/portale";
+import { SOLO_BIO, PORTALE, URL_BIOFIDO } from "@/lib/portale";
 import {
   BIO_CATEGORIES,
   enrollBioFido,
@@ -47,7 +47,6 @@ export function SezioneBio({
   // Iscrizione a BioFido (solo ECO-VISA): flag + categoria del segnaposto
   const [iscrittoBio, setIscrittoBio] = useState(false);
   const [categoria, setCategoria] = useState<BioCategory>("agricola");
-  const [bioBusy, setBioBusy] = useState(false);
   const [bioMsg, setBioMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,52 +80,41 @@ export function SezioneBio({
     isOnBioMap(ownerId).then(setIscrittoBio);
   }, [ownerId]);
 
-  // Iscrizione/disiscrizione a BioFido (tutto su ECO-VISA, nessun salto di sito)
-  async function toggleBiofido(want: boolean) {
+  // Salva la certificazione. Su ECO-VISA, se l'azienda è bio e i dati sono
+  // validi, viene ISCRITTA AUTOMATICAMENTE a BioFido (crea/aggiorna il segnaposto
+  // dai dati anagrafici); se non è più bio, viene tolta dalla mappa.
+  async function salva() {
+    setSaving(true);
+    setMsg(null);
     setBioMsg(null);
-    if (want) {
-      if (!bioValido(d)) {
-        setBioMsg("Completa prima la certificazione qui sopra (ente, numero, autocertificazione).");
-        return;
-      }
-      setBioBusy(true);
-      try {
-        // persisto la certificazione, poi pubblico il segnaposto
-        if (!salvato) await salvaDatiBio(ownerId, d);
+    try {
+      await salvaDatiBio(ownerId, d);
+      setSalvato(true);
+
+      if (PORTALE === "ecovisa" && d.is_bio && bioValido(d)) {
         const { error } = await enrollBioFido(ownerId, {
           nome: aziendaNome ?? "",
           citta: aziendaCitta ?? "",
           categoria,
         });
         if (error) {
-          setBioMsg(error);
-          return;
+          setIscrittoBio(false);
+          setMsg("Certificazione salvata ✅");
+          setBioMsg(
+            "Per comparire su BioFido completa nome e città nella Scheda anagrafica qui sopra, poi salva di nuovo.",
+          );
+        } else {
+          setIscrittoBio(true);
+          setMsg("Certificazione salvata ✅ — sei automaticamente su BioFido 🐾");
         }
-        setSalvato(true);
-        setIscrittoBio(true);
-        setBioMsg("Iscritta a BioFido ✓ — ora compari sulla mappa del biologico.");
-      } finally {
-        setBioBusy(false);
+      } else {
+        // azienda non più bio: la tolgo dalla mappa di BioFido
+        if (PORTALE === "ecovisa" && !d.is_bio && iscrittoBio) {
+          await unenrollBioFido(ownerId);
+          setIscrittoBio(false);
+        }
+        setMsg("Certificazione salvata ✅");
       }
-    } else {
-      setBioBusy(true);
-      try {
-        await unenrollBioFido(ownerId);
-        setIscrittoBio(false);
-        setBioMsg("Iscrizione a BioFido annullata.");
-      } finally {
-        setBioBusy(false);
-      }
-    }
-  }
-
-  async function salva() {
-    setSaving(true);
-    setMsg(null);
-    try {
-      await salvaDatiBio(ownerId, d);
-      setSalvato(true);
-      setMsg("Certificazione salvata ✅");
     } catch (e) {
       setMsg((e as Error).message);
     } finally {
@@ -238,17 +226,18 @@ export function SezioneBio({
         </label>
       )}
 
-      {/* Iscrizione a BioFido: solo da ECO-VISA, solo se bio. Tutto in-place:
-          si resta su ECO-VISA, la mappa pubblica si aggiorna da sola dal DB. */}
+      {/* Iscrizione AUTOMATICA a BioFido (solo ECO-VISA, solo se bio): salvando
+          la certificazione l'azienda compare sulla mappa. Niente flag separato;
+          il bottone porta all'app di BioFido (dove la si può installare). */}
       {PORTALE === "ecovisa" && d.is_bio && (
         <div className="mt-4 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-4">
           <div className="font-semibold text-green-800">
-            🐾 Iscrivi questa azienda anche a BioFido
+            🐾 {iscrittoBio ? "Sei su BioFido" : "Comparirai anche su BioFido"}
           </div>
           <p className="mt-1 text-sm text-green-900/70">
-            BioFido ti fa trovare sulla mappa del biologico a chilometro zero.
-            Stesso account, nessun secondo accesso: spunta qui e compari sulla
-            mappa. La posizione si ricava dalla città della scheda anagrafica.
+            Salvando la certificazione, questa azienda compare automaticamente
+            sulla mappa del biologico a chilometro zero. La posizione si ricava
+            dalla città della scheda anagrafica.
           </p>
 
           <label className="mt-3 block max-w-xs">
@@ -257,7 +246,7 @@ export function SezioneBio({
               className="field mt-1"
               value={categoria}
               onChange={(e) => setCategoria(e.target.value as BioCategory)}
-              disabled={iscrittoBio || bioBusy}
+              disabled={saving}
             >
               {BIO_CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -267,28 +256,14 @@ export function SezioneBio({
             </select>
           </label>
 
-          <label
-            className={`mt-3 flex items-center gap-3 ${
-              bioValido(d) || iscrittoBio ? "" : "opacity-60"
-            }`}
+          <a
+            href={URL_BIOFIDO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lime mt-3 inline-block text-sm"
           >
-            <input
-              type="checkbox"
-              className="h-5 w-5 accent-[var(--lime-500)]"
-              checked={iscrittoBio}
-              disabled={bioBusy || (!iscrittoBio && !bioValido(d))}
-              onChange={(e) => toggleBiofido(e.target.checked)}
-            />
-            <span className="font-semibold text-green-800">
-              {bioBusy ? "Aggiorno…" : "Iscriviti anche a BioFido"}
-            </span>
-          </label>
-          {!bioValido(d) && !iscrittoBio && (
-            <p className="mt-1 text-xs text-green-900/55">
-              Si attiva dopo aver inserito ente certificatore, numero e
-              autocertificazione qui sopra.
-            </p>
-          )}
+            Vai sull&apos;app di BioFido →
+          </a>
           {bioMsg && <p className="mt-2 text-sm font-semibold text-green-700">{bioMsg}</p>}
         </div>
       )}

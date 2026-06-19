@@ -32,8 +32,7 @@ export default function BioFidoPage() {
           </h2>
           <p className="mt-1 text-green-900/80">
             Dalla tua pagina inserisci la <strong>certificazione biologica</strong> e
-            spunta <strong>«Iscriviti anche a BioFido»</strong>: comparirai subito
-            qui, con lo stesso account.
+            salva: comparirai <strong>automaticamente</strong> qui, con lo stesso account.
           </p>
           <Link href="/dashboard" className="btn-lime mt-3 inline-block">
             Vai alla tua pagina
