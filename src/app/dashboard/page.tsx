@@ -167,7 +167,7 @@ export default function DashboardPage() {
           — scegli un abbonamento qui sotto e potrai caricare più schede.
         </p>
         <div className="mt-5">
-          <CalcolatoreImpronta nascondiPubblica vuoto />
+          <CalcolatoreImpronta nascondiPubblica vuoto aziendaNome={azienda?.nome ?? undefined} />
         </div>
         <p className="mt-4 rounded-xl bg-leaf/50 p-3 text-sm text-green-900/75">
           👉 Per <strong>salvare il prodotto e generare il codice</strong> da copiare

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { computeFootprint, type IngredientInput } from "@/lib/footprint";
 import { allPlaceNames } from "@/lib/geo";
@@ -22,10 +22,17 @@ const newRow = (name = "", origin = ""): Row => ({ id: _id++, name, origin });
 export function CalcolatoreImpronta({
   nascondiPubblica = false,
   vuoto = false,
-}: { nascondiPubblica?: boolean; vuoto?: boolean } = {}) {
+  aziendaNome,
+}: {
+  nascondiPubblica?: boolean;
+  vuoto?: boolean;
+  /** nome dell'azienda loggata: precompila "Azienda produttrice" nella dashboard */
+  aziendaNome?: string;
+} = {}) {
   // Nella dashboard la cornice parte VUOTA (niente esempio Melograno); in home
-  // resta l'esempio precompilato come dimostrazione.
-  const [company, setCompany] = useState(vuoto ? "" : "Dolciaria Il Melograno S.r.l.");
+  // resta l'esempio precompilato come dimostrazione. Il nome azienda, però, viene
+  // precompilato con la propria azienda (modificabile/cancellabile).
+  const [company, setCompany] = useState(vuoto ? aziendaNome ?? "" : "Dolciaria Il Melograno S.r.l.");
   const [product, setProduct] = useState(vuoto ? "" : "Biscotti al farro del Melograno");
   const [plant, setPlant] = useState(vuoto ? "" : "Cuneo");
   const [rows, setRows] = useState<Row[]>(
@@ -38,6 +45,17 @@ export function CalcolatoreImpronta({
           newRow("Olio extravergine d'oliva", "Bari"),
         ],
   );
+
+  // Se il nome azienda arriva dopo il primo render (caricamento dashboard), lo
+  // precompilo UNA volta sola e solo se il campo è ancora vuoto — così l'utente
+  // può comunque cancellarlo e scriverne un altro senza che ricompaia.
+  const prefillato = useRef(false);
+  useEffect(() => {
+    if (vuoto && aziendaNome && !prefillato.current) {
+      prefillato.current = true;
+      setCompany((c) => (c ? c : aziendaNome));
+    }
+  }, [vuoto, aziendaNome]);
 
   const places = useMemo(() => allPlaceNames(), []);
   const { version, loading: geoLoading } = useGeoResolve([plant, ...rows.map((r) => r.origin)]);
