@@ -1,5 +1,9 @@
 1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/32ob660nvyc2n.js","/_next/static/chunks/0_ufghl919utn.js","/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"rsc":["$","$1","c",{"children":[["$","div",null,{"className":"mx-auto w-full max-w-6xl px-2 py-4","children":[["$","iframe",null,{"src":"https://mercutio-debug.github.io/biofido/","title":"BioFido — mappa delle attività biologiche","className":"h-[calc(100dvh-120px)] min-h-[560px] w-full rounded-2xl border border-[#e3eed7]","allow":"geolocation; clipboard-write","referrerPolicy":"no-referrer-when-downgrade"}],["$","p",null,{"className":"mt-2 text-center text-xs text-green-900/55","children":["Se la mappa non chiede la tua posizione, consenti la geolocalizzazione oppure"," ",["$","a",null,{"href":"https://mercutio-debug.github.io/biofido/","target":"_blank","rel":"noopener noreferrer","className":"font-semibold text-green-700 hover:text-lime-500","children":"apri BioFido a tutto schermo"}],"."]}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"KpWVZMbIF60rgkd79M-_X"}
-4:null
+2:I[47257,["/_next/static/chunks/0fh4jd8wqrawr.js","/_next/static/chunks/0_ufghl919utn.js","/_next/static/chunks/14mrh2-p_w84d.js"],"ClientPageRoot"]
+3:I[58507,["/_next/static/chunks/0fh4jd8wqrawr.js","/_next/static/chunks/0_ufghl919utn.js","/_next/static/chunks/14mrh2-p_w84d.js","/_next/static/chunks/2pxevwk3jltmi.js"],"default"]
+6:I[97367,["/_next/static/chunks/0fh4jd8wqrawr.js","/_next/static/chunks/0_ufghl919utn.js","/_next/static/chunks/14mrh2-p_w84d.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/2pxevwk3jltmi.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"6wkySW4WBExf8YOAGCl-j"}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
