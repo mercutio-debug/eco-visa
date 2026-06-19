@@ -7,7 +7,6 @@ import { HomeSearch } from "@/components/HomeSearch";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { MappaAziende } from "@/components/MappaAziende";
 
-const BIOFIDO_URL = "https://mercutio-debug.github.io/biofido/";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Home() {
@@ -194,17 +193,13 @@ export default function Home() {
               la usi come un&apos;app, gratis.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <a
-                href={BIOFIDO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-lime"
-              >
-                🐾 Apri e installa BioFido
-              </a>
+              <Link href="/biofido" className="btn-lime">
+                🐾 Apri BioFido
+              </Link>
             </div>
             <p className="mt-3 text-xs text-green-900/55">
-              Funziona su Android e iPhone dal browser. Presto anche sugli store.
+              Si apre qui sul portale. Dall&apos;app, tocca “Scarica l&apos;app sul
+              tuo smartphone” per installarla (Android e iPhone). Presto anche sugli store.
             </p>
           </div>
         </div>
