@@ -20,7 +20,7 @@ import { CatalogoCard } from "@/components/CatalogoCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
 import { getMyPlan } from "@/lib/plan";
-import { billingEnabled, startCheckout } from "@/lib/billing";
+import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -283,6 +283,17 @@ function PagamentoFinale({
     }
   }
 
+  async function gestisci() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await openCustomerPortal();
+    } catch (e) {
+      setBusy(false);
+      setMsg((e as Error).message);
+    }
+  }
+
   if (scelto === "free") {
     return (
       <section className="card mt-6 p-6 text-center">
@@ -304,6 +315,13 @@ function PagamentoFinale({
         <p className="mt-1 text-sm text-green-900/70">
           Il tuo abbonamento è attivo: vale sia su ECO-VISA sia su BioFido.
         </p>
+        <button className="btn-ghost mt-4" onClick={gestisci} disabled={busy}>
+          {busy ? "Apro…" : "Gestisci abbonamento (fatture, carta, disdetta)"}
+        </button>
+        <p className="mt-2 text-xs text-green-900/55">
+          Per non rinnovare, disdici almeno 10 giorni prima della scadenza.
+        </p>
+        {msg && <p className="mt-2 text-sm font-semibold text-traffic-red">{msg}</p>}
       </section>
     );
   }
