@@ -1,10 +1,14 @@
 /**
- * Scheda mappa BioFido gestita DA ECO-VISA (login unico).
- * Scrive/legge la stessa tabella Supabase `biofido_businesses` usata dall'app
- * BioFido: così un'azienda iscritta su ECO-VISA compila qui la sua scheda e
- * compare subito sulla mappa di BioFido, senza un secondo accesso.
+ * Iscrizione a BioFido GESTITA DA ECO-VISA (login unico, nessun salto di sito).
+ * Spuntare il flag su ECO-VISA scrive la stessa tabella Supabase
+ * `biofido_businesses` letta dall'app BioFido: la mappa (anche quella pubblica su
+ * GitHub Pages) si aggiorna da sola, perché legge il database condiviso.
+ *
+ * Il segnaposto si costruisce dai dati che l'azienda ha GIÀ inserito su ECO-VISA
+ * (nome + città della scheda anagrafica): niente form duplicati.
  */
 import { supabase } from "./supabase";
+import { prefetchGeocode } from "./geo";
 
 export type BioCategory = "agricola" | "negozio" | "ristorante" | "artigiano";
 
@@ -17,81 +21,66 @@ export const BIO_CATEGORIES: { id: BioCategory; label: string; emoji: string }[]
 
 export type BioPlan = "free" | "silver" | "gold";
 
-export type BioScheda = {
-  id?: string;
-  name: string;
-  category: BioCategory;
-  plan: BioPlan;
-  city: string;
-  lat: number;
-  lon: number;
-  address?: string;
-  description?: string;
-  website?: string;
-  phone?: string;
-};
-
-type Row = {
-  id: string | number;
-  name: string;
-  category: string;
-  plan: string;
-  lat: number;
-  lon: number;
-  city: string;
-  address?: string | null;
-  description?: string | null;
-  website?: string | null;
-  phone?: string | null;
-  owner?: string | null;
-};
-
-/** Scheda BioFido del produttore loggato (se già creata). */
-export async function loadMyBioScheda(owner: string): Promise<BioScheda | null> {
+/** Vero se l'azienda ha già un segnaposto sulla mappa di BioFido. */
+export async function isOnBioMap(owner: string): Promise<boolean> {
   const { data } = await supabase
     .from("biofido_businesses")
-    .select("id,name,category,plan,lat,lon,city,address,description,website,phone,owner")
+    .select("id")
     .eq("owner", owner)
     .limit(1)
     .maybeSingle();
-  if (!data) return null;
-  const r = data as Row;
-  return {
-    id: String(r.id),
-    name: r.name,
-    category: (r.category as BioCategory) ?? "agricola",
-    plan: (r.plan as BioPlan) ?? "free",
-    city: r.city,
-    lat: Number(r.lat),
-    lon: Number(r.lon),
-    address: r.address ?? undefined,
-    description: r.description ?? undefined,
-    website: r.website ?? undefined,
-    phone: r.phone ?? undefined,
-  };
+  return !!data;
 }
 
-/** Crea o aggiorna la scheda mappa del produttore. */
-export async function saveMyBioScheda(
+/**
+ * Iscrive l'azienda a BioFido: imposta il flag e crea/aggiorna il segnaposto
+ * sulla mappa a partire dai dati anagrafici (nome + città → coordinate).
+ */
+export async function enrollBioFido(
   owner: string,
-  input: BioScheda,
-  id?: string,
+  data: { nome: string; citta: string; categoria: BioCategory },
 ): Promise<{ error?: string }> {
+  if (!data.nome.trim() || !data.citta.trim()) {
+    return { error: "Completa prima nome e città nella Scheda anagrafica." };
+  }
+  // ricava le coordinate dalla città (cache locale o OpenStreetMap)
+  const p = await prefetchGeocode(data.citta);
+  if (!p) {
+    return { error: "Città non riconosciuta: controlla la città nella Scheda anagrafica." };
+  }
+  // contrassegno sull'account
+  const { error: flagErr } = await supabase.auth.updateUser({
+    data: { vuole_biofido: true },
+  });
+  if (flagErr) return { error: flagErr.message };
+  // crea o aggiorna il segnaposto (mantiene il piano se esiste già)
+  const { data: ex } = await supabase
+    .from("biofido_businesses")
+    .select("id, plan")
+    .eq("owner", owner)
+    .limit(1)
+    .maybeSingle();
   const payload = {
     owner,
-    name: input.name,
-    category: input.category,
-    plan: input.plan,
-    lat: input.lat,
-    lon: input.lon,
-    city: input.city,
-    address: input.address || null,
-    description: input.description || null,
-    website: input.website || null,
-    phone: input.phone || null,
+    name: data.nome,
+    category: data.categoria,
+    plan: ((ex as { plan?: string } | null)?.plan as BioPlan) ?? "free",
+    city: data.citta,
+    lat: p.lat,
+    lon: p.lon,
   };
-  const { error } = id
-    ? await supabase.from("biofido_businesses").update(payload).eq("id", id)
+  const { error } = ex
+    ? await supabase.from("biofido_businesses").update(payload).eq("id", (ex as { id: string | number }).id)
     : await supabase.from("biofido_businesses").insert(payload);
+  return { error: error?.message };
+}
+
+/** Disiscrive l'azienda: toglie il flag e rimuove il segnaposto dalla mappa. */
+export async function unenrollBioFido(owner: string): Promise<{ error?: string }> {
+  await supabase.auth.updateUser({ data: { vuole_biofido: false } });
+  const { error } = await supabase
+    .from("biofido_businesses")
+    .delete()
+    .eq("owner", owner);
   return { error: error?.message };
 }

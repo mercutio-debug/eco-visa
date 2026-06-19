@@ -187,7 +187,13 @@ export default function DashboardPage() {
         onSaved={loadAll}
       />
 
-      {user && <SezioneBio ownerId={user.id} />}
+      {user && (
+        <SezioneBio
+          ownerId={user.id}
+          aziendaNome={azienda?.nome ?? undefined}
+          aziendaCitta={azienda?.citta_sede ?? undefined}
+        />
+      )}
 
       {azienda && (
         <>
@@ -212,7 +218,6 @@ export default function DashboardPage() {
           ownerId={user.id}
           scelto={pianoScelto}
           attivo={activePlan}
-          periodo={periodo}
         />
       )}
     </div>
@@ -248,12 +253,10 @@ function PagamentoFinale({
   ownerId,
   scelto,
   attivo,
-  periodo,
 }: {
   ownerId: string;
   scelto: Plan;
   attivo: Plan;
-  periodo: "monthly" | "annual";
 }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -261,11 +264,11 @@ function PagamentoFinale({
 
   const giaAttivo = attivo === scelto && attivo !== "free";
 
-  async function paga() {
+  async function paga(per: "monthly" | "annual") {
     setBusy(true);
     setMsg(null);
     try {
-      await startCheckout(scelto, periodo);
+      await startCheckout(scelto, per);
     } catch (e) {
       setBusy(false);
       setMsg((e as Error).message);
@@ -297,10 +300,9 @@ function PagamentoFinale({
     );
   }
 
-  const prezzo =
-    periodo === "annual"
-      ? `${PLAN_MAP[scelto].annualPrice} € + IVA/anno`
-      : `${PLAN_MAP[scelto].monthlyPrice} € + IVA/mese`;
+  const mensile = PLAN_MAP[scelto].monthlyPrice;
+  const annuale = PLAN_MAP[scelto].annualPrice;
+  const mensileSuAnno = mensile * 12;
 
   return (
     <section className="mt-6 space-y-4">
@@ -313,13 +315,28 @@ function PagamentoFinale({
         </p>
         {billingEnabled ? (
           <>
-            <button
-              className="btn-lime mt-4"
-              onClick={paga}
-              disabled={busy || !fatturazioneOk}
-            >
-              {busy ? "Apro il pagamento…" : `Vai al pagamento — ${prezzo}`}
-            </button>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              {/* Annuale: opzione consigliata (principale) */}
+              <button
+                className="btn-lime w-full max-w-sm justify-center"
+                onClick={() => paga("annual")}
+                disabled={busy || !fatturazioneOk}
+              >
+                {busy ? "Apro il pagamento…" : `Vai al pagamento — ${annuale} € + IVA/anno`}
+              </button>
+              {/* Mensile: tonalità diversa, con equivalente annuale tra parentesi */}
+              <button
+                className="w-full max-w-sm justify-center rounded-full border border-white/40 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 disabled:opacity-50"
+                onClick={() => paga("monthly")}
+                disabled={busy || !fatturazioneOk}
+              >
+                Oppure mensile — {mensile} € + IVA/mese{" "}
+                <span className="font-normal text-[#eaf7d8]">({mensileSuAnno} € all&apos;anno)</span>
+              </button>
+              <p className="text-xs text-[#cfe3b4]">
+                Con l&apos;annuale risparmi: {mensileSuAnno - annuale} € all&apos;anno.
+              </p>
+            </div>
             {!fatturazioneOk && (
               <p className="mt-3 text-sm text-badge-yellow">
                 Salva prima i dati di fatturazione qui sopra.

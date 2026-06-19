@@ -9,7 +9,14 @@ import {
   salvaDatiBio,
   bioValido,
 } from "@/lib/bio";
-import { SOLO_BIO, PORTALE, URL_BIOFIDO } from "@/lib/portale";
+import { SOLO_BIO, PORTALE } from "@/lib/portale";
+import {
+  BIO_CATEGORIES,
+  enrollBioFido,
+  unenrollBioFido,
+  isOnBioMap,
+  type BioCategory,
+} from "@/lib/biofido-scheda";
 
 /**
  * Parte 2 della scheda di iscrizione: «Sei un'azienda biologica?».
@@ -22,9 +29,14 @@ import { SOLO_BIO, PORTALE, URL_BIOFIDO } from "@/lib/portale";
 export function SezioneBio({
   ownerId,
   onValid,
+  aziendaNome,
+  aziendaCitta,
 }: {
   ownerId: string;
   onValid?: (valido: boolean) => void;
+  /** nome e città dell'azienda (dalla scheda anagrafica): servono per il segnaposto BioFido */
+  aziendaNome?: string;
+  aziendaCitta?: string;
 }) {
   const [d, setD] = useState<DatiBio>({ ...BIO_VUOTO, is_bio: SOLO_BIO });
   const [usaAltro, setUsaAltro] = useState(false);
@@ -32,6 +44,11 @@ export function SezioneBio({
   const [saving, setSaving] = useState(false);
   const [salvato, setSalvato] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // Iscrizione a BioFido (solo ECO-VISA): flag + categoria del segnaposto
+  const [iscrittoBio, setIscrittoBio] = useState(false);
+  const [categoria, setCategoria] = useState<BioCategory>("agricola");
+  const [bioBusy, setBioBusy] = useState(false);
+  const [bioMsg, setBioMsg] = useState<string | null>(null);
 
   useEffect(() => {
     caricaDatiBio().then((dati) => {
@@ -56,6 +73,51 @@ export function SezioneBio({
   function set<K extends keyof DatiBio>(k: K, v: DatiBio[K]) {
     setD((p) => ({ ...p, [k]: v }));
     setSalvato(false);
+  }
+
+  // All'avvio rilevo se l'azienda è già sulla mappa di BioFido
+  useEffect(() => {
+    if (PORTALE !== "ecovisa") return;
+    isOnBioMap(ownerId).then(setIscrittoBio);
+  }, [ownerId]);
+
+  // Iscrizione/disiscrizione a BioFido (tutto su ECO-VISA, nessun salto di sito)
+  async function toggleBiofido(want: boolean) {
+    setBioMsg(null);
+    if (want) {
+      if (!bioValido(d)) {
+        setBioMsg("Completa prima la certificazione qui sopra (ente, numero, autocertificazione).");
+        return;
+      }
+      setBioBusy(true);
+      try {
+        // persisto la certificazione, poi pubblico il segnaposto
+        if (!salvato) await salvaDatiBio(ownerId, d);
+        const { error } = await enrollBioFido(ownerId, {
+          nome: aziendaNome ?? "",
+          citta: aziendaCitta ?? "",
+          categoria,
+        });
+        if (error) {
+          setBioMsg(error);
+          return;
+        }
+        setSalvato(true);
+        setIscrittoBio(true);
+        setBioMsg("Iscritta a BioFido ✓ — ora compari sulla mappa del biologico.");
+      } finally {
+        setBioBusy(false);
+      }
+    } else {
+      setBioBusy(true);
+      try {
+        await unenrollBioFido(ownerId);
+        setIscrittoBio(false);
+        setBioMsg("Iscrizione a BioFido annullata.");
+      } finally {
+        setBioBusy(false);
+      }
+    }
   }
 
   async function salva() {
@@ -176,24 +238,58 @@ export function SezioneBio({
         </label>
       )}
 
-      {/* Proposta di iscrizione incrociata: solo da ECO-VISA, solo se bio */}
+      {/* Iscrizione a BioFido: solo da ECO-VISA, solo se bio. Tutto in-place:
+          si resta su ECO-VISA, la mappa pubblica si aggiorna da sola dal DB. */}
       {PORTALE === "ecovisa" && d.is_bio && (
         <div className="mt-4 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-4">
           <div className="font-semibold text-green-800">
-            🐾 Sei un&apos;azienda bio: ti va di iscriverti anche a BioFido?
+            🐾 Iscrivi questa azienda anche a BioFido
           </div>
           <p className="mt-1 text-sm text-green-900/70">
-            BioFido ti fa trovare sulla mappa del biologico a chilometro zero
-            vicino ai consumatori. Stesso account, stesso abbonamento.
+            BioFido ti fa trovare sulla mappa del biologico a chilometro zero.
+            Stesso account, nessun secondo accesso: spunta qui e compari sulla
+            mappa. La posizione si ricava dalla città della scheda anagrafica.
           </p>
-          <a
-            href={URL_BIOFIDO}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-lime mt-3 inline-block text-sm"
+
+          <label className="mt-3 block max-w-xs">
+            <span className="label">Come compari sulla mappa</span>
+            <select
+              className="field mt-1"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value as BioCategory)}
+              disabled={iscrittoBio || bioBusy}
+            >
+              {BIO_CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.emoji} {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label
+            className={`mt-3 flex items-center gap-3 ${
+              bioValido(d) || iscrittoBio ? "" : "opacity-60"
+            }`}
           >
-            Scopri BioFido →
-          </a>
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-[var(--lime-500)]"
+              checked={iscrittoBio}
+              disabled={bioBusy || (!iscrittoBio && !bioValido(d))}
+              onChange={(e) => toggleBiofido(e.target.checked)}
+            />
+            <span className="font-semibold text-green-800">
+              {bioBusy ? "Aggiorno…" : "Iscriviti anche a BioFido"}
+            </span>
+          </label>
+          {!bioValido(d) && !iscrittoBio && (
+            <p className="mt-1 text-xs text-green-900/55">
+              Si attiva dopo aver inserito ente certificatore, numero e
+              autocertificazione qui sopra.
+            </p>
+          )}
+          {bioMsg && <p className="mt-2 text-sm font-semibold text-green-700">{bioMsg}</p>}
         </div>
       )}
 
