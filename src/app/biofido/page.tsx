@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
+import { SchedaBioFido } from "@/components/SchedaBioFido";
 
 // L'app BioFido (mappa) vive su questo indirizzo: la mostriamo incorporata solo
 // per la VISUALIZZAZIONE (non serve login per guardare la mappa). L'iscrizione e
@@ -62,20 +63,21 @@ export default function BioFidoPage() {
         </div>
       )}
 
-      {/* Appena iscritto: invito a completare la scheda per comparire sulla mappa */}
+      {/* Iscritto a BioFido: compila/aggiorna QUI la scheda per comparire sulla mappa */}
       {(enrolled || justEnrolled) && user && (
-        <div className="card mb-6 border-2 border-[var(--lime-500)] bg-leaf/40 p-6">
-          <h2 className="font-display text-2xl text-green-800">
-            {justEnrolled ? "Ora sei iscritto a BioFido ✅" : "Sei iscritto a BioFido ✅"}
-          </h2>
-          <p className="mt-2 max-w-2xl text-green-900/80">
-            Per comparire sulla <strong>mappa</strong>, completa la tua scheda
-            (nome, città, certificazione bio) dalla tua pagina personale.
-          </p>
-          <Link href="/dashboard" className="btn-lime mt-4">
-            Completa la tua scheda
-          </Link>
-        </div>
+        <>
+          {justEnrolled && (
+            <div className="card mb-4 border-2 border-[var(--lime-500)] bg-leaf/40 p-5">
+              <h2 className="font-display text-2xl text-green-800">
+                Ora sei iscritto a BioFido ✅
+              </h2>
+              <p className="mt-1 text-green-900/80">
+                Ultimo passo: compila la scheda qui sotto e salva per comparire sulla mappa.
+              </p>
+            </div>
+          )}
+          <SchedaBioFido ownerId={user.id} />
+        </>
       )}
 
       {/* Visitatore non loggato: invito leggero a iscriversi */}
