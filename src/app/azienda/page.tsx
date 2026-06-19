@@ -11,6 +11,7 @@ import {
 import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
+import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 
 type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
 
@@ -119,15 +120,24 @@ function Contenuto() {
                 <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
                 <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <Semaforo level={fp.level} size="sm" />
+                <div className="mt-3">
+                  <Semaforo level={fp.level} score={fp.score} />
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-[#e8f1dc] pt-3">
+                  <span className="text-sm font-semibold text-green-900/70">
+                    Impronta di trasporto
+                  </span>
                   <div className="text-right">
                     <div className="font-display text-2xl text-green-800">
                       {fp.totalCo2Kg.toLocaleString("it-IT")} kg
                     </div>
-                    <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
+                    <div className="text-[11px] text-green-900/60">
+                      CO₂ · {fp.totalKm.toLocaleString("it-IT")} km
+                    </div>
                   </div>
                 </div>
+
+                <AlberiCompensazione co2Kg={fp.totalCo2Kg} />
 
                 {p.ingredienti.length > 0 && (
                   <ul className="mt-3 border-t border-[#e8f1dc] pt-2 text-xs text-green-900/70">

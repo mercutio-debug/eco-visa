@@ -80,7 +80,7 @@ export function Semaforo({
         })}
       </div>
 
-      {size === "md" && (
+      {size === "md" ? (
         <div>
           <div className="flex items-center gap-2">
             <div className="font-display text-xl" style={{ color: m.color }}>
@@ -109,6 +109,17 @@ export function Semaforo({
                 renderlo ancora migliore usando materie prime locali?
               </p>
             </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <div className="font-display text-sm leading-tight" style={{ color: m.color }}>
+            {m.label}
+          </div>
+          {level === "verde_plus" && (
+            <span className="mt-0.5 inline-block rounded-full bg-[#2e9e0e] px-1.5 py-0.5 text-[9px] font-bold text-white">
+              🌱 km0
+            </span>
           )}
         </div>
       )}
