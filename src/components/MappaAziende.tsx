@@ -16,9 +16,23 @@ const Mappa = dynamic(() => import("./MappaAziendeMappa"), {
 });
 
 /**
+ * Aziende DI ESEMPIO mostrate dopo quelle registrate: così la mappa non è mai
+ * vuota e si capisce subito come appare (verde = ha prodotti col semaforo). Le
+ * città scelte sono nel dizionario geografico, quindi si posizionano subito.
+ */
+const DEMO_AZIENDE: { nome: string; citta: string; conSemaforo: boolean }[] = [
+  { nome: "Cascina Verde — Ortaggi Bio", citta: "Cuneo", conSemaforo: true },
+  { nome: "Frantoio del Borgo", citta: "Bari", conSemaforo: true },
+  { nome: "Caseificio Valle Pulita", citta: "Parma", conSemaforo: true },
+  { nome: "Apicoltura Monti Liguri", citta: "Genova", conSemaforo: true },
+  { nome: "Cantina Colline Senesi", citta: "Siena", conSemaforo: false },
+];
+
+/**
  * Mappa pubblica delle AZIENDE ISCRITTE su ECO-VISA (anche solo ECO-VISA).
  * Legge le aziende dal DB, geolocalizza la sede e mostra i segnaposto: verdi se
  * l'azienda ha già caricato almeno un prodotto col semaforo, grigi altrimenti.
+ * In coda aggiunge alcune aziende DI ESEMPIO (etichettate "(esempio)").
  */
 export function MappaAziende() {
   const [markers, setMarkers] = useState<AziendaMarker[]>([]);
@@ -32,31 +46,45 @@ export function MappaAziende() {
       const lista = ((az as { id: string; nome: string; citta_sede: string | null }[]) ?? []).filter(
         (a) => a.citta_sede,
       );
-      if (lista.length === 0) {
-        setLoading(false);
-        return;
-      }
-      const { data: pr } = await supabase.from("prodotti").select("azienda_id");
-      const conProdotti = new Set(
-        ((pr as { azienda_id: string }[]) ?? []).map((p) => p.azienda_id),
-      );
-
-      // geolocalizza le sedi su OpenStreetMap
-      for (const a of lista) await prefetchGeocode(a.citta_sede as string);
 
       const ms: AziendaMarker[] = [];
-      for (const a of lista) {
-        const g = geocode(a.citta_sede as string);
-        if (!g) continue;
+
+      // 1) aziende REGISTRATE (prima)
+      if (lista.length > 0) {
+        const { data: pr } = await supabase.from("prodotti").select("azienda_id");
+        const conProdotti = new Set(
+          ((pr as { azienda_id: string }[]) ?? []).map((p) => p.azienda_id),
+        );
+        // geolocalizza le sedi su OpenStreetMap
+        for (const a of lista) await prefetchGeocode(a.citta_sede as string);
+        for (const a of lista) {
+          const g = geocode(a.citta_sede as string);
+          if (!g) continue;
+          ms.push({
+            id: a.id,
+            nome: a.nome,
+            citta: a.citta_sede as string,
+            lat: g.lat,
+            lon: g.lon,
+            conSemaforo: conProdotti.has(a.id),
+          });
+        }
+      }
+
+      // 2) esempi dimostrativi (DOPO le registrate)
+      DEMO_AZIENDE.forEach((d, i) => {
+        const g = geocode(d.citta);
+        if (!g) return;
         ms.push({
-          id: a.id,
-          nome: a.nome,
-          citta: a.citta_sede as string,
+          id: `esempio-${i}`,
+          nome: `${d.nome} (esempio)`,
+          citta: d.citta,
           lat: g.lat,
           lon: g.lon,
-          conSemaforo: conProdotti.has(a.id),
+          conSemaforo: d.conSemaforo,
         });
-      }
+      });
+
       setMarkers(ms);
       setLoading(false);
     })();
@@ -94,6 +122,10 @@ export function MappaAziende() {
           senza prodotti ({markers.length - conSem})
         </span>
       </div>
+      <p className="mt-2 text-xs text-green-900/55">
+        I segnaposto con la dicitura «(esempio)» sono dimostrativi: mostrano come
+        appariranno le aziende reali sulla mappa.
+      </p>
     </div>
   );
 }
