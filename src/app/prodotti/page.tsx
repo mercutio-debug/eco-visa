@@ -3,6 +3,7 @@ import { PRODUCTS } from "@/lib/data";
 import { computeFootprint } from "@/lib/footprint";
 import { Semaforo } from "@/components/Semaforo";
 import { VetrinaAziende } from "@/components/VetrinaAziende";
+import { ProdottiIscritti } from "@/components/ProdottiIscritti";
 
 export const metadata = { title: "Prodotti — ECO-VISA" };
 
@@ -21,7 +22,11 @@ export default function ProdottiPage() {
         ecologicamente sostenibile.
       </p>
 
-      <h2 className="mt-8 font-display text-2xl text-green-800">Esempi</h2>
+      {/* In alto i prodotti reali delle aziende iscritte */}
+      <ProdottiIscritti />
+
+      {/* Sotto, gli esempi dimostrativi */}
+      <h2 className="mt-10 font-display text-2xl text-green-800">Esempi dimostrativi</h2>
       <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(({ p, fp }) => (
           <Link key={p.slug} href={`/prodotti/${p.slug}`} className="card p-5 transition hover:-translate-y-1">

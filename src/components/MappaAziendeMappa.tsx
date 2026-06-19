@@ -47,6 +47,10 @@ export default function MappaAziendeMappa({ markers }: { markers: AziendaMarker[
         iconSize: [16, 16],
         iconAnchor: [8, 8],
       });
+      // gli esempi (id "esempio-…") non hanno una scheda reale: rimandano
+      // all'elenco generico; le aziende iscritte aprono la LORO pagina.
+      const isEsempio = m.id.startsWith("esempio-");
+      const href = isEsempio ? `${BASE}/prodotti/` : `${BASE}/azienda/?id=${m.id}`;
       L.marker([m.lat, m.lon], { icon })
         .addTo(layer)
         .bindPopup(
@@ -54,7 +58,9 @@ export default function MappaAziendeMappa({ markers }: { markers: AziendaMarker[
             m.conSemaforo
               ? '<span style="color:#3a7d12;font-weight:700">🚦 ha prodotti col semaforo</span>'
               : '<span style="color:#888">iscritta — ancora senza prodotti</span>'
-          }<br/><a href="${BASE}/prodotti/" style="color:#3a7d12;font-weight:700">Vedi i prodotti →</a>`,
+          }<br/><a href="${href}" style="color:#3a7d12;font-weight:700">${
+            isEsempio ? "Vedi i prodotti →" : "Apri la scheda dell'azienda →"
+          }</a>`,
         );
     }
     const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lon] as [number, number]));
