@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/useAuth";
 import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
+import { AziendeAdmin } from "@/components/AziendeAdmin";
 
 type Azienda = {
   id: string;
@@ -112,6 +113,12 @@ export default function AdminPage() {
         </button>
       </div>
 
+      {/* Elenco completo aziende iscritte + assegnazione/regalo piani */}
+      <AziendeAdmin />
+
+      <h2 className="title-pangea mt-12 text-2xl text-green-700">
+        Prodotti e impronta (per stabilimento)
+      </h2>
       <div className="mt-4 flex gap-6 text-sm font-semibold text-green-900/70">
         <span>{aziende.length} aziende</span>
         <span>{prod.length} prodotti</span>
