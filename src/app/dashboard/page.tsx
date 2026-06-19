@@ -30,7 +30,11 @@ type Azienda = {
   codice_fiscale: string | null;
   citta_sede: string | null;
   sito_web: string | null;
+  descrizione?: string | null;
 };
+
+/** Lunghezza massima della descrizione azienda. */
+const MAX_DESCRIZIONE = 500;
 type Stabilimento = { id: string; nome: string | null; citta: string };
 type Ingrediente = { id?: string; nome: string; origine: string };
 type Prodotto = {
@@ -438,6 +442,7 @@ function AnagraficaCard({
   );
   const [citta, setCitta] = useState(azienda?.citta_sede ?? "");
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
+  const [descrizione, setDescrizione] = useState(azienda?.descrizione ?? "");
   const [saving, setSaving] = useState(false);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -452,6 +457,7 @@ function AnagraficaCard({
       setCfUguale(!!azienda.codice_fiscale && azienda.codice_fiscale === azienda.piva);
       setCitta(azienda.citta_sede ?? "");
       setSito(azienda.sito_web ?? "");
+      setDescrizione(azienda.descrizione ?? "");
       return;
     }
     try {
@@ -463,6 +469,7 @@ function AnagraficaCard({
         setCfUguale(!!b.cfUguale);
         setCitta(b.citta ?? "");
         setSito(b.sito ?? "");
+        if (b.descrizione) setDescrizione(b.descrizione);
       }
     } catch {
       /* bozza assente o corrotta */
@@ -475,12 +482,12 @@ function AnagraficaCard({
     try {
       localStorage.setItem(
         BOZZA_ANAGRAFICA,
-        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito }),
+        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito, descrizione }),
       );
     } catch {
       /* localStorage non disponibile */
     }
-  }, [azienda, nome, piva, cf, cfUguale, citta, sito]);
+  }, [azienda, nome, piva, cf, cfUguale, citta, sito, descrizione]);
 
   async function recuperaDaPiva() {
     if (piva.replace(/\D/g, "").length !== 11) return;
@@ -505,12 +512,13 @@ function AnagraficaCard({
   async function save() {
     setSaving(true);
     setMsg(null);
-    const payload = {
+    const payload: Record<string, unknown> = {
       nome,
       piva: piva || null,
       codice_fiscale: (cfUguale ? piva : cf) || null,
       citta_sede: citta || null,
       sito_web: sito || null,
+      descrizione: descrizione.trim() || null,
     };
     const esegui = (p: Record<string, unknown>) =>
       azienda
@@ -518,15 +526,13 @@ function AnagraficaCard({
         : supabase.from("aziende").insert(p);
 
     let { error } = await esegui(payload);
-    // se la colonna codice_fiscale non è ancora presente nel DB, salvo senza
-    if (error && /codice_fiscale/i.test(error.message)) {
-      const senzaCf = {
-        nome: payload.nome,
-        piva: payload.piva,
-        citta_sede: payload.citta_sede,
-        sito_web: payload.sito_web,
-      };
-      ({ error } = await esegui(senzaCf));
+    // Se una colonna non è ancora presente nel DB (descrizione/codice_fiscale),
+    // la rimuovo e riprovo: così l'anagrafica si salva comunque.
+    for (const col of ["descrizione", "codice_fiscale"]) {
+      if (error && new RegExp(col, "i").test(error.message)) {
+        delete payload[col];
+        ({ error } = await esegui(payload));
+      }
     }
     setSaving(false);
     if (error) setMsg("Errore: " + error.message);
@@ -605,6 +611,20 @@ function AnagraficaCard({
         <label className="block">
           <span className="label">Sito web</span>
           <input className="field mt-1" value={sito} onChange={(e) => setSito(e.target.value)} />
+        </label>
+        <label className="block md:col-span-2">
+          <span className="label">Descrizione azienda</span>
+          <textarea
+            className="field mt-1"
+            rows={3}
+            maxLength={MAX_DESCRIZIONE}
+            value={descrizione}
+            onChange={(e) => setDescrizione(e.target.value.slice(0, MAX_DESCRIZIONE))}
+            placeholder="Racconta la tua azienda: storia, valori, cosa produci… (max 500 caratteri)"
+          />
+          <div className="mt-1 text-right text-[11px] text-green-900/50">
+            {descrizione.length}/{MAX_DESCRIZIONE}
+          </div>
         </label>
       </div>
       <div className="mt-4 flex items-center gap-3">

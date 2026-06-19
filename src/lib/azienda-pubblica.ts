@@ -20,6 +20,7 @@ export type AziendaPubblica = {
   nome: string;
   citta_sede: string | null;
   sito_web: string | null;
+  descrizione?: string | null;
 };
 
 type ProdRow = {
@@ -43,9 +44,11 @@ function ingredientiDi(rows: IngRow[], prodottoId: string): IngredientInput[] {
 export async function loadAziendaPubblica(
   id: string,
 ): Promise<{ azienda: AziendaPubblica; prodotti: ProdottoPubblico[] } | null> {
+  // select("*"): la colonna "descrizione" potrebbe non esistere ancora nel DB;
+  // selezionando tutte le colonne evito errori se manca (sarà semplicemente assente).
   const { data: az } = await supabase
     .from("aziende")
-    .select("id,nome,citta_sede,sito_web")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
   if (!az) return null;

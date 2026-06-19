@@ -94,6 +94,11 @@ function Contenuto() {
             </>
           )}
         </p>
+        {azienda.descrizione && (
+          <p className="mt-3 max-w-2xl whitespace-pre-line text-green-900/80">
+            {azienda.descrizione}
+          </p>
+        )}
       </div>
 
       <h2 className="mt-8 font-display text-2xl text-green-800">
