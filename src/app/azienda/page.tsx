@@ -13,6 +13,7 @@ import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
+import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
 
@@ -69,6 +70,10 @@ function Contenuto() {
   }
 
   const { azienda } = dati;
+  // Widget differenziato per piano (look diverso da BioFido, stesse funzioni):
+  // la "scheda ricca" (copertina, descrizione, sito) è riservata a Silver/Gold.
+  const plan = (azienda.plan as Plan) ?? "free";
+  const ricco = (PLAN_MAP[plan] ?? PLAN_MAP.free).richProfile;
 
   return (
     <>
@@ -76,7 +81,7 @@ function Contenuto() {
         ← Tutte le schede prodotto
       </Link>
 
-      {azienda.immagine && (
+      {ricco && azienda.immagine && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={azienda.immagine}
@@ -86,11 +91,23 @@ function Contenuto() {
       )}
 
       <div className="mt-3">
-        <div className="text-xs font-bold uppercase tracking-wide text-lime-500">Azienda</div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-lime-500">Azienda</span>
+          {plan === "gold" && (
+            <span className="rounded-full bg-badge-yellow px-2 py-0.5 text-[10px] font-bold text-[#7a1f00]">
+              ★ GOLD · in evidenza
+            </span>
+          )}
+          {plan === "silver" && (
+            <span className="rounded-full bg-[#c9d3da] px-2 py-0.5 text-[10px] font-bold text-[#33414a]">
+              SILVER
+            </span>
+          )}
+        </div>
         <h1 className="title-pangea text-4xl text-green-700 md:text-5xl">{azienda.nome}</h1>
         <p className="mt-1 text-green-900/70">
           {azienda.citta_sede ?? ""}
-          {azienda.sito_web && (
+          {ricco && azienda.sito_web && (
             <>
               {azienda.citta_sede ? " · " : ""}
               <a
@@ -104,7 +121,7 @@ function Contenuto() {
             </>
           )}
         </p>
-        {azienda.descrizione && (
+        {ricco && azienda.descrizione && (
           <p className="mt-3 max-w-2xl whitespace-pre-line text-green-900/80">
             {azienda.descrizione}
           </p>

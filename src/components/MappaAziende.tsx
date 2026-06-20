@@ -40,10 +40,9 @@ export function MappaAziende() {
 
   useEffect(() => {
     (async () => {
-      const { data: az } = await supabase
-        .from("aziende")
-        .select("id, nome, citta_sede");
-      const lista = ((az as { id: string; nome: string; citta_sede: string | null }[]) ?? []).filter(
+      // select("*"): la colonna "plan" potrebbe non esistere ancora → così non rompe.
+      const { data: az } = await supabase.from("aziende").select("*");
+      const lista = ((az as { id: string; nome: string; citta_sede: string | null; plan?: string | null }[]) ?? []).filter(
         (a) => a.citta_sede,
       );
 
@@ -67,11 +66,13 @@ export function MappaAziende() {
             lat: g.lat,
             lon: g.lon,
             conSemaforo: conProdotti.has(a.id),
+            plan: a.plan ?? "free",
           });
         }
       }
 
-      // 2) esempi dimostrativi (DOPO le registrate)
+      // 2) esempi dimostrativi (DOPO le registrate) — piani vari per mostrare i 3 livelli
+      const DEMO_PLAN = ["gold", "silver", "free", "silver", "free"];
       DEMO_AZIENDE.forEach((d, i) => {
         const g = geocode(d.citta);
         if (!g) return;
@@ -82,6 +83,7 @@ export function MappaAziende() {
           lat: g.lat,
           lon: g.lon,
           conSemaforo: d.conSemaforo,
+          plan: DEMO_PLAN[i] ?? "free",
         });
       });
 

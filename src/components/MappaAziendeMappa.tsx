@@ -11,7 +11,37 @@ export type AziendaMarker = {
   lat: number;
   lon: number;
   conSemaforo: boolean;
+  plan?: string;
 };
+
+/**
+ * Segnaposto ECO-VISA: CERCHIO (look diverso dalla goccia di BioFido), colore
+ * verde/grigio per la presenza di prodotti col semaforo. Il PIANO aggiunge la
+ * gerarchia: Free piccolo, Silver anello argento, Gold più grande con anello
+ * dorato + ★.
+ */
+function markerAziendaHtml(m: AziendaMarker): string {
+  const colore = m.conSemaforo ? "#5baf38" : "#9aa0a6";
+  const plan = m.plan ?? "free";
+  const size = plan === "gold" ? 24 : plan === "silver" ? 19 : 15;
+  let ring = "box-shadow:0 0 0 2px rgba(0,0,0,.15);";
+  let star = "";
+  if (plan === "gold") {
+    ring = "box-shadow:0 0 0 3px #f7d417,0 0 10px rgba(247,212,23,.6);";
+    star =
+      `<span style="position:absolute;top:-7px;right:-7px;width:16px;height:16px;border-radius:50%;` +
+      `background:#f7d417;color:#7a1f00;font-size:10px;font-weight:900;display:flex;align-items:center;` +
+      `justify-content:center;border:2px solid #fff">★</span>`;
+  } else if (plan === "silver") {
+    ring = "box-shadow:0 0 0 2px #c9d3da,0 1px 4px rgba(0,0,0,.25);";
+  }
+  return (
+    `<div style="position:relative;width:${size}px;height:${size}px">` +
+    star +
+    `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${colore};border:3px solid #fff;${ring}"></div>` +
+    `</div>`
+  );
+}
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -40,12 +70,12 @@ export default function MappaAziendeMappa({ markers }: { markers: AziendaMarker[
     if (!map || markers.length === 0) return;
     const layer = L.layerGroup().addTo(map);
     for (const m of markers) {
-      const colore = m.conSemaforo ? "#5baf38" : "#9aa0a6";
+      const size = m.plan === "gold" ? 24 : m.plan === "silver" ? 19 : 15;
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:${colore};border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.15)"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        html: markerAziendaHtml(m),
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
       });
       // gli esempi (id "esempio-…") non hanno una scheda reale: rimandano
       // all'elenco generico; le aziende iscritte aprono la LORO pagina.

@@ -23,6 +23,7 @@ export type AziendaPubblica = {
   sito_web: string | null;
   descrizione?: string | null;
   immagine?: string | null;
+  plan?: string | null;
 };
 
 type ProdRow = {

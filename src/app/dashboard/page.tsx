@@ -1,12 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
 import { computeFootprint } from "@/lib/footprint";
-import { prefetchGeocode } from "@/lib/geo";
+import { prefetchGeocode, geocodeIndirizzo, lookupCap } from "@/lib/geo";
+
+// mappa per posizionare il segnaposto a mano (solo client: usa Leaflet)
+const MappaPicker = dynamic(() => import("@/components/MappaPicker"), { ssr: false });
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
@@ -33,6 +37,11 @@ type Azienda = {
   piva: string | null;
   codice_fiscale: string | null;
   citta_sede: string | null;
+  indirizzo?: string | null;
+  cap?: string | null;
+  provincia?: string | null;
+  lat?: number | null;
+  lon?: number | null;
   sito_web: string | null;
   descrizione?: string | null;
   immagine?: string | null;
@@ -141,7 +150,11 @@ export default function DashboardPage() {
   // Tiene la scheda BioFido allineata ai dati ECO-VISA (descrizione, prodotti
   // con prezzo/foto, piano): così un Gold ha una scheda ricca, non scarna.
   useEffect(() => {
-    if (user && azienda) syncBioFido(user.id, activePlan);
+    if (user && azienda) {
+      // salva il piano sull'azienda: marker e scheda pubblica lo usano per i widget
+      void supabase.from("aziende").update({ plan: activePlan }).eq("id", azienda.id).then(() => {});
+      syncBioFido(user.id, activePlan);
+    }
   }, [user, azienda, prodotti, activePlan]);
 
   // Salva il prodotto del calcolatore-semaforo tra "I tuoi prodotti" (poi
@@ -460,6 +473,15 @@ function AnagraficaCard({
     !!azienda?.codice_fiscale && azienda.codice_fiscale === azienda.piva,
   );
   const [citta, setCitta] = useState(azienda?.citta_sede ?? "");
+  const [indirizzo, setIndirizzo] = useState(azienda?.indirizzo ?? "");
+  const [cap, setCap] = useState(azienda?.cap ?? "");
+  const [provincia, setProvincia] = useState(azienda?.provincia ?? "");
+  const [coord, setCoord] = useState<{ lat: number; lon: number } | null>(
+    azienda?.lat != null && azienda?.lon != null
+      ? { lat: Number(azienda.lat), lon: Number(azienda.lon) }
+      : null,
+  );
+  const [geoBusy, setGeoBusy] = useState(false);
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
   const [descrizione, setDescrizione] = useState(azienda?.descrizione ?? "");
   const [immagine, setImmagine] = useState<string | null>(azienda?.immagine ?? null);
@@ -477,6 +499,14 @@ function AnagraficaCard({
       setCf(azienda.codice_fiscale ?? "");
       setCfUguale(!!azienda.codice_fiscale && azienda.codice_fiscale === azienda.piva);
       setCitta(azienda.citta_sede ?? "");
+      setIndirizzo(azienda.indirizzo ?? "");
+      setCap(azienda.cap ?? "");
+      setProvincia(azienda.provincia ?? "");
+      setCoord(
+        azienda.lat != null && azienda.lon != null
+          ? { lat: Number(azienda.lat), lon: Number(azienda.lon) }
+          : null,
+      );
       setSito(azienda.sito_web ?? "");
       setDescrizione(azienda.descrizione ?? "");
       setImmagine(azienda.immagine ?? null);
@@ -490,6 +520,10 @@ function AnagraficaCard({
         setCf(b.cf ?? "");
         setCfUguale(!!b.cfUguale);
         setCitta(b.citta ?? "");
+        if (b.indirizzo) setIndirizzo(b.indirizzo);
+        if (b.cap) setCap(b.cap);
+        if (b.provincia) setProvincia(b.provincia);
+        if (b.coord) setCoord(b.coord);
         setSito(b.sito ?? "");
         if (b.descrizione) setDescrizione(b.descrizione);
         if (b.immagine) setImmagine(b.immagine);
@@ -505,12 +539,47 @@ function AnagraficaCard({
     try {
       localStorage.setItem(
         BOZZA_ANAGRAFICA,
-        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito, descrizione, immagine }),
+        JSON.stringify({
+          nome, piva, cf, cfUguale, citta, indirizzo, cap, provincia, coord, sito, descrizione, immagine,
+        }),
       );
     } catch {
       /* localStorage non disponibile */
     }
-  }, [azienda, nome, piva, cf, cfUguale, citta, sito, descrizione, immagine]);
+  }, [azienda, nome, piva, cf, cfUguale, citta, indirizzo, cap, provincia, coord, sito, descrizione, immagine]);
+
+  // Geocodifica l'indirizzo completo per posizionare il segnaposto con precisione.
+  async function localizza() {
+    if (!indirizzo.trim() || !citta.trim()) {
+      setMsg("Inserisci almeno indirizzo e città per localizzare.");
+      return;
+    }
+    setGeoBusy(true);
+    setMsg(null);
+    try {
+      // completo il CAP se mancante (utile per la fattura e per la ricerca)
+      if (!cap.trim()) {
+        const pc = await lookupCap(citta, provincia || undefined);
+        if (pc) setCap(pc);
+      }
+      const p = await geocodeIndirizzo(indirizzo, citta, provincia || undefined);
+      if (p) {
+        setCoord(p);
+        setMsg("Posizione trovata ✓ — se il pin non è preciso, trascinalo sulla mappa.");
+      } else {
+        // fallback al centroide del comune, così la mappa compare comunque
+        const c = await prefetchGeocode(citta);
+        if (c) {
+          setCoord({ lat: c.lat, lon: c.lon });
+          setMsg("Indirizzo non riconosciuto: ho centrato sul comune, posiziona tu il pin sulla mappa.");
+        } else {
+          setMsg("Comune non riconosciuto: controlla città e provincia.");
+        }
+      }
+    } finally {
+      setGeoBusy(false);
+    }
+  }
 
   async function recuperaDaPiva() {
     if (piva.replace(/\D/g, "").length !== 11) return;
@@ -540,6 +609,11 @@ function AnagraficaCard({
       piva: piva || null,
       codice_fiscale: (cfUguale ? piva : cf) || null,
       citta_sede: citta || null,
+      indirizzo: indirizzo || null,
+      cap: cap || null,
+      provincia: provincia || null,
+      lat: coord?.lat ?? null,
+      lon: coord?.lon ?? null,
       sito_web: sito || null,
       descrizione: descrizione.trim() || null,
       immagine: immagine || null,
@@ -550,9 +624,9 @@ function AnagraficaCard({
         : supabase.from("aziende").insert(p);
 
     let { error } = await esegui(payload);
-    // Se una colonna non è ancora presente nel DB (immagine/descrizione/codice_fiscale),
-    // la rimuovo e riprovo: così l'anagrafica si salva comunque.
-    for (const col of ["immagine", "descrizione", "codice_fiscale"]) {
+    // Se una colonna non è ancora presente nel DB (immagine/descrizione/codice_fiscale/
+    // indirizzo/cap/provincia/lat/lon), la rimuovo e riprovo: così l'anagrafica si salva comunque.
+    for (const col of ["immagine", "descrizione", "codice_fiscale", "indirizzo", "cap", "provincia", "lat", "lon"]) {
       if (error && new RegExp(col, "i").test(error.message)) {
         delete payload[col];
         ({ error } = await esegui(payload));
