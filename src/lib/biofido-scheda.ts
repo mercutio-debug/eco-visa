@@ -72,7 +72,52 @@ export async function enrollBioFido(
   const { error } = ex
     ? await supabase.from("biofido_businesses").update(payload).eq("id", (ex as { id: string | number }).id)
     : await supabase.from("biofido_businesses").insert(payload);
-  return { error: error?.message };
+  if (error) return { error: error.message };
+  // popola subito descrizione/sito/prodotti dalla scheda ECO-VISA
+  await syncBioFido(owner);
+  return {};
+}
+
+/**
+ * Allinea la scheda BioFido ai dati ECO-VISA dell'azienda: descrizione, sito,
+ * PRODOTTI (con prezzo e foto) e piano. Senza questo, la scheda sulla mappa
+ * resterebbe scarna (solo nome/città) anche per un Gold. No-op se non iscritta.
+ */
+export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> {
+  const { data: ex } = await supabase
+    .from("biofido_businesses")
+    .select("id")
+    .eq("owner", owner)
+    .limit(1)
+    .maybeSingle();
+  if (!ex) return;
+
+  // dati anagrafici (descrizione, sito). select("*"): la colonna descrizione
+  // potrebbe non esistere su DB più vecchi → evito errori.
+  const { data: az } = await supabase.from("aziende").select("*").limit(1).maybeSingle();
+  const a = az as { id?: string; descrizione?: string | null; sito_web?: string | null } | null;
+
+  // prodotti → elenco {name, price, image} per la scheda BioFido
+  let products: { name: string; price?: string; image?: string }[] | null = null;
+  if (a?.id) {
+    const { data: pr } = await supabase.from("prodotti").select("*").eq("azienda_id", a.id);
+    const list = ((pr as { nome: string; prezzo?: string | null; immagine?: string | null }[]) ?? [])
+      .filter((p) => p.nome?.trim())
+      .map((p) => ({
+        name: p.nome,
+        ...(p.prezzo ? { price: p.prezzo } : {}),
+        ...(p.immagine ? { image: p.immagine } : {}),
+      }));
+    products = list.length ? list : null;
+  }
+
+  const payload: Record<string, unknown> = {
+    description: a?.descrizione ?? null,
+    website: a?.sito_web ?? null,
+    products,
+  };
+  if (plan) payload.plan = plan;
+  await supabase.from("biofido_businesses").update(payload).eq("id", (ex as { id: string | number }).id);
 }
 
 /** Disiscrive l'azienda: toglie il flag e rimuove il segnaposto dalla mappa. */

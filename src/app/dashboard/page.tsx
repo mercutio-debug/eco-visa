@@ -22,6 +22,7 @@ import { StatisticheCard } from "@/components/StatisticheCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
 import { getMyPlan } from "@/lib/plan";
+import { syncBioFido } from "@/lib/biofido-scheda";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
@@ -134,6 +135,12 @@ export default function DashboardPage() {
     setPeriodo(per);
     window.localStorage.setItem("ecovisa_plan", p);
   }
+
+  // Tiene la scheda BioFido allineata ai dati ECO-VISA (descrizione, prodotti
+  // con prezzo/foto, piano): così un Gold ha una scheda ricca, non scarna.
+  useEffect(() => {
+    if (user && azienda) syncBioFido(user.id, activePlan);
+  }, [user, azienda, prodotti, activePlan]);
 
   // Salva il prodotto del calcolatore-semaforo tra "I tuoi prodotti" (poi
   // l'utente vi aggiunge foto e dettagli). Lo stabilimento è la città del
