@@ -123,6 +123,9 @@ function Contenuto() {
                   </div>
                 )}
                 <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
+                {p.prezzo && (
+                  <div className="mt-1 text-lg font-bold text-green-800">{p.prezzo}</div>
+                )}
                 <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
 
                 <div className="mt-3">

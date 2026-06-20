@@ -43,6 +43,7 @@ type Prodotto = {
   categoria: string | null;
   stabilimento_citta: string;
   immagine: string | null;
+  prezzo?: string | null;
   ingredienti: Ingrediente[];
 };
 
@@ -245,6 +246,7 @@ export default function DashboardPage() {
             aziendaId={azienda.id}
             stabilimenti={stabilimenti}
             prodotti={prodotti}
+            gold={activePlan === "gold"}
             onChange={loadAll}
           />
         </>
@@ -726,11 +728,14 @@ function ProdottiCard({
   aziendaId,
   stabilimenti,
   prodotti,
+  gold,
   onChange,
 }: {
   aziendaId: string;
   stabilimenti: Stabilimento[];
   prodotti: Prodotto[];
+  /** il prezzo dei prodotti è una funzione riservata al piano Gold */
+  gold: boolean;
   onChange: () => void;
 }) {
   return (
@@ -787,6 +792,13 @@ function ProdottiCard({
                     </div>
                   </div>
                 </div>
+                {gold ? (
+                  <PrezzoProdotto prodottoId={p.id} prezzo={p.prezzo ?? null} onChange={onChange} />
+                ) : (
+                  p.prezzo && (
+                    <div className="mt-2 text-sm font-semibold text-green-800">Prezzo: {p.prezzo}</div>
+                  )
+                )}
                 <EmbedSnippet id={p.id} />
               </li>
             );
@@ -838,6 +850,58 @@ function FotoProdottoBtn({
         }}
       />
     </label>
+  );
+}
+
+function PrezzoProdotto({
+  prodottoId,
+  prezzo,
+  onChange,
+}: {
+  prodottoId: string;
+  prezzo: string | null;
+  onChange: () => void;
+}) {
+  const [val, setVal] = useState(prezzo ?? "");
+  const [saving, setSaving] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSaving(true);
+    setSalvato(false);
+    const { error } = await supabase
+      .from("prodotti")
+      .update({ prezzo: val.trim() || null })
+      .eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      alert(
+        /prezzo/i.test(error.message)
+          ? "Per usare il prezzo aggiungi prima la colonna al database (te l'ho indicata)."
+          : error.message,
+      );
+      return;
+    }
+    setSalvato(true);
+    setTimeout(() => setSalvato(false), 1500);
+    onChange();
+  }
+
+  return (
+    <div className="mt-3 flex items-center gap-2 rounded-xl bg-leaf/40 p-2">
+      <span className="text-xs font-bold uppercase tracking-wide text-green-700">
+        💛 Prezzo (Gold)
+      </span>
+      <input
+        className="field h-9 w-32 py-1"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="es. € 4,50"
+      />
+      <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
+        {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva prezzo"}
+      </button>
+    </div>
   );
 }
 

@@ -73,6 +73,9 @@ export function ProdottiIscritti() {
               )}
               <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
               <p className="mt-1 text-sm text-green-900/70">{p.aziendaNome}</p>
+              {p.prezzo && (
+                <div className="mt-1 text-base font-bold text-green-800">{p.prezzo}</div>
+              )}
               <div className="mt-4 flex items-center justify-between">
                 <Semaforo level={fp.level} size="sm" />
                 <div className="text-right">

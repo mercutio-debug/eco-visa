@@ -12,6 +12,7 @@ export type ProdottoPubblico = {
   categoria: string | null;
   stabilimento_citta: string;
   immagine: string | null;
+  prezzo?: string | null;
   ingredienti: IngredientInput[];
 };
 
@@ -29,6 +30,7 @@ type ProdRow = {
   categoria: string | null;
   stabilimento_citta: string | null;
   immagine: string | null;
+  prezzo?: string | null;
   azienda_id: string;
 };
 type IngRow = { prodotto_id: string; nome: string; origine: string };
@@ -55,7 +57,7 @@ export async function loadAziendaPubblica(
 
   const { data: pr } = await supabase
     .from("prodotti")
-    .select("id,nome,categoria,stabilimento_citta,immagine,azienda_id")
+    .select("*")
     .eq("azienda_id", id);
   const prods = (pr as ProdRow[]) ?? [];
 
@@ -77,6 +79,7 @@ export async function loadAziendaPubblica(
     categoria: p.categoria,
     stabilimento_citta: p.stabilimento_citta ?? "",
     immagine: p.immagine,
+    prezzo: p.prezzo ?? null,
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
@@ -90,9 +93,7 @@ export type ProdottoConAzienda = ProdottoPubblico & {
 
 /** Tutti i prodotti delle aziende iscritte (per l'elenco "Schede prodotto"). */
 export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
-  const { data: pr } = await supabase
-    .from("prodotti")
-    .select("id,nome,categoria,stabilimento_citta,immagine,azienda_id");
+  const { data: pr } = await supabase.from("prodotti").select("*");
   const prods = (pr as ProdRow[]) ?? [];
   if (!prods.length) return [];
 
@@ -120,6 +121,7 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
     categoria: p.categoria,
     stabilimento_citta: p.stabilimento_citta ?? "",
     immagine: p.immagine,
+    prezzo: p.prezzo ?? null,
     ingredienti: ingredientiDi(ingRows, p.id),
     aziendaId: p.azienda_id,
     aziendaNome: nomeById.get(p.azienda_id) ?? "Azienda",
