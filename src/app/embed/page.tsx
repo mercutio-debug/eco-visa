@@ -59,7 +59,7 @@ export default function EmbedPage() {
 
       // conta la visualizzazione del passaporto (per prodotto) per le statistiche
       const owner = (az as { owner?: string })?.owner;
-      if (owner) registraVisita(owner, (p as Prod).id);
+      if (owner) registraVisita(owner, { prodottoId: (p as Prod).id });
 
       // risolvi le località via OpenStreetMap, poi ricalcola
       const names = new Set<string>([(p as Prod).stabilimento_citta]);
