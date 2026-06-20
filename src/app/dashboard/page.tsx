@@ -31,6 +31,7 @@ import { getMyPlan } from "@/lib/plan";
 import { syncBioFido } from "@/lib/biofido-scheda";
 import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
+import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -60,6 +61,7 @@ type Prodotto = {
   stabilimento_citta: string;
   immagine: string | null;
   prezzo?: string | null;
+  prenotabile?: boolean | null;
   ingredienti: Ingrediente[];
 };
 
@@ -283,6 +285,8 @@ export default function DashboardPage() {
 
       {user && azienda && <AnteprimaScheda ownerId={user.id} plan={pianoScelto} />}
       {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
+
+      {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
@@ -1032,6 +1036,13 @@ function ProdottiCard({
                     </div>
                   )
                 )}
+                {gold && (
+                  <PrenotabileToggle
+                    prodottoId={p.id}
+                    prenotabile={!!p.prenotabile}
+                    onChange={onChange}
+                  />
+                )}
                 <EmbedSnippet id={p.id} />
               </li>
             );
@@ -1138,6 +1149,105 @@ function PrezzoProdotto({
   );
 }
 
+function PrenotabileToggle({
+  prodottoId,
+  prenotabile,
+  onChange,
+}: {
+  prodottoId: string;
+  prenotabile: boolean;
+  onChange: () => void;
+}) {
+  const [on, setOn] = useState(prenotabile);
+  const [saving, setSaving] = useState(false);
+
+  async function toggle(v: boolean) {
+    setOn(v);
+    setSaving(true);
+    const { error } = await supabase.from("prodotti").update({ prenotabile: v }).eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      setOn(!v);
+      alert(
+        /prenotabile/i.test(error.message)
+          ? "Per i servizi prenotabili aggiungi prima la colonna al database (te l'ho indicata)."
+          : error.message,
+      );
+      return;
+    }
+    onChange();
+  }
+
+  return (
+    <label className="mt-2 flex items-center gap-2 rounded-xl bg-leaf/40 p-2 text-sm">
+      <input
+        type="checkbox"
+        className="h-5 w-5 accent-[var(--lime-500)]"
+        checked={on}
+        disabled={saving}
+        onChange={(e) => toggle(e.target.checked)}
+      />
+      <span className="font-semibold text-green-800">
+        ✨ Servizio extra prenotabile dal cliente {saving ? "…" : ""}
+      </span>
+    </label>
+  );
+}
+
+function PagamentiCard({ ownerId, plan }: { ownerId: string; plan: Plan }) {
+  const [ready, setReady] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("stripe_accounts")
+      .select("charges_enabled")
+      .eq("user_id", ownerId)
+      .maybeSingle()
+      .then(({ data }) => setReady(Boolean((data as { charges_enabled?: boolean })?.charges_enabled)));
+    refreshConnectStatus().then((live) => {
+      if (live !== null) setReady(live);
+    });
+  }, [ownerId]);
+
+  // i pagamenti delle prenotazioni servono solo ai piani che possono vendere
+  if (!billingEnabled || !PLAN_MAP[plan].canSell) return null;
+
+  async function collega() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await startOnboarding();
+    } catch (e) {
+      setBusy(false);
+      setMsg((e as Error).message);
+    }
+  }
+
+  return (
+    <section className="card mt-6 p-6">
+      <h2 className="font-display text-2xl text-green-800">Pagamenti</h2>
+      <p className="mt-1 text-sm text-green-900/70">
+        Collega Stripe per ricevere online i pagamenti dei servizi extra prenotabili.
+        Trattieni l&apos;incasso meno la commissione del piano.
+      </p>
+      {ready ? (
+        <p className="mt-4 rounded-xl bg-leaf px-4 py-3 text-sm font-semibold text-green-800">
+          Account Stripe collegato ✅ — puoi ricevere pagamenti.
+        </p>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button className="btn-lime" onClick={collega} disabled={busy}>
+            {busy ? "Apro Stripe…" : "Collega Stripe"}
+          </button>
+          {msg && <span className="text-sm font-semibold text-traffic-red">{msg}</span>}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function EmbedSnippet({ id }: { id: string }) {
   const [copied, setCopied] = useState(false);
   // URL assoluto per il codice da copiare (va sul sito dell'azienda)
@@ -1208,6 +1318,9 @@ function NuovoProdotto({
   const [saving, setSaving] = useState(false);
   const [immagine, setImmagine] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // prodotto ordinario oppure servizio extra prenotabile dal cliente
+  const [tipoVoce, setTipoVoce] = useState<"prodotto" | "servizio">("prodotto");
+  const [accetta, setAccetta] = useState(false);
 
   useEffect(() => {
     if (!stab && stabilimenti[0]) setStab(stabilimenti[0].citta);
@@ -1247,18 +1360,26 @@ function NuovoProdotto({
   async function save() {
     const validIngr = ingredienti.filter((i) => i.nome.trim() && i.origine.trim());
     if (!nome.trim() || !stab.trim() || validIngr.length === 0) return;
+    if (tipoVoce === "servizio" && !accetta) {
+      alert("Per rendere il servizio prenotabile, spunta l'accettazione.");
+      return;
+    }
     setSaving(true);
-    const { data, error } = await supabase
-      .from("prodotti")
-      .insert({
-        azienda_id: aziendaId,
-        nome,
-        categoria: categoria || null,
-        stabilimento_citta: stab,
-        immagine: immagine,
-      })
-      .select("id")
-      .single();
+    const payload: Record<string, unknown> = {
+      azienda_id: aziendaId,
+      nome,
+      categoria: categoria || null,
+      stabilimento_citta: stab,
+      immagine: immagine,
+      prenotabile: tipoVoce === "servizio" && accetta,
+    };
+    let res = await supabase.from("prodotti").insert(payload).select("id").single();
+    // se la colonna prenotabile non esiste ancora, riprovo senza
+    if (res.error && /prenotabile/i.test(res.error.message)) {
+      delete payload.prenotabile;
+      res = await supabase.from("prodotti").insert(payload).select("id").single();
+    }
+    const { data, error } = res;
     if (error || !data) {
       setSaving(false);
       alert("Errore nel salvare il prodotto: " + (error?.message ?? ""));
@@ -1274,6 +1395,8 @@ function NuovoProdotto({
     setNome("");
     setCategoria("");
     setImmagine(null);
+    setTipoVoce("prodotto");
+    setAccetta(false);
     setIngredienti([{ nome: "", origine: "" }]);
     onSaved();
   }
@@ -1315,6 +1438,34 @@ function NuovoProdotto({
           </select>
         </label>
       </div>
+
+      {/* tipo voce: prodotto ordinario o servizio extra prenotabile dal cliente */}
+      <label className="mt-3 block">
+        <span className="label">Tipo</span>
+        <select
+          className="field mt-1"
+          value={tipoVoce}
+          onChange={(e) => setTipoVoce(e.target.value as "prodotto" | "servizio")}
+        >
+          <option value="prodotto">Prodotto ordinario</option>
+          <option value="servizio">Servizio extra (prenotabile dal cliente)</option>
+        </select>
+      </label>
+      {tipoVoce === "servizio" && (
+        <label className="mt-2 flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+            checked={accetta}
+            onChange={(e) => setAccetta(e.target.checked)}
+          />
+          <span className="text-green-900/85">
+            <strong>Rendi prenotabile dai clienti</strong> (visite, laboratori, esperienze):
+            accetto che i clienti inviino una richiesta e, a conferma, paghino online via
+            Stripe (con la commissione del piano). Compare sia su ECO-VISA sia su BioFido.
+          </span>
+        </label>
+      )}
 
       {/* immagine del prodotto, ridimensionata in automatico */}
       <div className="mt-3">

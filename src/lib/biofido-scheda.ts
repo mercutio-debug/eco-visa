@@ -106,16 +106,17 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
     immagine?: string | null;
   } | null;
 
-  // prodotti → elenco {name, price, image} per la scheda BioFido
-  let products: { name: string; price?: string; image?: string }[] | null = null;
+  // prodotti → elenco {name, price, image, prenotabile} per la scheda BioFido
+  let products: { name: string; price?: string; image?: string; prenotabile?: boolean }[] | null = null;
   if (a?.id) {
     const { data: pr } = await supabase.from("prodotti").select("*").eq("azienda_id", a.id);
-    const list = ((pr as { nome: string; prezzo?: string | null; immagine?: string | null }[]) ?? [])
+    const list = ((pr as { nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [])
       .filter((p) => p.nome?.trim())
       .map((p) => ({
         name: p.nome,
         ...(p.prezzo ? { price: formatPrezzo(p.prezzo) } : {}),
         ...(p.immagine ? { image: p.immagine } : {}),
+        ...(p.prenotabile ? { prenotabile: true } : {}),
       }));
     products = list.length ? list : null;
   }

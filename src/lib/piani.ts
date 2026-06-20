@@ -32,6 +32,10 @@ export type PlanInfo = {
   featuredKm0: boolean;
   /** livello di statistiche disponibili */
   statsLevel: StatsLevel;
+  /** può offrire SERVIZI EXTRA prenotabili dal cliente (con pagamento) */
+  canSell: boolean;
+  /** commissione trattenuta sulle prenotazioni (0.15 = 15%) — come BioFido */
+  commissionRate: number;
 };
 
 export const PLAN_MAP: Record<Plan, PlanInfo> = {
@@ -39,15 +43,18 @@ export const PLAN_MAP: Record<Plan, PlanInfo> = {
     id: "free", label: "Gratuito", monthlyPrice: 0, annualPrice: 0,
     maxProducts: 1, badgeEmbed: false, richProfile: false,
     directoryBoost: 0, featuredKm0: false, statsLevel: "none",
+    canSell: false, commissionRate: 0,
   },
   silver: {
     id: "silver", label: "Silver", monthlyPrice: 9, annualPrice: 90,
     maxProducts: 10, badgeEmbed: true, richProfile: true,
     directoryBoost: 10, featuredKm0: false, statsLevel: "base",
+    canSell: true, commissionRate: 0.15,
   },
   gold: {
     id: "gold", label: "Gold", monthlyPrice: 24, annualPrice: 240,
     maxProducts: 100, badgeEmbed: true, richProfile: true,
     directoryBoost: 25, featuredKm0: true, statsLevel: "advanced",
+    canSell: true, commissionRate: 0.08,
   },
 };

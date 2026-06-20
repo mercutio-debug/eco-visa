@@ -14,6 +14,7 @@ import { Semaforo } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
+import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 
 type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
 
@@ -22,6 +23,7 @@ function Contenuto() {
   const id = params.get("id");
   const [dati, setDati] = useState<Dati | null>(null);
   const [loading, setLoading] = useState(true);
+  const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -149,11 +151,28 @@ function Contenuto() {
                     {p.categoria}
                   </div>
                 )}
-                <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
+                  {p.prenotabile && (
+                    <span className="shrink-0 rounded-full bg-badge-yellow px-2 text-[10px] font-bold text-[#7a1f00]">
+                      PRENOTABILE
+                    </span>
+                  )}
+                </div>
                 {p.prezzo && (
                   <div className="mt-1 text-lg font-bold text-green-800">{formatPrezzo(p.prezzo)}</div>
                 )}
                 <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
+
+                {p.prenotabile && azienda.owner && (
+                  <button
+                    type="button"
+                    onClick={() => setPrenota(p)}
+                    className="btn-lime mt-3 w-full justify-center text-sm"
+                  >
+                    ✨ Prenota / richiedi
+                  </button>
+                )}
 
                 <div className="mt-3">
                   <Semaforo level={fp.level} score={fp.score} />
@@ -191,6 +210,17 @@ function Contenuto() {
             </div>
           ))}
         </div>
+      )}
+
+      {prenota && azienda.owner && (
+        <RichiestaServizioModal
+          ownerId={azienda.owner}
+          ownerPlan={(azienda.plan as Plan) ?? "free"}
+          servizioNome={prenota.nome}
+          prezzo={prenota.prezzo}
+          aziendaNome={azienda.nome}
+          onClose={() => setPrenota(null)}
+        />
       )}
     </>
   );

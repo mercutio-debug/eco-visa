@@ -13,6 +13,7 @@ export type ProdottoPubblico = {
   stabilimento_citta: string;
   immagine: string | null;
   prezzo?: string | null;
+  prenotabile?: boolean;
   ingredienti: IngredientInput[];
 };
 
@@ -24,6 +25,7 @@ export type AziendaPubblica = {
   descrizione?: string | null;
   immagine?: string | null;
   plan?: string | null;
+  owner?: string | null;
 };
 
 type ProdRow = {
@@ -33,6 +35,7 @@ type ProdRow = {
   stabilimento_citta: string | null;
   immagine: string | null;
   prezzo?: string | null;
+  prenotabile?: boolean | null;
   azienda_id: string;
 };
 type IngRow = { prodotto_id: string; nome: string; origine: string };
@@ -82,6 +85,7 @@ export async function loadAziendaPubblica(
     stabilimento_citta: p.stabilimento_citta ?? "",
     immagine: p.immagine,
     prezzo: p.prezzo ?? null,
+    prenotabile: p.prenotabile ?? false,
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
