@@ -50,3 +50,126 @@ export async function createServizioBooking(input: {
   });
   return { error: error?.message };
 }
+
+/* ---------------- gestione prenotazioni ricevute (produttore) ---------------- */
+
+export type BookingStatus = "in_attesa" | "confermata" | "rifiutata" | "annullata";
+
+export const STATO_LABEL: Record<BookingStatus, string> = {
+  in_attesa: "In attesa",
+  confermata: "Confermata",
+  rifiutata: "Rifiutata",
+  annullata: "Annullata",
+};
+
+export type Booking = {
+  id: string;
+  titolo?: string;
+  clienteNome: string;
+  clienteEmail: string;
+  clienteTel?: string;
+  dataRichiesta: string;
+  persone: number;
+  note?: string;
+  totaleCents: number;
+  commissioneCents: number;
+  stato: BookingStatus;
+  paymentStatus: "non_pagata" | "pagata" | "rimborsata";
+};
+
+type BookRow = {
+  id: number | string;
+  titolo?: string | null;
+  cliente_nome: string;
+  cliente_email: string;
+  cliente_tel: string | null;
+  data_richiesta: string;
+  persone: number;
+  note: string | null;
+  totale_cents: number;
+  commissione_cents: number;
+  stato: BookingStatus;
+  payment_status?: "non_pagata" | "pagata" | "rimborsata" | null;
+};
+
+const fromBookRow = (r: BookRow): Booking => ({
+  id: String(r.id),
+  titolo: r.titolo ?? undefined,
+  clienteNome: r.cliente_nome,
+  clienteEmail: r.cliente_email,
+  clienteTel: r.cliente_tel ?? undefined,
+  dataRichiesta: r.data_richiesta,
+  persone: r.persone,
+  note: r.note ?? undefined,
+  totaleCents: r.totale_cents,
+  commissioneCents: r.commissione_cents,
+  stato: r.stato,
+  paymentStatus: r.payment_status ?? "non_pagata",
+});
+
+export async function listMyBookings(owner: string): Promise<Booking[]> {
+  const { data } = await supabase
+    .from("prenotazioni")
+    .select("*")
+    .eq("owner", owner)
+    .order("created_at", { ascending: false });
+  return ((data as BookRow[]) ?? []).map(fromBookRow);
+}
+
+export async function setBookingStatus(id: string, stato: BookingStatus): Promise<void> {
+  await supabase.from("prenotazioni").update({ stato }).eq("id", id);
+}
+
+/* ------------------------------ messaggi (chat) ------------------------------- */
+
+export type Mittente = "azienda" | "cliente";
+
+export type Message = {
+  id: string;
+  prenotazioneId: string;
+  mittente: Mittente;
+  testo: string;
+  createdAt?: string;
+};
+
+type MsgRow = {
+  id: number | string;
+  prenotazione_id: number | string;
+  mittente: Mittente;
+  testo: string;
+  created_at?: string;
+};
+
+const fromMsgRow = (r: MsgRow): Message => ({
+  id: String(r.id),
+  prenotazioneId: String(r.prenotazione_id),
+  mittente: r.mittente,
+  testo: r.testo,
+  createdAt: r.created_at,
+});
+
+export async function listMessages(prenotazioneId: string): Promise<Message[]> {
+  const { data } = await supabase
+    .from("messaggi")
+    .select("*")
+    .eq("prenotazione_id", prenotazioneId)
+    .order("created_at", { ascending: true });
+  return ((data as MsgRow[]) ?? []).map(fromMsgRow);
+}
+
+export async function sendMessage(
+  prenotazioneId: string,
+  mittente: Mittente,
+  testo: string,
+): Promise<{ error?: string }> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const { error } = await supabase.from("messaggi").insert({
+    prenotazione_id: prenotazioneId,
+    mittente,
+    sender_id: session?.user.id ?? null,
+    testo,
+  });
+  return { error: error?.message };
+}
