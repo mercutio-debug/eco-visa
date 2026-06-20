@@ -17,6 +17,8 @@ import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { CatalogoCard } from "@/components/CatalogoCard";
+import { AnteprimaScheda } from "@/components/AnteprimaScheda";
+import { StatisticheCard } from "@/components/StatisticheCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
 import { getMyPlan } from "@/lib/plan";
@@ -251,6 +253,9 @@ export default function DashboardPage() {
           />
         </>
       )}
+
+      {user && azienda && <AnteprimaScheda ownerId={user.id} plan={pianoScelto} />}
+      {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
