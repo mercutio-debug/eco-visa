@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
+import { registraVisita } from "@/lib/statistiche";
 
 type Prod = {
   id: string;
@@ -47,7 +48,7 @@ export default function EmbedPage() {
         .eq("prodotto_id", id);
       const { data: az } = await supabase
         .from("aziende")
-        .select("nome")
+        .select("nome, owner")
         .eq("id", (p as Prod).azienda_id)
         .maybeSingle();
 
@@ -55,6 +56,10 @@ export default function EmbedPage() {
       setIngr((ing as Ingr[]) ?? []);
       setAzienda((az as { nome?: string })?.nome ?? "");
       setStatus("ok");
+
+      // conta la visualizzazione del passaporto per le statistiche dell'azienda
+      const owner = (az as { owner?: string })?.owner;
+      if (owner) registraVisita(owner);
 
       // risolvi le località via OpenStreetMap, poi ricalcola
       const names = new Set<string>([(p as Prod).stabilimento_citta]);
