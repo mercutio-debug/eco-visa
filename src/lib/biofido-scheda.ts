@@ -96,7 +96,12 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
   // dati anagrafici (descrizione, sito). select("*"): la colonna descrizione
   // potrebbe non esistere su DB più vecchi → evito errori.
   const { data: az } = await supabase.from("aziende").select("*").limit(1).maybeSingle();
-  const a = az as { id?: string; descrizione?: string | null; sito_web?: string | null } | null;
+  const a = az as {
+    id?: string;
+    descrizione?: string | null;
+    sito_web?: string | null;
+    immagine?: string | null;
+  } | null;
 
   // prodotti → elenco {name, price, image} per la scheda BioFido
   let products: { name: string; price?: string; image?: string }[] | null = null;
@@ -115,10 +120,22 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
   const payload: Record<string, unknown> = {
     description: a?.descrizione ?? null,
     website: a?.sito_web ?? null,
+    immagine: a?.immagine ?? null,
     products,
   };
   if (plan) payload.plan = plan;
-  await supabase.from("biofido_businesses").update(payload).eq("id", (ex as { id: string | number }).id);
+  // se la colonna immagine non esiste ancora su biofido_businesses, riprovo senza
+  let { error } = await supabase
+    .from("biofido_businesses")
+    .update(payload)
+    .eq("id", (ex as { id: string | number }).id);
+  if (error && /immagine/i.test(error.message)) {
+    delete payload.immagine;
+    ({ error } = await supabase
+      .from("biofido_businesses")
+      .update(payload)
+      .eq("id", (ex as { id: string | number }).id));
+  }
 }
 
 /** Disiscrive l'azienda: toglie il flag e rimuove il segnaposto dalla mappa. */

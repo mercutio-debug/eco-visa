@@ -76,6 +76,15 @@ function Contenuto() {
         ← Tutte le schede prodotto
       </Link>
 
+      {azienda.immagine && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={azienda.immagine}
+          alt={azienda.nome}
+          className="mt-3 h-48 w-full rounded-2xl object-cover md:h-64"
+        />
+      )}
+
       <div className="mt-3">
         <div className="text-xs font-bold uppercase tracking-wide text-lime-500">Azienda</div>
         <h1 className="title-pangea text-4xl text-green-700 md:text-5xl">{azienda.nome}</h1>

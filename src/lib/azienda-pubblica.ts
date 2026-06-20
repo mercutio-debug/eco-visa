@@ -22,6 +22,7 @@ export type AziendaPubblica = {
   citta_sede: string | null;
   sito_web: string | null;
   descrizione?: string | null;
+  immagine?: string | null;
 };
 
 type ProdRow = {

@@ -35,6 +35,7 @@ type Azienda = {
   citta_sede: string | null;
   sito_web: string | null;
   descrizione?: string | null;
+  immagine?: string | null;
 };
 
 /** Lunghezza massima della descrizione azienda. */
@@ -234,6 +235,7 @@ export default function DashboardPage() {
       <AnagraficaCard
         azienda={azienda}
         initialNome={(user?.user_metadata as { nome?: string })?.nome}
+        ownerId={user?.id ?? ""}
         onSaved={loadAll}
       />
 
@@ -443,10 +445,12 @@ const BOZZA_ANAGRAFICA = "ecovisa_anagrafica_bozza";
 function AnagraficaCard({
   azienda,
   initialNome,
+  ownerId,
   onSaved,
 }: {
   azienda: Azienda | null;
   initialNome?: string;
+  ownerId: string;
   onSaved: () => void;
 }) {
   const [nome, setNome] = useState(azienda?.nome ?? initialNome ?? "");
@@ -458,6 +462,8 @@ function AnagraficaCard({
   const [citta, setCitta] = useState(azienda?.citta_sede ?? "");
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
   const [descrizione, setDescrizione] = useState(azienda?.descrizione ?? "");
+  const [immagine, setImmagine] = useState<string | null>(azienda?.immagine ?? null);
+  const [uploadingImg, setUploadingImg] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -473,6 +479,7 @@ function AnagraficaCard({
       setCitta(azienda.citta_sede ?? "");
       setSito(azienda.sito_web ?? "");
       setDescrizione(azienda.descrizione ?? "");
+      setImmagine(azienda.immagine ?? null);
       return;
     }
     try {
@@ -485,6 +492,7 @@ function AnagraficaCard({
         setCitta(b.citta ?? "");
         setSito(b.sito ?? "");
         if (b.descrizione) setDescrizione(b.descrizione);
+        if (b.immagine) setImmagine(b.immagine);
       }
     } catch {
       /* bozza assente o corrotta */
@@ -497,12 +505,12 @@ function AnagraficaCard({
     try {
       localStorage.setItem(
         BOZZA_ANAGRAFICA,
-        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito, descrizione }),
+        JSON.stringify({ nome, piva, cf, cfUguale, citta, sito, descrizione, immagine }),
       );
     } catch {
       /* localStorage non disponibile */
     }
-  }, [azienda, nome, piva, cf, cfUguale, citta, sito, descrizione]);
+  }, [azienda, nome, piva, cf, cfUguale, citta, sito, descrizione, immagine]);
 
   async function recuperaDaPiva() {
     if (piva.replace(/\D/g, "").length !== 11) return;
@@ -534,6 +542,7 @@ function AnagraficaCard({
       citta_sede: citta || null,
       sito_web: sito || null,
       descrizione: descrizione.trim() || null,
+      immagine: immagine || null,
     };
     const esegui = (p: Record<string, unknown>) =>
       azienda
@@ -541,9 +550,9 @@ function AnagraficaCard({
         : supabase.from("aziende").insert(p);
 
     let { error } = await esegui(payload);
-    // Se una colonna non è ancora presente nel DB (descrizione/codice_fiscale),
+    // Se una colonna non è ancora presente nel DB (immagine/descrizione/codice_fiscale),
     // la rimuovo e riprovo: così l'anagrafica si salva comunque.
-    for (const col of ["descrizione", "codice_fiscale"]) {
+    for (const col of ["immagine", "descrizione", "codice_fiscale"]) {
       if (error && new RegExp(col, "i").test(error.message)) {
         delete payload[col];
         ({ error } = await esegui(payload));
@@ -641,6 +650,56 @@ function AnagraficaCard({
             {descrizione.length}/{MAX_DESCRIZIONE}
           </div>
         </label>
+
+        {/* Immagine dell'azienda (copertina): compare nella scheda pubblica e,
+            per i Gold, in cima al widget sulla mappa di BioFido. */}
+        <div className="block md:col-span-2">
+          <span className="label">Immagine dell&apos;azienda (copertina)</span>
+          <div className="mt-1 flex items-center gap-3">
+            {immagine ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={immagine} alt="" className="h-20 w-32 rounded-lg object-cover" />
+            ) : (
+              <span className="flex h-20 w-32 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">
+                nessuna immagine
+              </span>
+            )}
+            <div className="flex flex-col gap-1">
+              <label className="btn-ghost cursor-pointer text-sm">
+                {uploadingImg ? "Carico…" : immagine ? "Cambia immagine" : "Carica immagine"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setUploadingImg(true);
+                    try {
+                      setImmagine(await caricaImmagineCatalogo(azienda?.id ?? ownerId, f));
+                    } catch (err) {
+                      alert((err as Error).message);
+                    } finally {
+                      setUploadingImg(false);
+                    }
+                  }}
+                />
+              </label>
+              {immagine && (
+                <button
+                  type="button"
+                  className="text-xs font-bold text-traffic-red hover:underline"
+                  onClick={() => setImmagine(null)}
+                >
+                  Rimuovi
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="mt-1 text-[11px] text-green-900/50">
+            Ridimensionata in automatico. Ricordati di premere «Aggiorna dati» per salvarla.
+          </p>
+        </div>
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button className="btn-lime" onClick={save} disabled={saving || !nome}>
