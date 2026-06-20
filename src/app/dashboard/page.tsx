@@ -16,6 +16,7 @@ import { Semaforo } from "@/components/Semaforo";
 import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
+import { IndirizzoAutocomplete } from "@/components/IndirizzoAutocomplete";
 import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
@@ -704,7 +705,13 @@ function AnagraficaCard({
           <div className="mt-1">
             <ComuneAutocomplete
               value={citta}
-              onSelect={(c) => setCitta(c.nome)}
+              onSelect={async (c) => {
+                setCitta(c.nome);
+                // provincia subito dalla sigla del comune; CAP ricavato da Nominatim
+                if (c.prov) setProvincia(c.prov);
+                const pc = await lookupCap(c.nome, c.prov);
+                if (pc) setCap(pc);
+              }}
               placeholder="Inizia a scrivere la città…"
             />
           </div>
@@ -719,12 +726,22 @@ function AnagraficaCard({
         <label className="block md:col-span-2">
           <span className="label">Indirizzo (via e numero civico)</span>
           <div className="mt-1 flex gap-2">
-            <input
-              className="field flex-1"
-              value={indirizzo}
-              onChange={(e) => setIndirizzo(e.target.value)}
-              placeholder="Es. Via Roma 12"
-            />
+            <div className="flex-1">
+              <IndirizzoAutocomplete
+                value={indirizzo}
+                onChange={setIndirizzo}
+                onSelect={(s) => {
+                  // riempio indirizzo, posizione e — se assenti — città/CAP/provincia
+                  setIndirizzo(s.via ?? s.label);
+                  setCoord({ lat: s.lat, lon: s.lon });
+                  if (s.citta && !citta.trim()) setCitta(s.citta);
+                  if (s.cap) setCap(s.cap);
+                  if (s.provincia) setProvincia(s.provincia);
+                  setMsg("Indirizzo trovato ✓ — se il pin non è preciso, trascinalo sulla mappa.");
+                }}
+                placeholder="Es. Regione Pontelungo Inferiore 17, Albenga"
+              />
+            </div>
             <button
               type="button"
               className="btn-ghost whitespace-nowrap text-sm"
@@ -734,6 +751,10 @@ function AnagraficaCard({
               {geoBusy ? "Cerco…" : "📍 Localizza"}
             </button>
           </div>
+          <p className="mt-1 text-[11px] text-green-900/55">
+            Inizia a scrivere e scegli un suggerimento: posiziona il segnaposto da
+            solo. In alternativa, premi «Localizza» o trascina il pin sulla mappa.
+          </p>
         </label>
         <label className="block">
           <span className="label">CAP</span>
