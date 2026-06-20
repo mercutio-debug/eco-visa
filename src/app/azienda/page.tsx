@@ -15,6 +15,7 @@ import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
+import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 
 type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
 
@@ -24,6 +25,7 @@ function Contenuto() {
   const [dati, setDati] = useState<Dati | null>(null);
   const [loading, setLoading] = useState(true);
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
+  const [contatta, setContatta] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -128,6 +130,16 @@ function Contenuto() {
             {azienda.descrizione}
           </p>
         )}
+
+        {azienda.owner && (
+          <button
+            type="button"
+            onClick={() => setContatta(true)}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-green-600 px-4 py-1.5 text-sm font-bold text-green-700 hover:bg-leaf"
+          >
+            ✉️ Contatta l&apos;azienda
+          </button>
+        )}
       </div>
 
       <h2 className="mt-8 font-display text-2xl text-green-800">
@@ -220,6 +232,14 @@ function Contenuto() {
           prezzo={prenota.prezzo}
           aziendaNome={azienda.nome}
           onClose={() => setPrenota(null)}
+        />
+      )}
+
+      {contatta && azienda.owner && (
+        <ContattaAziendaModal
+          ownerId={azienda.owner}
+          aziendaNome={azienda.nome}
+          onClose={() => setContatta(false)}
         />
       )}
     </>

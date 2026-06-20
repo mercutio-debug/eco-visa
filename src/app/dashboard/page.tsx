@@ -311,7 +311,10 @@ export default function DashboardPage() {
             ragione_sociale: azienda?.nome ?? undefined,
             partita_iva: azienda?.piva ?? undefined,
             codice_fiscale: azienda?.codice_fiscale ?? undefined,
+            indirizzo: azienda?.indirizzo ?? undefined,
+            cap: azienda?.cap ?? undefined,
             citta: azienda?.citta_sede ?? undefined,
+            provincia: azienda?.provincia ?? undefined,
           }}
         />
       )}
