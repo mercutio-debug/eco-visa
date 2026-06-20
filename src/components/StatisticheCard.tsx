@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { caricaStatistiche, type Statistiche } from "@/lib/statistiche";
+import {
+  caricaStatistiche,
+  caricaProdottiPiuVisti,
+  type Statistiche,
+  type ProdottoVisto,
+} from "@/lib/statistiche";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 function Numero({ n, label }: { n: number; label: string }) {
@@ -20,6 +25,7 @@ function Numero({ n, label }: { n: number; label: string }) {
 export function StatisticheCard({ ownerId, plan }: { ownerId: string; plan: Plan }) {
   const livello = PLAN_MAP[plan].statsLevel; // "none" | "base" | "advanced"
   const [s, setS] = useState<Statistiche | null>(null);
+  const [prodotti, setProdotti] = useState<ProdottoVisto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +37,10 @@ export function StatisticheCard({ ownerId, plan }: { ownerId: string; plan: Plan
       setS(r);
       setLoading(false);
     });
+    // statistica extra Gold: prodotti più visti
+    if (livello === "advanced") {
+      caricaProdottiPiuVisti(ownerId).then(setProdotti);
+    }
   }, [ownerId, livello]);
 
   if (livello === "none") {
@@ -47,6 +57,7 @@ export function StatisticheCard({ ownerId, plan }: { ownerId: string; plan: Plan
   }
 
   const max = s ? Math.max(1, ...s.perGiorno.map((d) => d.n)) : 1;
+  const maxProd = prodotti.length ? Math.max(1, ...prodotti.map((p) => p.n)) : 1;
 
   return (
     <section className="card mt-6 p-6">
@@ -84,6 +95,34 @@ export function StatisticheCard({ ownerId, plan }: { ownerId: string; plan: Plan
                 <span>30 giorni fa</span>
                 <span>oggi</span>
               </div>
+            </div>
+          )}
+
+          {/* Statistica extra Gold: prodotti più visti (grafico a barre) */}
+          {livello === "advanced" && prodotti.length > 0 && (
+            <div className="mt-6">
+              <div className="label mb-2">🏆 Prodotti più visti — quali interessano di più</div>
+              <ul className="space-y-2">
+                {prodotti.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3">
+                    <span className="w-32 shrink-0 truncate text-sm text-green-900/85 sm:w-44" title={p.nome}>
+                      {p.nome}
+                    </span>
+                    <div className="h-4 flex-1 overflow-hidden rounded-full bg-leaf/50">
+                      <div
+                        className="h-4 rounded-full bg-green-600"
+                        style={{ width: `${Math.max(6, (p.n / maxProd) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="w-8 shrink-0 text-right text-sm font-bold text-green-800">
+                      {p.n}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-green-900/55">
+                Conta le aperture del passaporto di ciascun prodotto (embed sul tuo sito).
+              </p>
             </div>
           )}
 

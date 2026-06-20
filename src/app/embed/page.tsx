@@ -57,9 +57,9 @@ export default function EmbedPage() {
       setAzienda((az as { nome?: string })?.nome ?? "");
       setStatus("ok");
 
-      // conta la visualizzazione del passaporto per le statistiche dell'azienda
+      // conta la visualizzazione del passaporto (per prodotto) per le statistiche
       const owner = (az as { owner?: string })?.owner;
-      if (owner) registraVisita(owner);
+      if (owner) registraVisita(owner, (p as Prod).id);
 
       // risolvi le località via OpenStreetMap, poi ricalcola
       const names = new Set<string>([(p as Prod).stabilimento_citta]);
