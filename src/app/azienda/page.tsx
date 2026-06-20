@@ -7,6 +7,7 @@ import {
   loadAziendaPubblica,
   type AziendaPubblica,
   type ProdottoPubblico,
+  type ServizioPubblico,
 } from "@/lib/azienda-pubblica";
 import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
@@ -17,7 +18,17 @@ import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 
-type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
+type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[]; servizi: ServizioPubblico[] };
+
+/** prezzo numerico → "€ 9,50" (it-IT). */
+const euroNum = (n: number) =>
+  "€ " + n.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const TIPO_SERVIZIO: Record<string, string> = {
+  visita: "Visita guidata",
+  laboratorio: "Laboratorio didattico",
+  esperienza: "Esperienza",
+};
 
 function Contenuto() {
   const params = useSearchParams();
@@ -25,6 +36,7 @@ function Contenuto() {
   const [dati, setDati] = useState<Dati | null>(null);
   const [loading, setLoading] = useState(true);
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
+  const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
 
   useEffect(() => {
@@ -224,6 +236,52 @@ function Contenuto() {
         </div>
       )}
 
+      {/* Servizi extra prenotabili (visite, laboratori, esperienze) — come su BioFido */}
+      {dati.servizi.length > 0 && (
+        <>
+          <h2 className="mt-10 font-display text-2xl text-green-800">Servizi extra prenotabili</h2>
+          <p className="mt-1 text-sm text-green-900/70">
+            Esperienze e attività da prenotare direttamente con l&apos;azienda.
+          </p>
+          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+            {dati.servizi.map((s) => (
+              <li
+                key={s.id}
+                className="rounded-2xl border-2 border-badge-yellow bg-[#fffbe9] p-4"
+              >
+                <div className="flex items-start gap-3">
+                  {s.immagine && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.immagine} alt={s.nome} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-lime-600">
+                      {TIPO_SERVIZIO[s.tipo] ?? "Servizio"}
+                    </div>
+                    <div className="font-semibold text-green-800">{s.nome}</div>
+                    {s.descrizione && (
+                      <p className="mt-0.5 text-xs text-green-900/65">{s.descrizione}</p>
+                    )}
+                  </div>
+                  {s.prezzo != null && (
+                    <div className="shrink-0 text-sm font-bold text-green-800">{euroNum(s.prezzo)}</div>
+                  )}
+                </div>
+                {azienda.owner && (
+                  <button
+                    type="button"
+                    onClick={() => setPrenotaServizio(s)}
+                    className="btn-lime mt-3 w-full justify-center text-sm"
+                  >
+                    ✨ Prenota / richiedi
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
       {prenota && azienda.owner && (
         <RichiestaServizioModal
           ownerId={azienda.owner}
@@ -232,6 +290,18 @@ function Contenuto() {
           prezzo={prenota.prezzo}
           aziendaNome={azienda.nome}
           onClose={() => setPrenota(null)}
+        />
+      )}
+
+      {prenotaServizio && azienda.owner && (
+        <RichiestaServizioModal
+          ownerId={azienda.owner}
+          ownerPlan={(azienda.plan as Plan) ?? "free"}
+          servizioNome={prenotaServizio.nome}
+          prezzo={prenotaServizio.prezzo != null ? euroNum(prenotaServizio.prezzo) : null}
+          descrizione={prenotaServizio.descrizione}
+          aziendaNome={azienda.nome}
+          onClose={() => setPrenotaServizio(null)}
         />
       )}
 

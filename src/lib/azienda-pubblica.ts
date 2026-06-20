@@ -28,6 +28,26 @@ export type AziendaPubblica = {
   owner?: string | null;
 };
 
+/** Servizio extra prenotabile (catalogo: visita, laboratorio, esperienza). */
+export type ServizioPubblico = {
+  id: string;
+  nome: string;
+  tipo: string;
+  prezzo: number | null;
+  descrizione: string | null;
+  immagine: string | null;
+};
+
+type CatRow = {
+  id: string | number;
+  nome: string;
+  tipo: string;
+  prezzo: number | null;
+  descrizione: string | null;
+  immagine: string | null;
+  numero?: number;
+};
+
 type ProdRow = {
   id: string;
   nome: string;
@@ -50,7 +70,7 @@ function ingredientiDi(rows: IngRow[], prodottoId: string): IngredientInput[] {
 /** Azienda + i suoi prodotti (con ingredienti) per la pagina pubblica. */
 export async function loadAziendaPubblica(
   id: string,
-): Promise<{ azienda: AziendaPubblica; prodotti: ProdottoPubblico[] } | null> {
+): Promise<{ azienda: AziendaPubblica; prodotti: ProdottoPubblico[]; servizi: ServizioPubblico[] } | null> {
   // select("*"): la colonna "descrizione" potrebbe non esistere ancora nel DB;
   // selezionando tutte le colonne evito errori se manca (sarà semplicemente assente).
   const { data: az } = await supabase
@@ -89,7 +109,28 @@ export async function loadAziendaPubblica(
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
-  return { azienda: az as AziendaPubblica, prodotti };
+  // Servizi extra prenotabili (catalogo: visite, laboratori, esperienze):
+  // legati all'owner dell'azienda. Lettura pubblica (RLS catalogo: select true).
+  let servizi: ServizioPubblico[] = [];
+  const owner = (az as AziendaPubblica).owner;
+  if (owner) {
+    const { data: cat } = await supabase
+      .from("catalogo")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero")
+      .eq("owner", owner)
+      .neq("tipo", "prodotto")
+      .order("numero");
+    servizi = ((cat as CatRow[]) ?? []).map((c) => ({
+      id: String(c.id),
+      nome: c.nome,
+      tipo: c.tipo,
+      prezzo: c.prezzo ?? null,
+      descrizione: c.descrizione ?? null,
+      immagine: c.immagine ?? null,
+    }));
+  }
+
+  return { azienda: az as AziendaPubblica, prodotti, servizi };
 }
 
 export type ProdottoConAzienda = ProdottoPubblico & {
