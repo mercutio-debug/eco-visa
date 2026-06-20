@@ -39,13 +39,16 @@ export async function isOnBioMap(owner: string): Promise<boolean> {
  */
 export async function enrollBioFido(
   owner: string,
-  data: { nome: string; citta: string; categoria: BioCategory },
+  data: { nome: string; citta: string; categoria: BioCategory; lat?: number | null; lon?: number | null },
 ): Promise<{ error?: string }> {
   if (!data.nome.trim() || !data.citta.trim()) {
     return { error: "Completa prima nome e città nella Scheda anagrafica." };
   }
-  // ricava le coordinate dalla città (cache locale o OpenStreetMap)
-  const p = await prefetchGeocode(data.citta);
+  // Preferisco la posizione PRECISA scelta sulla scheda anagrafica (indirizzo +
+  // segnaposto sulla mappa); se manca, ripiego sul centroide del comune.
+  let p: { lat: number; lon: number } | null =
+    data.lat != null && data.lon != null ? { lat: Number(data.lat), lon: Number(data.lon) } : null;
+  if (!p) p = await prefetchGeocode(data.citta);
   if (!p) {
     return { error: "Città non riconosciuta: controlla la città nella Scheda anagrafica." };
   }

@@ -257,6 +257,8 @@ export default function DashboardPage() {
           ownerId={user.id}
           aziendaNome={azienda?.nome ?? undefined}
           aziendaCitta={azienda?.citta_sede ?? undefined}
+          aziendaLat={azienda?.lat ?? undefined}
+          aziendaLon={azienda?.lon ?? undefined}
         />
       )}
 
@@ -627,7 +629,8 @@ function AnagraficaCard({
     // Se una colonna non è ancora presente nel DB (immagine/descrizione/codice_fiscale/
     // indirizzo/cap/provincia/lat/lon), la rimuovo e riprovo: così l'anagrafica si salva comunque.
     for (const col of ["immagine", "descrizione", "codice_fiscale", "indirizzo", "cap", "provincia", "lat", "lon"]) {
-      if (error && new RegExp(col, "i").test(error.message)) {
+      // \b per evitare falsi positivi su colonne brevi (es. "lat" dentro "violation")
+      if (error && new RegExp(`\\b${col}\\b`, "i").test(error.message)) {
         delete payload[col];
         ({ error } = await esegui(payload));
       }
@@ -710,6 +713,66 @@ function AnagraficaCard({
           <span className="label">Sito web</span>
           <input className="field mt-1" value={sito} onChange={(e) => setSito(e.target.value)} />
         </label>
+
+        {/* Indirizzo preciso: serve a posizionare il segnaposto sulla mappa
+            (di BioFido e della ricerca) sul punto esatto, non sul centro del comune. */}
+        <label className="block md:col-span-2">
+          <span className="label">Indirizzo (via e numero civico)</span>
+          <div className="mt-1 flex gap-2">
+            <input
+              className="field flex-1"
+              value={indirizzo}
+              onChange={(e) => setIndirizzo(e.target.value)}
+              placeholder="Es. Via Roma 12"
+            />
+            <button
+              type="button"
+              className="btn-ghost whitespace-nowrap text-sm"
+              onClick={localizza}
+              disabled={geoBusy || !indirizzo.trim() || !citta.trim()}
+            >
+              {geoBusy ? "Cerco…" : "📍 Localizza"}
+            </button>
+          </div>
+        </label>
+        <label className="block">
+          <span className="label">CAP</span>
+          <input
+            className="field mt-1"
+            value={cap}
+            inputMode="numeric"
+            maxLength={5}
+            onChange={(e) => setCap(e.target.value.replace(/\D/g, "").slice(0, 5))}
+            placeholder="5 cifre"
+          />
+        </label>
+        <label className="block">
+          <span className="label">Provincia</span>
+          <input
+            className="field mt-1"
+            value={provincia}
+            maxLength={2}
+            onChange={(e) => setProvincia(e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2))}
+            placeholder="Sigla, es. SV"
+          />
+        </label>
+
+        {/* Mappa per la posizione esatta: compare dopo «Localizza» (o se già
+            salvata). L'utente può trascinare il pin se l'indirizzo non basta. */}
+        {coord && (
+          <div className="block md:col-span-2">
+            <span className="label">Posizione sulla mappa</span>
+            <p className="mt-1 mb-2 text-[11px] text-green-900/55">
+              Trascina il segnaposto (o tocca un punto) per correggere la posizione
+              esatta dell&apos;azienda. Ricordati di premere «Aggiorna dati» per salvarla.
+            </p>
+            <MappaPicker
+              lat={coord.lat}
+              lon={coord.lon}
+              onChange={(la, lo) => setCoord({ lat: la, lon: lo })}
+            />
+          </div>
+        )}
         <label className="block md:col-span-2">
           <span className="label">Descrizione azienda</span>
           <textarea

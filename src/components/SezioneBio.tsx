@@ -31,12 +31,17 @@ export function SezioneBio({
   onValid,
   aziendaNome,
   aziendaCitta,
+  aziendaLat,
+  aziendaLon,
 }: {
   ownerId: string;
   onValid?: (valido: boolean) => void;
   /** nome e città dell'azienda (dalla scheda anagrafica): servono per il segnaposto BioFido */
   aziendaNome?: string;
   aziendaCitta?: string;
+  /** posizione PRECISA scelta sulla scheda anagrafica (indirizzo + pin sulla mappa) */
+  aziendaLat?: number | null;
+  aziendaLon?: number | null;
 }) {
   const [d, setD] = useState<DatiBio>({ ...BIO_VUOTO, is_bio: SOLO_BIO });
   const [usaAltro, setUsaAltro] = useState(false);
@@ -96,6 +101,8 @@ export function SezioneBio({
           nome: aziendaNome ?? "",
           citta: aziendaCitta ?? "",
           categoria,
+          lat: aziendaLat,
+          lon: aziendaLon,
         });
         if (error) {
           setIscrittoBio(false);
@@ -237,7 +244,8 @@ export function SezioneBio({
           <p className="mt-1 text-sm text-green-900/70">
             Salvando la certificazione, questa azienda compare automaticamente
             sulla mappa del biologico a chilometro zero. La posizione si ricava
-            dalla città della scheda anagrafica.
+            dall&apos;indirizzo (e dal segnaposto sulla mappa) della scheda anagrafica;
+            se manca, si usa il centro del comune.
           </p>
 
           <label className="mt-3 block max-w-xs">
