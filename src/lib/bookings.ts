@@ -75,6 +75,7 @@ export type Booking = {
   commissioneCents: number;
   stato: BookingStatus;
   paymentStatus: "non_pagata" | "pagata" | "rimborsata";
+  createdAt?: string;
 };
 
 type BookRow = {
@@ -90,6 +91,7 @@ type BookRow = {
   commissione_cents: number;
   stato: BookingStatus;
   payment_status?: "non_pagata" | "pagata" | "rimborsata" | null;
+  created_at?: string;
 };
 
 const fromBookRow = (r: BookRow): Booking => ({
@@ -105,6 +107,7 @@ const fromBookRow = (r: BookRow): Booking => ({
   commissioneCents: r.commissione_cents,
   stato: r.stato,
   paymentStatus: r.payment_status ?? "non_pagata",
+  createdAt: r.created_at,
 });
 
 export async function listMyBookings(owner: string): Promise<Booking[]> {
