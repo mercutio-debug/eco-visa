@@ -17,6 +17,7 @@ import { PlaceAutocomplete } from "@/components/PlaceAutocomplete";
 import { PianiAbbonamento } from "@/components/Abbonamenti";
 import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { IndirizzoAutocomplete } from "@/components/IndirizzoAutocomplete";
+import { ImportoInput } from "@/components/ImportoInput";
 import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
@@ -1124,10 +1125,10 @@ function PrezzoProdotto({
       <span className="text-xs font-bold uppercase tracking-wide text-green-700">
         💛 Prezzo (Gold)
       </span>
-      <input
-        className="field h-9 w-32 py-1"
+      <ImportoInput
         value={val}
-        onChange={(e) => setVal(e.target.value)}
+        onChange={setVal}
+        className="field h-9 w-32 py-1"
         placeholder="es. € 4,50"
       />
       <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
