@@ -9,6 +9,7 @@ import {
 import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
+import { formatPrezzo } from "@/lib/prezzo";
 
 /**
  * Elenco dei prodotti delle AZIENDE ISCRITTE (dati reali da Supabase), mostrato
@@ -74,7 +75,7 @@ export function ProdottiIscritti() {
               <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
               <p className="mt-1 text-sm text-green-900/70">{p.aziendaNome}</p>
               {p.prezzo && (
-                <div className="mt-1 text-base font-bold text-green-800">{p.prezzo}</div>
+                <div className="mt-1 text-base font-bold text-green-800">{formatPrezzo(p.prezzo)}</div>
               )}
               <div className="mt-4 flex items-center justify-between">
                 <Semaforo level={fp.level} size="sm" />

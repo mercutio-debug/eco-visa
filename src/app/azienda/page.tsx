@@ -12,6 +12,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { Semaforo } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
+import { formatPrezzo } from "@/lib/prezzo";
 
 type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[] };
 
@@ -124,7 +125,7 @@ function Contenuto() {
                 )}
                 <h3 className="font-display text-xl leading-tight text-green-800">{p.nome}</h3>
                 {p.prezzo && (
-                  <div className="mt-1 text-lg font-bold text-green-800">{p.prezzo}</div>
+                  <div className="mt-1 text-lg font-bold text-green-800">{formatPrezzo(p.prezzo)}</div>
                 )}
                 <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
 

@@ -9,6 +9,7 @@
  */
 import { supabase } from "./supabase";
 import { prefetchGeocode } from "./geo";
+import { formatPrezzo } from "./prezzo";
 
 export type BioCategory = "agricola" | "negozio" | "ristorante" | "artigiano";
 
@@ -105,7 +106,7 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
       .filter((p) => p.nome?.trim())
       .map((p) => ({
         name: p.nome,
-        ...(p.prezzo ? { price: p.prezzo } : {}),
+        ...(p.prezzo ? { price: formatPrezzo(p.prezzo) } : {}),
         ...(p.immagine ? { image: p.immagine } : {}),
       }));
     products = list.length ? list : null;

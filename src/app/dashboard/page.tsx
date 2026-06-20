@@ -23,6 +23,7 @@ import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
 import { getMyPlan } from "@/lib/plan";
 import { syncBioFido } from "@/lib/biofido-scheda";
+import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
@@ -808,7 +809,9 @@ function ProdottiCard({
                   <PrezzoProdotto prodottoId={p.id} prezzo={p.prezzo ?? null} onChange={onChange} />
                 ) : (
                   p.prezzo && (
-                    <div className="mt-2 text-sm font-semibold text-green-800">Prezzo: {p.prezzo}</div>
+                    <div className="mt-2 text-sm font-semibold text-green-800">
+                      Prezzo: {formatPrezzo(p.prezzo)}
+                    </div>
                   )
                 )}
                 <EmbedSnippet id={p.id} />
@@ -874,7 +877,7 @@ function PrezzoProdotto({
   prezzo: string | null;
   onChange: () => void;
 }) {
-  const [val, setVal] = useState(prezzo ?? "");
+  const [val, setVal] = useState(formatPrezzo(prezzo));
   const [saving, setSaving] = useState(false);
   const [salvato, setSalvato] = useState(false);
 
@@ -883,7 +886,7 @@ function PrezzoProdotto({
     setSalvato(false);
     const { error } = await supabase
       .from("prodotti")
-      .update({ prezzo: val.trim() || null })
+      .update({ prezzo: formatPrezzo(val) || null })
       .eq("id", prodottoId);
     setSaving(false);
     if (error) {
