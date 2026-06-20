@@ -32,6 +32,16 @@ import { syncBioFido } from "@/lib/biofido-scheda";
 import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
+import {
+  listMyBookings,
+  setBookingStatus,
+  sendMessage,
+  euroCents,
+  STATO_LABEL,
+  type Booking,
+  type BookingStatus,
+} from "@/lib/bookings";
+import { ChatPrenotazione } from "@/components/ChatPrenotazione";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -287,6 +297,8 @@ export default function DashboardPage() {
       {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
+
+      {user && PLAN_MAP[pianoScelto].canSell && <PrenotazioniCard ownerId={user.id} />}
 
       {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
@@ -1191,6 +1203,118 @@ function PrenotabileToggle({
         ✨ Servizio extra prenotabile dal cliente {saving ? "…" : ""}
       </span>
     </label>
+  );
+}
+
+function StatoBadge({ stato }: { stato: BookingStatus }) {
+  const color =
+    stato === "confermata"
+      ? "bg-traffic-green text-white"
+      : stato === "rifiutata" || stato === "annullata"
+      ? "bg-[#c9d3da] text-[#33414a]"
+      : "bg-badge-yellow text-green-900";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${color}`}>
+      {STATO_LABEL[stato]}
+    </span>
+  );
+}
+
+function PrenotazioniCard({ ownerId }: { ownerId: string }) {
+  const [items, setItems] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [chatOpen, setChatOpen] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setItems(await listMyBookings(ownerId));
+    setLoading(false);
+  }, [ownerId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function act(id: string, stato: BookingStatus) {
+    await setBookingStatus(id, stato);
+    await sendMessage(
+      id,
+      "azienda",
+      stato === "confermata"
+        ? "La tua prenotazione è stata confermata ✅. A presto!"
+        : "Spiacenti, non possiamo accettare questa richiesta. Scrivici pure per un'alternativa.",
+    );
+    load();
+  }
+
+  return (
+    <section className="card mt-6 p-6">
+      <h2 className="font-display text-2xl text-green-800">Prenotazioni ricevute</h2>
+      {loading ? (
+        <p className="mt-3 text-sm text-green-900/60">Caricamento…</p>
+      ) : items.length === 0 ? (
+        <p className="mt-3 text-sm text-green-900/70">
+          Nessuna richiesta per ora. Pubblica un servizio extra prenotabile per riceverne.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {items.map((b) => (
+            <li key={b.id} className="rounded-2xl border border-[#e3eed7] bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-green-800">
+                    {b.titolo ?? "Servizio"} · {b.persone} persone
+                  </div>
+                  <div className="text-xs text-green-900/60">
+                    {b.clienteNome} · {b.clienteEmail}
+                    {b.clienteTel ? ` · ${b.clienteTel}` : ""}
+                  </div>
+                  <div className="text-xs text-green-900/60">Data richiesta: {b.dataRichiesta}</div>
+                  {b.note && <div className="mt-1 text-xs italic text-green-900/55">“{b.note}”</div>}
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-lg text-green-800">{euroCents(b.totaleCents)}</div>
+                  <div className="text-[11px] text-green-900/55">
+                    commissione {euroCents(b.commissioneCents)}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <StatoBadge stato={b.stato} />
+                {b.paymentStatus === "pagata" && (
+                  <span className="rounded-full bg-traffic-green px-2 py-0.5 text-[11px] font-bold text-white">
+                    Pagata ✅
+                  </span>
+                )}
+                {b.stato === "in_attesa" && (
+                  <>
+                    <button
+                      className="rounded-full bg-traffic-green px-3 py-1 text-xs font-bold text-white"
+                      onClick={() => act(b.id, "confermata")}
+                    >
+                      Conferma
+                    </button>
+                    <button
+                      className="rounded-full border border-traffic-red px-3 py-1 text-xs font-bold text-traffic-red"
+                      onClick={() => act(b.id, "rifiutata")}
+                    >
+                      Rifiuta
+                    </button>
+                  </>
+                )}
+                <button
+                  className="rounded-full border border-green-600 px-3 py-1 text-xs font-bold text-green-700"
+                  onClick={() => setChatOpen(chatOpen === b.id ? null : b.id)}
+                >
+                  💬 Messaggi
+                </button>
+              </div>
+              {chatOpen === b.id && <ChatPrenotazione prenotazioneId={b.id} mittente="azienda" />}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
