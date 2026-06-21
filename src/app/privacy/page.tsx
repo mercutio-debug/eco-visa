@@ -48,6 +48,13 @@ export default function PrivacyPage() {
             <strong> Cloudflare Turnstile</strong> (protezione anti-bot), <strong>OpenStreetMap</strong> (mappe),
             <strong> Aruba</strong> (email e fatturazione elettronica). Non vendiamo i tuoi dati a terzi.
           </p>
+          <p className="mt-2">
+            Quando effettui un <strong>ordine di un prodotto o di un servizio</strong>, i dati necessari
+            a evaderlo (nome, contatti e indirizzo di spedizione) sono <strong>condivisi con l&apos;azienda
+            venditrice</strong>, che li tratta come <strong>titolare autonomo</strong> per la consegna,
+            la fatturazione e l&apos;assistenza. La base giuridica è l&apos;<em>esecuzione del contratto</em> di
+            vendita concluso con l&apos;azienda.
+          </p>
         </section>
 
         <section>
