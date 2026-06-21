@@ -26,6 +26,16 @@
 <priority>0.5</priority>
 </url>
 <url>
+<loc>https://ecovisa.it/termini-vendita/</loc>
+<changefreq>yearly</changefreq>
+<priority>0.3</priority>
+</url>
+<url>
+<loc>https://ecovisa.it/condizioni-venditori/</loc>
+<changefreq>yearly</changefreq>
+<priority>0.3</priority>
+</url>
+<url>
 <loc>https://ecovisa.it/prodotti/biscotti-al-farro-del-melograno/</loc>
 <changefreq>monthly</changefreq>
 <priority>0.6</priority>
