@@ -42,18 +42,24 @@ export function MappaAziende() {
     (async () => {
       // Vista pubblica (senza P.IVA / cod. fiscale): select("*") qui è sicuro.
       const { data: az } = await supabase.from("aziende_pubbliche").select("*");
-      const lista = ((az as { id: string; nome: string; citta_sede: string | null; plan?: string | null }[]) ?? []).filter(
+      const tutte = ((az as { id: string; nome: string; citta_sede: string | null; plan?: string | null }[]) ?? []).filter(
         (a) => a.citta_sede,
       );
 
+      // FILOSOFIA ECO-VISA: in pubblico compaiono SOLO le aziende che hanno
+      // caricato almeno un prodotto (col semaforo di sostenibilità). Il semaforo
+      // è alla base del portale: chi non ha ancora prodotti resta fuori dalla
+      // mappa finché non ne pubblica uno.
+      const { data: pr } = await supabase.from("prodotti").select("azienda_id");
+      const conProdotti = new Set(
+        ((pr as { azienda_id: string }[]) ?? []).map((p) => p.azienda_id),
+      );
+      const lista = tutte.filter((a) => conProdotti.has(a.id));
+
       const ms: AziendaMarker[] = [];
 
-      // 1) aziende REGISTRATE (prima)
+      // 1) aziende REGISTRATE con almeno un prodotto (prima)
       if (lista.length > 0) {
-        const { data: pr } = await supabase.from("prodotti").select("azienda_id");
-        const conProdotti = new Set(
-          ((pr as { azienda_id: string }[]) ?? []).map((p) => p.azienda_id),
-        );
         // geolocalizza le sedi su OpenStreetMap
         for (const a of lista) await prefetchGeocode(a.citta_sede as string);
         for (const a of lista) {
@@ -65,7 +71,7 @@ export function MappaAziende() {
             citta: a.citta_sede as string,
             lat: g.lat,
             lon: g.lon,
-            conSemaforo: conProdotti.has(a.id),
+            conSemaforo: true,
             plan: a.plan ?? "free",
           });
         }
