@@ -1045,6 +1045,7 @@ function ProdottiCard({
                     </div>
                   </div>
                 </div>
+                <CategoriaProdotto prodottoId={p.id} categoria={p.categoria} onChange={onChange} />
                 {gold ? (
                   <PrezzoProdotto prodottoId={p.id} prezzo={p.prezzo ?? null} onChange={onChange} />
                 ) : (
@@ -1162,6 +1163,54 @@ function PrezzoProdotto({
       />
       <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
         {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva prezzo"}
+      </button>
+    </div>
+  );
+}
+
+function CategoriaProdotto({
+  prodottoId,
+  categoria,
+  onChange,
+}: {
+  prodottoId: string;
+  categoria: string | null;
+  onChange: () => void;
+}) {
+  const [val, setVal] = useState(categoria ?? "");
+  const [saving, setSaving] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSaving(true);
+    setSalvato(false);
+    const { error } = await supabase
+      .from("prodotti")
+      .update({ categoria: val.trim() || null })
+      .eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setSalvato(true);
+    setTimeout(() => setSalvato(false), 1500);
+    onChange();
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-2 rounded-xl bg-leaf/40 p-2">
+      <span className="text-xs font-bold uppercase tracking-wide text-green-700">
+        Categoria
+      </span>
+      <input
+        className="field h-9 flex-1 py-1"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Es. Biscotti, Olio, Ortaggi…"
+      />
+      <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
+        {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva"}
       </button>
     </div>
   );

@@ -17,8 +17,14 @@ import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
+import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
 
-type Dati = { azienda: AziendaPubblica; prodotti: ProdottoPubblico[]; servizi: ServizioPubblico[] };
+type Dati = {
+  azienda: AziendaPubblica;
+  prodotti: ProdottoPubblico[];
+  servizi: ServizioPubblico[];
+  vendita: ServizioPubblico[];
+};
 
 /** prezzo numerico → "€ 9,50" (it-IT). */
 const euroNum = (n: number) =>
@@ -37,6 +43,7 @@ function Contenuto() {
   const [loading, setLoading] = useState(true);
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
   const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
+  const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
 
   useEffect(() => {
@@ -236,6 +243,43 @@ function Contenuto() {
         </div>
       )}
 
+      {dati.vendita.length > 0 && (
+        <>
+          <h2 className="mt-10 font-display text-2xl text-green-800">Prodotti in vendita</h2>
+          <p className="mt-1 text-sm text-green-900/70">
+            Acquista online direttamente dall&apos;azienda.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {dati.vendita.map((v) => (
+              <div key={v.id} className="card overflow-hidden p-0">
+                {v.immagine && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={v.immagine} alt={v.nome} className="h-40 w-full object-cover" />
+                )}
+                <div className="p-5">
+                  <h3 className="font-display text-xl text-green-800">{v.nome}</h3>
+                  {v.descrizione && (
+                    <p className="mt-1 text-sm text-green-900/65">{v.descrizione}</p>
+                  )}
+                  {v.prezzo != null && (
+                    <div className="mt-2 text-lg font-bold text-green-800">{euroNum(v.prezzo)}</div>
+                  )}
+                  {azienda.owner && (
+                    <button
+                      type="button"
+                      onClick={() => setOrdina(v)}
+                      className="btn-lime mt-3 w-full justify-center text-sm"
+                    >
+                      🛒 Ordina
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Servizi extra prenotabili (visite, laboratori, esperienze) — come su BioFido */}
       {dati.servizi.length > 0 && (
         <>
@@ -312,6 +356,18 @@ function Contenuto() {
           ownerId={azienda.owner}
           aziendaNome={azienda.nome}
           onClose={() => setContatta(false)}
+        />
+      )}
+
+      {ordina && azienda.owner && (
+        <OrdineProdottoModal
+          prodottoId={ordina.id}
+          owner={azienda.owner}
+          prodottoNome={ordina.nome}
+          prezzo={ordina.prezzo != null ? euroNum(ordina.prezzo) : null}
+          aziendaNome={azienda.nome}
+          portale="ECO-VISA"
+          onClose={() => setOrdina(null)}
         />
       )}
     </>

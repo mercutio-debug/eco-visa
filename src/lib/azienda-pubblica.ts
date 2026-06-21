@@ -70,7 +70,7 @@ function ingredientiDi(rows: IngRow[], prodottoId: string): IngredientInput[] {
 /** Azienda + i suoi prodotti (con ingredienti) per la pagina pubblica. */
 export async function loadAziendaPubblica(
   id: string,
-): Promise<{ azienda: AziendaPubblica; prodotti: ProdottoPubblico[]; servizi: ServizioPubblico[] } | null> {
+): Promise<{ azienda: AziendaPubblica; prodotti: ProdottoPubblico[]; servizi: ServizioPubblico[]; vendita: ServizioPubblico[] } | null> {
   // select("*"): la colonna "descrizione" potrebbe non esistere ancora nel DB;
   // selezionando tutte le colonne evito errori se manca (sarà semplicemente assente).
   const { data: az } = await supabase
@@ -112,6 +112,7 @@ export async function loadAziendaPubblica(
   // Servizi extra prenotabili (catalogo: visite, laboratori, esperienze):
   // legati all'owner dell'azienda. Lettura pubblica (RLS catalogo: select true).
   let servizi: ServizioPubblico[] = [];
+  let vendita: ServizioPubblico[] = [];
   const owner = (az as AziendaPubblica).owner;
   if (owner) {
     const { data: cat } = await supabase
@@ -128,9 +129,25 @@ export async function loadAziendaPubblica(
       descrizione: c.descrizione ?? null,
       immagine: c.immagine ?? null,
     }));
+
+    // Prodotti in vendita (catalogo tipo 'prodotto'): ordinabili dal cliente.
+    const { data: catV } = await supabase
+      .from("catalogo")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero")
+      .eq("owner", owner)
+      .eq("tipo", "prodotto")
+      .order("numero");
+    vendita = ((catV as CatRow[]) ?? []).map((c) => ({
+      id: String(c.id),
+      nome: c.nome,
+      tipo: c.tipo,
+      prezzo: c.prezzo ?? null,
+      descrizione: c.descrizione ?? null,
+      immagine: c.immagine ?? null,
+    }));
   }
 
-  return { azienda: az as AziendaPubblica, prodotti, servizi };
+  return { azienda: az as AziendaPubblica, prodotti, servizi, vendita };
 }
 
 export type ProdottoConAzienda = ProdottoPubblico & {
