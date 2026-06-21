@@ -288,7 +288,7 @@ export default function DashboardPage() {
             aziendaId={azienda.id}
             stabilimenti={stabilimenti}
             prodotti={prodotti}
-            gold={activePlan === "gold"}
+            plan={activePlan}
             onChange={loadAll}
           />
         </>
@@ -981,16 +981,20 @@ function ProdottiCard({
   aziendaId,
   stabilimenti,
   prodotti,
-  gold,
+  plan,
   onChange,
 }: {
   aziendaId: string;
   stabilimenti: Stabilimento[];
   prodotti: Prodotto[];
-  /** il prezzo dei prodotti è una funzione riservata al piano Gold */
-  gold: boolean;
+  plan: Plan;
   onChange: () => void;
 }) {
+  // Diritti per piano: foto e prezzo sono riservati al Gold; i servizi
+  // prenotabili a chi può vendere (Silver e Gold); la categoria è per tutti.
+  const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
+  const gold = plan === "gold";
+  const canSell = info.canSell;
   return (
     <section className="card mt-6 p-6">
       <h2 className="font-display text-2xl text-green-800">I tuoi prodotti</h2>
@@ -1027,12 +1031,14 @@ function ProdottiCard({
                       <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <FotoProdottoBtn
-                        prodottoId={p.id}
-                        aziendaId={aziendaId}
-                        immagine={p.immagine}
-                        onChange={onChange}
-                      />
+                      {gold && (
+                        <FotoProdottoBtn
+                          prodottoId={p.id}
+                          aziendaId={aziendaId}
+                          immagine={p.immagine}
+                          onChange={onChange}
+                        />
+                      )}
                       <button
                         className="text-xs font-bold text-traffic-red hover:underline"
                         onClick={async () => {
@@ -1055,14 +1061,14 @@ function ProdottiCard({
                     </div>
                   )
                 )}
-                {gold && (
+                {canSell && (
                   <PrenotabileToggle
                     prodottoId={p.id}
                     prenotabile={!!p.prenotabile}
                     onChange={onChange}
                   />
                 )}
-                <EmbedSnippet id={p.id} />
+                {info.badgeEmbed && <EmbedSnippet id={p.id} />}
               </li>
             );
           })}
@@ -1072,6 +1078,8 @@ function ProdottiCard({
       <NuovoProdotto
         aziendaId={aziendaId}
         stabilimenti={stabilimenti}
+        plan={plan}
+        count={prodotti.length}
         onSaved={onChange}
       />
     </section>
@@ -1619,12 +1627,24 @@ function EmbedSnippet({ id }: { id: string }) {
 function NuovoProdotto({
   aziendaId,
   stabilimenti,
+  plan,
+  count,
   onSaved,
 }: {
   aziendaId: string;
   stabilimenti: Stabilimento[];
+  plan: Plan;
+  /** quanti prodotti ha già l'azienda (per il limite del piano) */
+  count: number;
   onSaved: () => void;
 }) {
+  // Diritti per piano: foto solo Gold; servizio prenotabile a chi vende
+  // (Silver/Gold); numero massimo di prodotti per piano.
+  const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
+  const gold = plan === "gold";
+  const canSell = info.canSell;
+  const limite = info.maxProducts;
+  const pieno = count >= limite;
   const [nome, setNome] = useState("");
   const [categoria, setCategoria] = useState("");
   const [stab, setStab] = useState(stabilimenti[0]?.citta ?? "");
@@ -1676,6 +1696,12 @@ function NuovoProdotto({
   async function save() {
     const validIngr = ingredienti.filter((i) => i.nome.trim() && i.origine.trim());
     if (!nome.trim() || !stab.trim() || validIngr.length === 0) return;
+    if (pieno) {
+      alert(
+        `Il tuo piano (${info.label}) consente fino a ${limite} prodotto/i. Passa a un piano superiore per aggiungerne altri.`,
+      );
+      return;
+    }
     if (tipoVoce === "servizio" && !accetta) {
       alert("Per rendere il servizio prenotabile, spunta l'accettazione.");
       return;
@@ -1686,8 +1712,10 @@ function NuovoProdotto({
       nome,
       categoria: categoria || null,
       stabilimento_citta: stab,
-      immagine: immagine,
-      prenotabile: tipoVoce === "servizio" && accetta,
+      // foto solo per il piano Gold
+      immagine: gold ? immagine : null,
+      // servizio prenotabile solo per chi può vendere (Silver/Gold)
+      prenotabile: canSell && tipoVoce === "servizio" && accetta,
     };
     let res = await supabase.from("prodotti").insert(payload).select("id").single();
     // se la colonna prenotabile non esiste ancora, riprovo senza
@@ -1721,10 +1749,21 @@ function NuovoProdotto({
 
   return (
     <div className="mt-6 rounded-2xl border-2 border-dashed border-[#cfe3b4] bg-leaf/40 p-5">
-      <h3 className="font-display text-xl text-green-800">Aggiungi un prodotto</h3>
+      <h3 className="font-display text-xl text-green-800">
+        Aggiungi un prodotto{" "}
+        <span className="text-sm font-normal text-green-900/60">
+          ({count}/{limite === Infinity ? "∞" : limite} · piano {info.label})
+        </span>
+      </h3>
       {!hasStab && (
         <p className="mt-2 text-sm font-semibold text-traffic-red">
           Aggiungi prima almeno uno stabilimento di produzione qui sopra.
+        </p>
+      )}
+      {pieno && (
+        <p className="mt-2 text-sm font-semibold text-traffic-red">
+          Hai raggiunto il limite di {limite} prodotto/i del piano {info.label}. Passa a
+          un piano superiore per aggiungerne altri.
         </p>
       )}
 
@@ -1755,35 +1794,41 @@ function NuovoProdotto({
         </label>
       </div>
 
-      {/* tipo voce: prodotto ordinario o servizio extra prenotabile dal cliente */}
-      <label className="mt-3 block">
-        <span className="label">Tipo</span>
-        <select
-          className="field mt-1"
-          value={tipoVoce}
-          onChange={(e) => setTipoVoce(e.target.value as "prodotto" | "servizio")}
-        >
-          <option value="prodotto">Prodotto ordinario</option>
-          <option value="servizio">Servizio extra (prenotabile dal cliente)</option>
-        </select>
-      </label>
-      {tipoVoce === "servizio" && (
-        <label className="mt-2 flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
-          <input
-            type="checkbox"
-            className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
-            checked={accetta}
-            onChange={(e) => setAccetta(e.target.checked)}
-          />
-          <span className="text-green-900/85">
-            <strong>Rendi prenotabile dai clienti</strong> (visite, laboratori, esperienze):
-            accetto che i clienti inviino una richiesta e, a conferma, paghino online via
-            Stripe (con la commissione del piano). Compare sia su ECO-VISA sia su BioFido.
-          </span>
-        </label>
+      {/* tipo voce: prodotto ordinario o servizio extra prenotabile dal cliente.
+          Il "servizio prenotabile" è riservato ai piani che possono vendere. */}
+      {canSell && (
+        <>
+          <label className="mt-3 block">
+            <span className="label">Tipo</span>
+            <select
+              className="field mt-1"
+              value={tipoVoce}
+              onChange={(e) => setTipoVoce(e.target.value as "prodotto" | "servizio")}
+            >
+              <option value="prodotto">Prodotto ordinario</option>
+              <option value="servizio">Servizio extra (prenotabile dal cliente)</option>
+            </select>
+          </label>
+          {tipoVoce === "servizio" && (
+            <label className="mt-2 flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+                checked={accetta}
+                onChange={(e) => setAccetta(e.target.checked)}
+              />
+              <span className="text-green-900/85">
+                <strong>Rendi prenotabile dai clienti</strong> (visite, laboratori, esperienze):
+                accetto che i clienti inviino una richiesta e, a conferma, paghino online via
+                Stripe (con la commissione del piano). Compare sia su ECO-VISA sia su BioFido.
+              </span>
+            </label>
+          )}
+        </>
       )}
 
-      {/* immagine del prodotto, ridimensionata in automatico */}
+      {/* immagine del prodotto (solo Gold), ridimensionata in automatico */}
+      {gold && (
       <div className="mt-3">
         <span className="label">Immagine del prodotto (facoltativa)</span>
         <div className="mt-1 flex items-center gap-3">
@@ -1820,6 +1865,7 @@ function NuovoProdotto({
           Ridimensionata e alleggerita in automatico.
         </p>
       </div>
+      )}
 
       <div className="mt-4">
         <span className="label">Ingredienti e loro origine</span>
@@ -1887,7 +1933,7 @@ function NuovoProdotto({
       <button
         className="btn-lime mt-4"
         onClick={save}
-        disabled={saving || !hasStab || !nome.trim()}
+        disabled={saving || !hasStab || !nome.trim() || pieno}
       >
         {saving ? "Salvataggio…" : "Salva prodotto"}
       </button>
