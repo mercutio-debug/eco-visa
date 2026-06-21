@@ -15,6 +15,8 @@ export function RichiestaServizioModal({
   ownerPlan,
   servizioNome,
   prezzo,
+  prodottoId,
+  voceId,
   descrizione,
   aziendaNome,
   onClose,
@@ -23,6 +25,10 @@ export function RichiestaServizioModal({
   ownerPlan: Plan;
   servizioNome: string;
   prezzo?: string | null;
+  /** id del prodotto nel listino (per il ricalcolo prezzo lato server) */
+  prodottoId?: string;
+  /** id della voce di catalogo (servizio), in alternativa a prodottoId */
+  voceId?: string;
   descrizione?: string | null;
   aziendaNome?: string;
   onClose: () => void;
@@ -52,6 +58,8 @@ export function RichiestaServizioModal({
       ownerPlan,
       servizioNome,
       prezzoCents,
+      prodottoId,
+      voceId,
       clienteNome: nome,
       clienteEmail: email,
       clienteTel: tel,

@@ -106,13 +106,18 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
     immagine?: string | null;
   } | null;
 
-  // prodotti → elenco {name, price, image, prenotabile} per la scheda BioFido
-  let products: { name: string; price?: string; image?: string; prenotabile?: boolean }[] | null = null;
+  // prodotti → elenco {id, name, price, image, prenotabile} per la scheda BioFido.
+  // L'id serve a legare la prenotazione al listino, così il pagamento ricalcola
+  // l'importo dalla fonte vera (vedi edge function booking-pay).
+  let products:
+    | { id?: string; name: string; price?: string; image?: string; prenotabile?: boolean }[]
+    | null = null;
   if (a?.id) {
     const { data: pr } = await supabase.from("prodotti").select("*").eq("azienda_id", a.id);
-    const list = ((pr as { nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [])
+    const list = ((pr as { id: string; nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [])
       .filter((p) => p.nome?.trim())
       .map((p) => ({
+        id: p.id,
         name: p.nome,
         ...(p.prezzo ? { price: formatPrezzo(p.prezzo) } : {}),
         ...(p.immagine ? { image: p.immagine } : {}),

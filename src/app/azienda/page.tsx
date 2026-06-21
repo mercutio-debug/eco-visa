@@ -288,6 +288,7 @@ function Contenuto() {
           ownerPlan={(azienda.plan as Plan) ?? "free"}
           servizioNome={prenota.nome}
           prezzo={prenota.prezzo}
+          prodottoId={prenota.id}
           aziendaNome={azienda.nome}
           onClose={() => setPrenota(null)}
         />
@@ -299,6 +300,7 @@ function Contenuto() {
           ownerPlan={(azienda.plan as Plan) ?? "free"}
           servizioNome={prenotaServizio.nome}
           prezzo={prenotaServizio.prezzo != null ? euroNum(prenotaServizio.prezzo) : null}
+          voceId={prenotaServizio.id}
           descrizione={prenotaServizio.descrizione}
           aziendaNome={azienda.nome}
           onClose={() => setPrenotaServizio(null)}
