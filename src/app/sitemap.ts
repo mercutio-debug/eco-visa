@@ -8,7 +8,7 @@ const BASE = "https://ecovisa.it";
 
 export const dynamic = "force-static";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const statiche: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/prodotti/`, changeFrequency: "weekly", priority: 0.7 },
@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: 0.6,
   }));
-  const zone: MetadataRoute.Sitemap = tutteLeZone().map((z) => ({
+  const zone: MetadataRoute.Sitemap = (await tutteLeZone()).map((z) => ({
     url: `${BASE}/spesa-km0/${z.slug}/`,
     changeFrequency: "weekly",
     priority: 0.8,

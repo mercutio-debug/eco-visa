@@ -1,12 +1,12 @@
 /**
- * SEO programmatica — "zone" (città). Aggrega i dataset pubblici (spacci km0,
- * produttori bio, prodotti con impronta) per città, così possiamo generare al
- * build una landing per ogni località: è il motore di acquisizione organica
- * (una pagina per "spesa a km zero a {Città}", indicizzabile e statica).
+ * SEO programmatica — "zone" (città). Aggrega per città gli spacci km0, i
+ * produttori bio e i prodotti, così generiamo al build una landing per ogni
+ * località: motore di acquisizione organica, statico (output: export).
  *
- * Stessa sorgente dati statica usata dal resto del sito (lib/data). Quando le
- * aziende reali su Supabase saranno numerose, qui si aggiunge una fetch al
- * build per includerle nell'HTML statico (stesso schema, nessun redesign).
+ * Dati REALI: ai prodotti dimostrativi unisce i prodotti delle aziende iscritte
+ * letti da Supabase (`loadProdottiIscritti`, lettura pubblica). Se il DB è vuoto
+ * o irraggiungibile al build, restano i soli dati statici. Le funzioni sono
+ * async: generateStaticParams, le pagine e la sitemap le awaitano.
  */
 import {
   PRODUCTS,
@@ -16,6 +16,7 @@ import {
   type Km0Store,
 } from "./data";
 import { computeFootprint } from "./footprint";
+import { loadProdottiIscritti } from "./azienda-pubblica";
 
 /** Slug url-safe da un nome di città (minuscolo, accenti rimossi, spazi → -). */
 export function citySlug(city: string): string {
@@ -28,12 +29,15 @@ export function citySlug(city: string): string {
 }
 
 export type ZonaProdotto = {
+  /** slug della scheda statica; vuoto per i prodotti reali (nessuna pagina /prodotti/[slug]) */
   slug: string;
   name: string;
   category: string;
   company: string;
   totalCo2Kg: number;
   level: ReturnType<typeof computeFootprint>["level"];
+  /** true se proviene da un'azienda realmente iscritta (Supabase) */
+  real?: boolean;
 };
 
 export type Zona = {
@@ -45,20 +49,36 @@ export type Zona = {
   categorie: string[];
 };
 
-/** Tutte le città presenti nei dataset (spacci, produttori bio, stabilimenti). */
-function tutteLeCitta(): string[] {
-  const set = new Set<string>();
-  KM0_STORES.forEach((s) => set.add(s.city));
-  BIO_PRODUCERS.forEach((b) => set.add(b.city));
-  PRODUCTS.forEach((p) => set.add(p.plant));
-  return [...set].sort((a, b) => a.localeCompare(b, "it"));
+/** Prodotti reali delle aziende iscritte, raggruppati per città di stabilimento. */
+async function prodottiRealiPerCitta(): Promise<Map<string, ZonaProdotto[]>> {
+  const map = new Map<string, ZonaProdotto[]>();
+  try {
+    const list = await loadProdottiIscritti();
+    for (const p of list) {
+      const citta = (p.stabilimento_citta ?? "").trim();
+      if (!citta) continue;
+      const fp = computeFootprint(citta, p.ingredienti);
+      const item: ZonaProdotto = {
+        slug: "",
+        name: p.nome,
+        category: p.categoria ?? "Prodotto",
+        company: p.aziendaNome,
+        totalCo2Kg: fp.totalCo2Kg,
+        level: fp.level,
+        real: true,
+      };
+      map.set(citta, [...(map.get(citta) ?? []), item]);
+    }
+  } catch {
+    // build offline o tabelle non leggibili: si prosegue con i soli dati statici
+  }
+  return map;
 }
 
-/** Aggregato di una città; null se non c'è nulla da mostrare. */
-export function zonaDi(citta: string): Zona | null {
+function buildZona(citta: string, reali: ZonaProdotto[]): Zona | null {
   const stores = KM0_STORES.filter((s) => s.city === citta);
   const bio = BIO_PRODUCERS.filter((b) => b.city === citta);
-  const prodotti: ZonaProdotto[] = PRODUCTS.filter((p) => p.plant === citta).map(
+  const statici: ZonaProdotto[] = PRODUCTS.filter((p) => p.plant === citta).map(
     (p) => {
       const fp = computeFootprint(p.plant, p.ingredients);
       return {
@@ -71,6 +91,7 @@ export function zonaDi(citta: string): Zona | null {
       };
     },
   );
+  const prodotti = [...reali, ...statici];
   if (!stores.length && !bio.length && !prodotti.length) return null;
   const categorie = [
     ...new Set([
@@ -82,14 +103,20 @@ export function zonaDi(citta: string): Zona | null {
   return { slug: citySlug(citta), citta, stores, bio, prodotti, categorie };
 }
 
-/** Tutte le zone con almeno un contenuto (per l'indice e generateStaticParams). */
-export function tutteLeZone(): Zona[] {
-  return tutteLeCitta()
-    .map((c) => zonaDi(c))
+export async function tutteLeZone(): Promise<Zona[]> {
+  const reali = await prodottiRealiPerCitta();
+  const citta = new Set<string>();
+  KM0_STORES.forEach((s) => citta.add(s.city));
+  BIO_PRODUCERS.forEach((b) => citta.add(b.city));
+  PRODUCTS.forEach((p) => citta.add(p.plant));
+  reali.forEach((_, c) => citta.add(c));
+  return [...citta]
+    .sort((a, b) => a.localeCompare(b, "it"))
+    .map((c) => buildZona(c, reali.get(c) ?? []))
     .filter((z): z is Zona => z !== null);
 }
 
-export function zonaBySlug(slug: string): Zona | null {
-  const citta = tutteLeCitta().find((c) => citySlug(c) === slug);
-  return citta ? zonaDi(citta) : null;
+export async function zonaBySlug(slug: string): Promise<Zona | null> {
+  const zone = await tutteLeZone();
+  return zone.find((z) => z.slug === slug) ?? null;
 }

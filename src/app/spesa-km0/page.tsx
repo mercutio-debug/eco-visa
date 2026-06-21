@@ -8,8 +8,8 @@ export const metadata = {
   alternates: { canonical: "https://ecovisa.it/spesa-km0/" },
 };
 
-export default function SpesaKm0Index() {
-  const zone = tutteLeZone();
+export default async function SpesaKm0Index() {
+  const zone = await tutteLeZone();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">

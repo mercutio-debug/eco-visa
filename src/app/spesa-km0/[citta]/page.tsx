@@ -6,8 +6,9 @@ import { Semaforo } from "@/components/Semaforo";
 // Pagina SEO statica: una landing "Spesa a km zero a {Città}" per ogni località
 // con spacci, produttori bio o prodotti. Generata al build (output: export).
 
-export function generateStaticParams() {
-  return tutteLeZone().map((z) => ({ citta: z.slug }));
+export async function generateStaticParams() {
+  const zone = await tutteLeZone();
+  return zone.map((z) => ({ citta: z.slug }));
 }
 
 export async function generateMetadata({
@@ -16,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ citta: string }>;
 }) {
   const { citta } = await params;
-  const z = zonaBySlug(citta);
+  const z = await zonaBySlug(citta);
   if (!z) return { title: "Spesa a km zero — ECO-VISA" };
   const cat = z.categorie.slice(0, 4).join(", ");
   return {
@@ -35,10 +36,10 @@ export default async function ZonaPage({
   params: Promise<{ citta: string }>;
 }) {
   const { citta } = await params;
-  const z = zonaBySlug(citta);
+  const z = await zonaBySlug(citta);
   if (!z) notFound();
 
-  const altre = tutteLeZone().filter((x) => x.slug !== z.slug);
+  const altre = (await tutteLeZone()).filter((x) => x.slug !== z.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -137,30 +138,46 @@ export default async function ZonaPage({
             Prodotti locali con impronta misurata
           </h2>
           <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {z.prodotti.map((p) => (
-              <Link
-                key={p.slug}
-                href={`/prodotti/${p.slug}`}
-                className="card p-5 transition hover:-translate-y-1"
-              >
-                <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
-                  {p.category}
-                </div>
-                <h3 className="font-display text-2xl leading-tight text-green-800">
-                  {p.name}
-                </h3>
-                <p className="mt-1 text-sm text-green-900/70">{p.company}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <Semaforo level={p.level} size="sm" />
-                  <div className="text-right">
-                    <div className="font-display text-2xl text-green-800">
-                      {p.totalCo2Kg.toLocaleString("it-IT")} kg
-                    </div>
-                    <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
+            {z.prodotti.map((p, i) => {
+              const inner = (
+                <>
+                  <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
+                    {p.category}
+                    {p.real && (
+                      <span className="ml-2 rounded-full bg-leaf px-2 py-0.5 text-[10px] text-green-800">
+                        azienda iscritta
+                      </span>
+                    )}
                   </div>
+                  <h3 className="font-display text-2xl leading-tight text-green-800">
+                    {p.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-green-900/70">{p.company}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <Semaforo level={p.level} size="sm" />
+                    <div className="text-right">
+                      <div className="font-display text-2xl text-green-800">
+                        {p.totalCo2Kg.toLocaleString("it-IT")} kg
+                      </div>
+                      <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
+                    </div>
+                  </div>
+                </>
+              );
+              return p.slug ? (
+                <Link
+                  key={p.slug}
+                  href={`/prodotti/${p.slug}`}
+                  className="card p-5 transition hover:-translate-y-1"
+                >
+                  {inner}
+                </Link>
+              ) : (
+                <div key={`${p.company}-${p.name}-${i}`} className="card p-5">
+                  {inner}
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
