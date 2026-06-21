@@ -92,6 +92,22 @@ export function UserMenu() {
           >
             🌿 La mia dashboard
           </Link>
+          <Link
+            href="/ordini"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm font-semibold text-green-800 hover:bg-leaf/50"
+          >
+            📦 I miei ordini
+          </Link>
+          <Link
+            href="/ordini-ricevuti"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm font-semibold text-green-800 hover:bg-leaf/50"
+          >
+            🛒 Ordini ricevuti
+          </Link>
           {isAdmin && (
             <Link
               href="/admin"
