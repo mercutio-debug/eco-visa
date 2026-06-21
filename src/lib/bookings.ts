@@ -129,6 +129,16 @@ export async function setBookingStatus(id: string, stato: BookingStatus): Promis
   await supabase.from("prenotazioni").update({ stato }).eq("id", id);
 }
 
+/** Prenotazioni del cliente loggato (per la sua area "Le mie prenotazioni"). */
+export async function listBookingsForCustomer(userId: string): Promise<Booking[]> {
+  const { data } = await supabase
+    .from("prenotazioni")
+    .select("*")
+    .eq("cliente_user_id", userId)
+    .order("created_at", { ascending: false });
+  return ((data as BookRow[]) ?? []).map(fromBookRow);
+}
+
 /* ------------------------------ messaggi (chat) ------------------------------- */
 
 export type Mittente = "azienda" | "cliente";
