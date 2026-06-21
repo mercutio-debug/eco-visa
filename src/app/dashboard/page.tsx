@@ -1014,6 +1014,11 @@ function ProdottiCard({
   return (
     <section className="card mt-6 p-6">
       <h2 className="font-display text-2xl text-green-800">I tuoi prodotti</h2>
+      <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
+        🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
+        prodotti mostrando a tutti il loro valore. Per pubblicare la tua bacheca (Silver o
+        Gold) serve <strong>almeno un prodotto con il semaforo</strong>.
+      </p>
 
       {prodotti.length > 0 && (
         <ul className="mt-4 space-y-3">
