@@ -128,9 +128,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Banner Gold: invito alle aziende */}
-      <GoldPromoBanner portale="ECO-VISA" />
-
       {/* COME FUNZIONA */}
       <section id="come-funziona" className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="title-pangea text-4xl text-green-700">Come funziona</h2>
@@ -215,15 +212,17 @@ export default function Home() {
           Le aziende su ECO-VISA
         </h2>
         <p className="mt-2 max-w-2xl text-green-900/80">
-          Anche chi è iscritto solo su ECO-VISA si vede sulla mappa. In{" "}
-          <strong className="text-green-700">verde</strong> le aziende che hanno già
-          caricato almeno un prodotto col semaforo; in grigio quelle iscritte ancora
-          senza prodotti.
+          ECO-VISA si basa sul semaforo di sostenibilità: in mappa compaiono le aziende
+          che hanno caricato <strong className="text-green-700">almeno un prodotto col
+          semaforo</strong>.
         </p>
         <div className="mt-6">
           <MappaAziende />
         </div>
       </section>
+
+      {/* Banner Gold: invito alle aziende (sotto la mappa delle aziende) */}
+      <GoldPromoBanner portale="ECO-VISA" />
     </div>
   );
 }
