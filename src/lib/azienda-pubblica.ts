@@ -5,6 +5,7 @@
  */
 import { supabase } from "./supabase";
 import type { IngredientInput } from "./footprint";
+import { PLAN_MAP, type Plan } from "./piani";
 
 export type ProdottoPubblico = {
   id: string;
@@ -98,23 +99,33 @@ export async function loadAziendaPubblica(
     ingRows = (ing as IngRow[]) ?? [];
   }
 
-  const prodotti: ProdottoPubblico[] = prods.map((p) => ({
+  // Diritti per piano CORRENTE dell'azienda: su downgrade si nasconde ciò che
+  // il nuovo piano non prevede (foto e prezzo solo Gold; "prenotabile" solo per
+  // chi può vendere; numero di prodotti limitato dal piano). I dati restano nel
+  // DB ma non vengono esposti finché l'azienda non risale di piano.
+  const plan = (((az as AziendaPubblica).plan ?? "free") as Plan);
+  const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
+  const gold = plan === "gold";
+  const limite = info.maxProducts === Infinity ? prods.length : info.maxProducts;
+
+  const prodotti: ProdottoPubblico[] = prods.slice(0, limite).map((p) => ({
     id: p.id,
     nome: p.nome,
     categoria: p.categoria,
     stabilimento_citta: p.stabilimento_citta ?? "",
-    immagine: p.immagine,
-    prezzo: p.prezzo ?? null,
-    prenotabile: p.prenotabile ?? false,
+    immagine: gold ? p.immagine : null,
+    prezzo: gold ? (p.prezzo ?? null) : null,
+    prenotabile: info.canSell ? (p.prenotabile ?? false) : false,
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
   // Servizi extra prenotabili (catalogo: visite, laboratori, esperienze):
   // legati all'owner dell'azienda. Lettura pubblica (RLS catalogo: select true).
+  // Il catalogo è una funzione Gold → niente da mostrare sotto quel piano.
   let servizi: ServizioPubblico[] = [];
   let vendita: ServizioPubblico[] = [];
   const owner = (az as AziendaPubblica).owner;
-  if (owner) {
+  if (owner && gold) {
     const { data: cat } = await supabase
       .from("catalogo")
       .select("id, nome, tipo, prezzo, descrizione, immagine, numero")
@@ -164,10 +175,10 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
   const aziendaIds = [...new Set(prods.map((p) => p.azienda_id))];
   const { data: az } = await supabase
     .from("aziende_pubbliche")
-    .select("id,nome")
+    .select("id,nome,plan")
     .in("id", aziendaIds);
-  const nomeById = new Map(
-    ((az as { id: string; nome: string }[]) ?? []).map((a) => [a.id, a.nome]),
+  const azById = new Map(
+    ((az as { id: string; nome: string; plan?: string | null }[]) ?? []).map((a) => [a.id, a]),
   );
 
   const { data: ing } = await supabase
@@ -179,15 +190,34 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
     );
   const ingRows = (ing as IngRow[]) ?? [];
 
-  return prods.map((p) => ({
-    id: p.id,
-    nome: p.nome,
-    categoria: p.categoria,
-    stabilimento_citta: p.stabilimento_citta ?? "",
-    immagine: p.immagine,
-    prezzo: p.prezzo ?? null,
-    ingredienti: ingredientiDi(ingRows, p.id),
-    aziendaId: p.azienda_id,
-    aziendaNome: nomeById.get(p.azienda_id) ?? "Azienda",
-  }));
+  // Diritti per piano CORRENTE di ciascuna azienda: foto/prezzo solo Gold,
+  // "prenotabile" solo per chi vende, numero prodotti limitato dal piano.
+  // Su downgrade ciò che eccede il piano sparisce dall'elenco pubblico.
+  const planDi = (id: string) => (azById.get(id)?.plan ?? "free") as Plan;
+  const contatore = new Map<string, number>();
+
+  return prods
+    .filter((p) => {
+      const info = PLAN_MAP[planDi(p.azienda_id)] ?? PLAN_MAP.free;
+      const n = (contatore.get(p.azienda_id) ?? 0) + 1;
+      contatore.set(p.azienda_id, n);
+      return n <= info.maxProducts;
+    })
+    .map((p) => {
+      const plan = planDi(p.azienda_id);
+      const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
+      const gold = plan === "gold";
+      return {
+        id: p.id,
+        nome: p.nome,
+        categoria: p.categoria,
+        stabilimento_citta: p.stabilimento_citta ?? "",
+        immagine: gold ? p.immagine : null,
+        prezzo: gold ? (p.prezzo ?? null) : null,
+        prenotabile: info.canSell ? (p.prenotabile ?? false) : false,
+        ingredienti: ingredientiDi(ingRows, p.id),
+        aziendaId: p.azienda_id,
+        aziendaNome: azById.get(p.azienda_id)?.nome ?? "Azienda",
+      };
+    });
 }
