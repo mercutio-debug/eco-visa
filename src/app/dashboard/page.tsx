@@ -21,6 +21,7 @@ import { ImportoInput } from "@/components/ImportoInput";
 import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
+import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { CatalogoCard } from "@/components/CatalogoCard";
 import { AnteprimaScheda } from "@/components/AnteprimaScheda";
@@ -43,7 +44,7 @@ import {
 } from "@/lib/bookings";
 import { ChatPrenotazione } from "@/components/ChatPrenotazione";
 import { listContatti, setContattoGestito, type Contatto } from "@/lib/contatti";
-import { PLAN_MAP, type Plan } from "@/lib/piani";
+import { PLAN_MAP, isDowngrade, perditeDowngrade, type Plan } from "@/lib/piani";
 
 type Azienda = {
   id: string;
@@ -157,6 +158,19 @@ export default function DashboardPage() {
   }, [user]);
 
   function scegliPiano(p: Plan, per: "monthly" | "annual") {
+    // Downgrade: avviso che i contenuti/funzioni non inclusi nel piano scelto
+    // non saranno più visibili (i dati restano salvati, tornano col re-upgrade).
+    if (isDowngrade(activePlan, p)) {
+      const perse = perditeDowngrade(activePlan, p);
+      const elenco = perse.length ? "\n\n• " + perse.join("\n• ") : "";
+      const ok = window.confirm(
+        `⚠️ ATTENZIONE — stai passando dal piano ${PLAN_MAP[activePlan].label} al piano ${PLAN_MAP[p].label}, meno ricco.\n\n` +
+          `Con questo cambio NON saranno più visibili al pubblico:${elenco}\n\n` +
+          `I dati non vengono cancellati: torneranno visibili se in futuro risali di piano.\n\n` +
+          `Vuoi procedere con il downgrade?`,
+      );
+      if (!ok) return;
+    }
     setPianoScelto(p);
     setPeriodo(per);
     window.localStorage.setItem("ecovisa_plan", p);
@@ -257,6 +271,8 @@ export default function DashboardPage() {
       </section>
 
       <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
+
+      <GoldPromoBanner portale="ECO-VISA" />
 
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
