@@ -31,7 +31,9 @@ Serve a far funzionare i link nelle email (conferma iscrizione, recupero passwor
 - **Enable Email provider:** ON
 - **Confirm email:** ON (l'utente deve confermare l'indirizzo alla registrazione)
 - **Secure email change:** ON → al cambio email Supabase chiede conferma **sia dal vecchio sia dal nuovo indirizzo** (consigliato; è ciò che vede l'utente dalla pagina *Il mio account → Cambia email*)
-- **Minimum password length:** 6 (coerente con la pagina /account e /reset)
+- **Minimum password length:** 8 (consigliato; coerente con le pagine /account e /reset)
+- **Require current password when updating:** OFF (la pagina /account cambia password con la sola sessione attiva; con questa opzione ON l'aggiornamento fallirebbe perché il form non chiede la password attuale)
+- **Secure password change:** OFF
 - (facoltativo) **Prevent use of leaked passwords:** ON — richiede il piano Pro
 
 ---
