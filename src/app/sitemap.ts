@@ -15,6 +15,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/spesa-km0/`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/biofido/`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE}/abbonamenti/`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE}/termini-vendita/`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE}/condizioni-venditori/`, changeFrequency: "yearly", priority: 0.3 },
   ];
   const prodotti: MetadataRoute.Sitemap = PRODUCTS.map((p) => ({
     url: `${BASE}/prodotti/${p.slug}/`,
