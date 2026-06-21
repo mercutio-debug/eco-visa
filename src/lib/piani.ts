@@ -52,7 +52,7 @@ export const PLAN_MAP: Record<Plan, PlanInfo> = {
     canSell: true, commissionRate: 0.15,
   },
   gold: {
-    id: "gold", label: "Gold", monthlyPrice: 24, annualPrice: 240,
+    id: "gold", label: "Gold", monthlyPrice: 19, annualPrice: 190,
     maxProducts: 100, badgeEmbed: true, richProfile: true,
     directoryBoost: 25, featuredKm0: true, statsLevel: "advanced",
     canSell: true, commissionRate: 0.08,
