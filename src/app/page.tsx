@@ -6,6 +6,7 @@ import { Semaforo } from "@/components/Semaforo";
 import { HomeSearch } from "@/components/HomeSearch";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { MappaAziende } from "@/components/MappaAziende";
+import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -126,6 +127,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Banner Gold: invito alle aziende */}
+      <GoldPromoBanner portale="ECO-VISA" />
 
       {/* COME FUNZIONA */}
       <section id="come-funziona" className="mx-auto max-w-6xl px-4 py-12">
