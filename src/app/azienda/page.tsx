@@ -18,6 +18,7 @@ import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
+import { SegnalaModal } from "@/components/SegnalaModal";
 
 type Dati = {
   azienda: AziendaPubblica;
@@ -44,6 +45,7 @@ function Contenuto() {
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
   const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
   const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
+  const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
 
   useEffect(() => {
@@ -273,6 +275,13 @@ function Contenuto() {
                       🛒 Ordina
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setSegnala(v)}
+                    className="mt-2 block text-xs font-semibold text-green-900/45 hover:text-traffic-red"
+                  >
+                    ⚠️ Segnala annuncio
+                  </button>
                 </div>
               </div>
             ))}
@@ -368,6 +377,15 @@ function Contenuto() {
           aziendaNome={azienda.nome}
           portale="ECO-VISA"
           onClose={() => setOrdina(null)}
+        />
+      )}
+
+      {segnala && (
+        <SegnalaModal
+          catalogoId={segnala.id}
+          prodottoNome={segnala.nome}
+          portale="ECO-VISA"
+          onClose={() => setSegnala(null)}
         />
       )}
     </>
