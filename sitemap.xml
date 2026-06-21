@@ -61,6 +61,16 @@
 <priority>0.6</priority>
 </url>
 <url>
+<loc>https://ecovisa.it/spesa-km0/alba-piemonte-italia/</loc>
+<changefreq>weekly</changefreq>
+<priority>0.8</priority>
+</url>
+<url>
+<loc>https://ecovisa.it/spesa-km0/albenga-liguria-italia/</loc>
+<changefreq>weekly</changefreq>
+<priority>0.8</priority>
+</url>
+<url>
 <loc>https://ecovisa.it/spesa-km0/aosta/</loc>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
