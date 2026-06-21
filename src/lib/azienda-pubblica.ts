@@ -146,7 +146,7 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
 
   const aziendaIds = [...new Set(prods.map((p) => p.azienda_id))];
   const { data: az } = await supabase
-    .from("aziende")
+    .from("aziende_pubbliche")
     .select("id,nome")
     .in("id", aziendaIds);
   const nomeById = new Map(

@@ -48,7 +48,7 @@ export function VetrinaAziende() {
         .in("prodotto_id", ids);
       const aziendaIds = [...new Set(lista.map((p) => p.azienda_id))];
       const { data: az } = await supabase
-        .from("aziende")
+        .from("aziende_pubbliche")
         .select("id, nome")
         .in("id", aziendaIds);
 

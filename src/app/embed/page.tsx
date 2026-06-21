@@ -47,7 +47,7 @@ export default function EmbedPage() {
         .select("nome, origine")
         .eq("prodotto_id", id);
       const { data: az } = await supabase
-        .from("aziende")
+        .from("aziende_pubbliche")
         .select("nome, owner")
         .eq("id", (p as Prod).azienda_id)
         .maybeSingle();

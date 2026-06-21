@@ -40,8 +40,8 @@ export function MappaAziende() {
 
   useEffect(() => {
     (async () => {
-      // select("*"): la colonna "plan" potrebbe non esistere ancora → così non rompe.
-      const { data: az } = await supabase.from("aziende").select("*");
+      // Vista pubblica (senza P.IVA / cod. fiscale): select("*") qui è sicuro.
+      const { data: az } = await supabase.from("aziende_pubbliche").select("*");
       const lista = ((az as { id: string; nome: string; citta_sede: string | null; plan?: string | null }[]) ?? []).filter(
         (a) => a.citta_sede,
       );
