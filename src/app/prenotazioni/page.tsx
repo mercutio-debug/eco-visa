@@ -12,6 +12,7 @@ import {
   type BookingStatus,
 } from "@/lib/bookings";
 import { ChatPrenotazione } from "@/components/ChatPrenotazione";
+import { NotificheToggle } from "@/components/NotificheToggle";
 import { billingEnabled } from "@/lib/billing";
 import { payBooking } from "@/lib/connect";
 
@@ -61,6 +62,8 @@ export default function PrenotazioniPage() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="text-xs font-bold uppercase tracking-wide text-lime-500">Area cliente</div>
       <h1 className="title-pangea text-3xl text-green-700 md:text-4xl">Le mie prenotazioni</h1>
+
+      <NotificheToggle />
 
       {payMsg && (
         <p className="mt-4 rounded-xl bg-leaf px-4 py-3 text-sm font-semibold text-traffic-red">

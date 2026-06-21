@@ -44,6 +44,7 @@ import {
 } from "@/lib/bookings";
 import { ChatPrenotazione } from "@/components/ChatPrenotazione";
 import { listContatti, setContattoGestito, type Contatto } from "@/lib/contatti";
+import { NotificheToggle } from "@/components/NotificheToggle";
 import { PLAN_MAP, isDowngrade, perditeDowngrade, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -314,6 +315,12 @@ export default function DashboardPage() {
       {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
+
+      {user && (
+        <div id="notifiche" className="mt-6">
+          <NotificheToggle />
+        </div>
+      )}
 
       {user && <MessaggiCard ownerId={user.id} />}
 
