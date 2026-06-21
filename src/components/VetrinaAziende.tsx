@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
+import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 /**
  * Vetrina pubblica dei prodotti delle AZIENDE ISCRITTE (dal database), non i
@@ -49,10 +50,12 @@ export function VetrinaAziende() {
       const aziendaIds = [...new Set(lista.map((p) => p.azienda_id))];
       const { data: az } = await supabase
         .from("aziende_pubbliche")
-        .select("id, nome")
+        .select("id, nome, plan")
         .in("id", aziendaIds);
 
-      const nomeAz = new Map((az ?? []).map((a: { id: string; nome: string }) => [a.id, a.nome]));
+      const azById = new Map(
+        ((az ?? []) as { id: string; nome: string; plan?: string | null }[]).map((a) => [a.id, a]),
+      );
       const byProd = new Map<string, { name: string; origin: string }[]>();
       ((ings as Ing[]) ?? []).forEach((i) => {
         const a = byProd.get(i.prodotto_id) ?? [];
@@ -60,11 +63,26 @@ export function VetrinaAziende() {
         byProd.set(i.prodotto_id, a);
       });
 
-      const built: Voce[] = lista.map((p) => ({
-        p,
-        ingredienti: byProd.get(p.id) ?? [],
-        azienda: nomeAz.get(p.azienda_id) ?? "",
-      }));
+      // Diritti per piano CORRENTE: foto solo Gold; numero prodotti limitato dal
+      // piano (su downgrade ciò che eccede sparisce dall'elenco pubblico).
+      const conta = new Map<string, number>();
+      const built: Voce[] = lista
+        .filter((p) => {
+          const plan = (azById.get(p.azienda_id)?.plan ?? "free") as Plan;
+          const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
+          const n = (conta.get(p.azienda_id) ?? 0) + 1;
+          conta.set(p.azienda_id, n);
+          return n <= info.maxProducts;
+        })
+        .map((p) => {
+          const plan = (azById.get(p.azienda_id)?.plan ?? "free") as Plan;
+          const gold = plan === "gold";
+          return {
+            p: { ...p, immagine: gold ? p.immagine : null },
+            ingredienti: byProd.get(p.id) ?? [],
+            azienda: azById.get(p.azienda_id)?.nome ?? "",
+          };
+        });
       setItems(built);
       setLoading(false);
 

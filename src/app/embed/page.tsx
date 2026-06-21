@@ -6,6 +6,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
 import { registraVisita } from "@/lib/statistiche";
+import { PLAN_MAP, type Plan } from "@/lib/piani";
 
 type Prod = {
   id: string;
@@ -17,7 +18,7 @@ type Prod = {
 type Ingr = { nome: string; origine: string };
 
 export default function EmbedPage() {
-  const [status, setStatus] = useState<"loading" | "ok" | "notfound">("loading");
+  const [status, setStatus] = useState<"loading" | "ok" | "notfound" | "noplan">("loading");
   const [prod, setProd] = useState<Prod | null>(null);
   const [ingr, setIngr] = useState<Ingr[]>([]);
   const [azienda, setAzienda] = useState<string>("");
@@ -48,9 +49,17 @@ export default function EmbedPage() {
         .eq("prodotto_id", id);
       const { data: az } = await supabase
         .from("aziende_pubbliche")
-        .select("nome, owner")
+        .select("nome, owner, plan")
         .eq("id", (p as Prod).azienda_id)
         .maybeSingle();
+
+      // Il badge da incorporare è una funzione Silver/Gold: con un piano che
+      // non lo prevede (es. dopo un downgrade) il widget non si mostra.
+      const plan = ((az as { plan?: string | null })?.plan ?? "free") as Plan;
+      if (!(PLAN_MAP[plan] ?? PLAN_MAP.free).badgeEmbed) {
+        setStatus("noplan");
+        return;
+      }
 
       setProd(p as Prod);
       setIngr((ing as Ingr[]) ?? []);
@@ -73,6 +82,13 @@ export default function EmbedPage() {
     return (
       <div className="p-4 font-sans text-sm text-green-900/60">
         Carico il passaporto ecologico…
+      </div>
+    );
+  }
+  if (status === "noplan") {
+    return (
+      <div className="p-4 font-sans text-sm text-green-900/60">
+        Badge non disponibile con il piano attuale dell&apos;azienda.
       </div>
     );
   }
