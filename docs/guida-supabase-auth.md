@@ -141,3 +141,44 @@ Incolla in Authentication → Emails → Templates. Mantieni le variabili `{{ ..
  </td></tr>
 </table>
 ```
+
+### Magic Link (accesso senza password)
+```html
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#eef4e6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+ <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:100%;background:#fff;border:1px solid #e3eed7;border-radius:18px;overflow:hidden;">
+   <tr><td style="background:#1c5132;padding:16px 28px;font-family:Georgia,serif;font-size:18px;font-weight:bold;color:#fff;">🌱 ECO-VISA · BioFido</td></tr>
+   <tr><td style="padding:28px;color:#1f3d2b;">
+     <h1 style="margin:0 0 12px;font-family:Georgia,serif;font-size:22px;color:#1f3d2b;">Il tuo link di accesso</h1>
+     <p style="font-size:15px;line-height:1.6;margin:0 0 8px;">Clicca qui sotto per entrare nel tuo account, senza password. Il link è valido per pochi minuti e una sola volta.</p>
+     <table cellpadding="0" cellspacing="0" style="margin:24px 0 4px;"><tr><td style="border-radius:999px;background:#1c5132;">
+       <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 28px;font-size:15px;font-weight:bold;color:#fff;text-decoration:none;border-radius:999px;">Entra ora &rarr;</a>
+     </td></tr></table>
+     <p style="font-size:12px;color:#6b7c70;margin:14px 0 0;">Se non hai richiesto l'accesso, ignora pure questa email.</p>
+   </td></tr>
+   <tr><td style="border-top:1px solid #e3eed7;padding:16px 28px;background:#fbfdf7;font-size:12px;color:#6b7c70;">🌱 <a href="https://ecovisa.it" style="color:#1c5132;font-weight:bold;text-decoration:none;">ecovisa.it</a></td></tr>
+  </table>
+ </td></tr>
+</table>
+```
+
+### Reauthentication (codice di verifica per azioni sensibili)
+Questa email NON ha un pulsante: mostra un **codice** (`{{ .Token }}`) che l'utente digita per confermare un'operazione delicata.
+```html
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#eef4e6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+ <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" style="max-width:100%;background:#fff;border:1px solid #e3eed7;border-radius:18px;overflow:hidden;">
+   <tr><td style="background:#1c5132;padding:16px 28px;font-family:Georgia,serif;font-size:18px;font-weight:bold;color:#fff;">🌱 ECO-VISA · BioFido</td></tr>
+   <tr><td style="padding:28px;color:#1f3d2b;">
+     <h1 style="margin:0 0 12px;font-family:Georgia,serif;font-size:22px;color:#1f3d2b;">Codice di verifica</h1>
+     <p style="font-size:15px;line-height:1.6;margin:0 0 8px;">Per confermare l'operazione, inserisci questo codice nella pagina da cui l'hai richiesta:</p>
+     <div style="margin:20px 0;text-align:center;">
+       <span style="display:inline-block;padding:14px 26px;background:#eef4e6;border:1px solid #e3eed7;border-radius:14px;font-family:Georgia,serif;font-size:30px;font-weight:bold;letter-spacing:6px;color:#1c5132;">{{ .Token }}</span>
+     </div>
+     <p style="font-size:12px;color:#6b7c70;margin:14px 0 0;">Il codice scade a breve. Se non sei stato tu, ignora questa email.</p>
+   </td></tr>
+   <tr><td style="border-top:1px solid #e3eed7;padding:16px 28px;background:#fbfdf7;font-size:12px;color:#6b7c70;">🌱 <a href="https://ecovisa.it" style="color:#1c5132;font-weight:bold;text-decoration:none;">ecovisa.it</a></td></tr>
+  </table>
+ </td></tr>
+</table>
+```
