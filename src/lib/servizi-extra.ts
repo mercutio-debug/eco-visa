@@ -11,7 +11,7 @@ export type ServizioExtra = {
   prezzo: string;
 };
 
-export const ECOVISA_SERVIZI: ServizioExtra[] = [
+export const SERVIZI_EXTRA: ServizioExtra[] = [
   {
     key: "onboarding",
     emoji: "🚀",

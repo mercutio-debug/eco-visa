@@ -1,4 +1,4 @@
-import { ECOVISA_SERVIZI } from "@/lib/servizi-extra";
+import { SERVIZI_EXTRA } from "@/lib/servizi-extra";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -10,7 +10,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 export function ServiziExtra({ showPrices = false }: { showPrices?: boolean }) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      {ECOVISA_SERVIZI.map((s) => (
+      {SERVIZI_EXTRA.map((s) => (
         <div key={s.key} className="card flex flex-col p-5">
           <div className="text-2xl">{s.emoji}</div>
           <h3 className="mt-1 font-display text-xl text-green-800">{s.nome}</h3>

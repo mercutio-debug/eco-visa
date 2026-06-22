@@ -21,6 +21,7 @@ import { ImportoInput } from "@/components/ImportoInput";
 import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
+import { ServiziExtra } from "@/components/ServiziExtra";
 import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { CatalogoCard } from "@/components/CatalogoCard";
@@ -316,6 +317,16 @@ export default function DashboardPage() {
       {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
+
+      <section className="card mt-6 p-6">
+        <h2 className="font-display text-2xl text-green-800">Servizi extra</h2>
+        <p className="mt-1 text-sm text-green-900/70">
+          Potenzia la tua azienda. Guarda la demo di ciascun servizio.
+        </p>
+        <div className="mt-4">
+          <ServiziExtra showPrices />
+        </div>
+      </section>
 
       {user && <MessaggiCard ownerId={user.id} />}
 
