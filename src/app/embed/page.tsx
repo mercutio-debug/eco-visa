@@ -105,9 +105,19 @@ export default function EmbedPage() {
     ingr.map((i) => ({ name: i.nome, origin: i.origine }))
   );
 
+  // Cliccando la striscia si apre la scheda completa dell'azienda su ECO-VISA,
+  // in una NUOVA scheda (l'embed vive su siti di terzi: non dirottiamo la pagina).
+  const schedaUrl = `https://ecovisa.it/azienda/?id=${prod.azienda_id}`;
+
   return (
     <div className="mx-auto max-w-md p-3">
-      <div className="overflow-hidden rounded-2xl border border-[#e3eed7] bg-white shadow-md">
+      <a
+        href={schedaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Apri la scheda completa su ECO-VISA"
+        className="block overflow-hidden rounded-2xl border border-[#e3eed7] bg-white shadow-md transition hover:shadow-lg"
+      >
         <div className="flex items-center justify-between bg-green-800 px-4 py-2">
           <span className="text-xs font-bold uppercase tracking-wide text-lime-300">
             Passaporto ecologico
@@ -155,15 +165,10 @@ export default function EmbedPage() {
           )}
         </div>
 
-        <a
-          href="https://ecovisa.it"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block border-t border-[#eef4e6] px-4 py-2 text-center text-[11px] font-semibold text-green-700 hover:text-lime-600"
-        >
-          🌱 Impronta verificata con ECO-VISA — ecovisa.it
-        </a>
-      </div>
+        <div className="border-t border-[#eef4e6] px-4 py-2 text-center text-[11px] font-semibold text-green-700">
+          🌱 Apri la scheda completa su ECO-VISA → ecovisa.it
+        </div>
+      </a>
     </div>
   );
 }
