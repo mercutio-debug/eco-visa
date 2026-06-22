@@ -316,12 +316,6 @@ export default function DashboardPage() {
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
 
-      {user && (
-        <div id="notifiche" className="mt-6">
-          <NotificheToggle />
-        </div>
-      )}
-
       {user && <MessaggiCard ownerId={user.id} />}
 
       {user && PLAN_MAP[pianoScelto].canSell && <PrenotazioniCard ownerId={user.id} />}
@@ -1361,6 +1355,8 @@ function MessaggiCard({ ownerId }: { ownerId: string }) {
         Tutto ciò che ti arriva dai clienti: messaggi di «Contatta l&apos;azienda» e
         richieste di prenotazione, dal più recente.
       </p>
+
+      <NotificheToggle />
 
       {loading ? (
         <p className="mt-4 text-sm text-green-900/60">Caricamento…</p>

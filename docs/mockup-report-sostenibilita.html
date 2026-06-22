@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>Report di Sostenibilità — Azienda Agricola Stalla Franco</title>
+<style>
+  :root{
+    --green:#1c5132; --green2:#2f6f3f; --lime:#8cc63f; --leaf:#eef4e6;
+    --txt:#1f3d2b; --muted:#6b7c70; --border:#e3eed7; --amber:#caa53a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#dfe6d6;color:var(--txt);
+    font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .page{width:210mm;min-height:297mm;background:#fff;margin:14px auto;padding:22mm 20mm;
+    position:relative;box-shadow:0 4px 18px rgba(0,0,0,.12);overflow:hidden;}
+  h1,h2,h3{font-family:Georgia,'Times New Roman',serif;color:var(--green);margin:0;}
+  p{line-height:1.7;font-size:12.5pt;margin:0 0 11px;}
+  .kicker{font-size:9.5pt;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-weight:bold;font-family:Arial;}
+  .muted{color:var(--muted);}
+  .rule{height:3px;width:60px;background:var(--lime);border-radius:3px;margin:10px 0 18px;}
+  .brandbar{position:absolute;top:0;left:0;right:0;height:10px;background:var(--green);}
+  .foot{position:absolute;bottom:12mm;left:20mm;right:20mm;display:flex;justify-content:space-between;
+    font-size:8.5pt;color:var(--muted);border-top:1px solid var(--border);padding-top:8px;font-family:Arial;}
+  .seal{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--lime);border-radius:999px;
+    padding:6px 14px;font-family:Arial;font-weight:bold;color:var(--green);font-size:10pt;}
+  /* cover */
+  .cover{background:var(--green);color:#fff;display:flex;flex-direction:column;justify-content:space-between;}
+  .cover h1{color:#fff;font-size:34pt;line-height:1.15;}
+  .cover .kicker{color:var(--lime);}
+  .cover .meta{font-family:Arial;font-size:11pt;color:#dfeccd;line-height:1.8;}
+  .badge-anno{display:inline-block;background:var(--lime);color:var(--green);font-family:Arial;font-weight:bold;
+    padding:6px 16px;border-radius:999px;font-size:12pt;}
+  /* cards */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+  .stat{background:var(--leaf);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+  .stat .n{font-family:Georgia,serif;font-size:26pt;color:var(--green);font-weight:bold;line-height:1;}
+  .stat .l{font-family:Arial;font-size:10pt;color:var(--muted);margin-top:6px;}
+  .prod{border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin:0 0 12px;display:flex;
+    justify-content:space-between;align-items:flex-start;gap:16px;}
+  .prod h3{font-size:15pt;}
+  .prod .sub{font-family:Arial;font-size:10pt;color:var(--muted);margin-top:4px;}
+  .traffic{display:inline-block;width:14px;height:14px;border-radius:50%;background:#5aa12a;vertical-align:middle;}
+  .pill-green{display:inline-flex;align-items:center;gap:7px;background:#e7f3d8;color:#2c5a14;border-radius:999px;
+    padding:5px 12px;font-family:Arial;font-weight:bold;font-size:9.5pt;}
+  .dot{width:11px;height:11px;border-radius:50%;background:#5aa12a;display:inline-block;}
+  .kpi{text-align:right;font-family:Arial;}
+  .kpi .v{font-family:Georgia,serif;font-size:20pt;color:var(--green);font-weight:bold;}
+  .kpi .u{font-size:8.5pt;color:var(--muted);}
+  .lead{font-size:13.5pt;color:var(--green2);}
+  .method{background:var(--leaf);border-radius:14px;padding:18px 20px;font-family:Arial;font-size:10.5pt;line-height:1.7;}
+  .qr{width:96px;height:96px;border:2px solid var(--green);border-radius:12px;display:flex;align-items:center;
+    justify-content:center;font-family:Arial;font-size:8pt;color:var(--muted);text-align:center;}
+  @media print{ html,body{background:#fff;} .page{margin:0;box-shadow:none;} }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="page cover">
+  <div>
+    <div class="kicker">🌱 ECO-VISA · Report di Sostenibilità</div>
+    <div style="height:70px"></div>
+    <div class="badge-anno">Edizione 2026</div>
+    <h1 style="margin-top:22px;">Azienda Agricola<br/>Stalla Franco</h1>
+    <div class="rule" style="background:var(--lime);"></div>
+    <p class="meta">Albenga (SV) · Liguria, Italia<br/>Certificata biologica dal 2016<br/>ifiorinelcuore.it</p>
+  </div>
+  <div class="meta" style="display:flex;justify-content:space-between;align-items:flex-end;">
+    <div>Impronta ecologica delle materie prime<br/>filiera corta · energia rinnovabile · km zero</div>
+    <div class="qr" style="border-color:var(--lime);color:#cfe6b0;">QR → scheda<br/>pubblica</div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="page">
+  <div class="brandbar"></div>
+  <div class="kicker">Chi siamo</div>
+  <h2 style="font-size:24pt;margin-top:6px;">Una filiera nata dall'amore per l'ecologia</h2>
+  <div class="rule"></div>
+  <p class="lead">L'azienda opera su due unità in Liguria: circa 1,5 ettari ad <strong>Albenga</strong> e
+    4 ettari a <strong>Pornassio</strong>, sul Col di Nava, a 1000 metri di altitudine.</p>
+  <p>Da anni l'attenzione all'ambiente — fonte di vita — è al centro del lavoro quotidiano. L'azienda ha
+    realizzato la propria <strong>eco-sostenibilità</strong> con quattro impianti fotovoltaici, tre sistemi di
+    accumulo e due caldaie a biomassa. L'amore per l'ecologia ha portato, dal <strong>2016</strong>, alla
+    <strong>certificazione biologica</strong>.</p>
+  <p>Questo report raccoglie e racconta l'impronta ecologica delle materie prime dei prodotti, calcolata dal
+    motore ECO-VISA sulla base delle origini reali della filiera. È uno strumento per comunicare in modo
+    trasparente e verificabile l'impegno dell'azienda verso clienti, partner e istituzioni.</p>
+
+  <div class="grid" style="margin-top:22px;">
+    <div class="stat"><div class="n">2016</div><div class="l">Anno di certificazione biologica</div></div>
+    <div class="stat"><div class="n">5,5 ha</div><div class="l">Superficie coltivata (Albenga + Pornassio)</div></div>
+    <div class="stat"><div class="n">4 + 3</div><div class="l">Impianti fotovoltaici + sistemi di accumulo</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Caldaie a biomassa</div></div>
+  </div>
+  <div class="foot"><span>ECO-VISA · Report di Sostenibilità 2026</span><span>Azienda Agricola Stalla Franco · pag. 2</span></div>
+</section>
+
+<!-- FILIERA -->
+<section class="page">
+  <div class="brandbar"></div>
+  <div class="kicker">La filiera corta</div>
+  <h2 style="font-size:24pt;margin-top:6px;">Materie prime a chilometro zero</h2>
+  <div class="rule"></div>
+  <p>Tutte le materie prime provengono dalla stessa regione di trasformazione: le distanze percorse sono
+    minime e il trasporto incide pochissimo sulle emissioni. Una filiera <strong>tutta ligure</strong>,
+    raccolta e lavorata a pochi chilometri di distanza.</p>
+
+  <div style="margin:18px 0;">
+    <div class="pill-green"><span class="dot"></span> Origine media delle materie prime: entro ~50 km dallo stabilimento</div>
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;font-family:Arial;font-size:10.5pt;margin-top:6px;">
+    <tr style="text-align:left;color:var(--muted);border-bottom:2px solid var(--border);">
+      <th style="padding:8px 6px;">Materia prima</th><th>Origine</th><th>Stabilimento</th><th style="text-align:right;">Filiera</th></tr>
+    <tr style="border-bottom:1px solid var(--border);"><td style="padding:9px 6px;">Olio ess. lavanda officinalis</td><td>Pornassio (SV)</td><td>Albenga (SV)</td><td style="text-align:right;color:#2c5a14;font-weight:bold;">corta</td></tr>
+    <tr style="border-bottom:1px solid var(--border);"><td style="padding:9px 6px;">Olio ess. lavanda ibrida</td><td>Albenga (SV)</td><td>Albenga (SV)</td><td style="text-align:right;color:#2c5a14;font-weight:bold;">cortissima</td></tr>
+    <tr style="border-bottom:1px solid var(--border);"><td style="padding:9px 6px;">Olio ess. eucaliptus</td><td>Albenga (SV)</td><td>Albenga (SV)</td><td style="text-align:right;color:#2c5a14;font-weight:bold;">cortissima</td></tr>
+  </table>
+
+  <div class="method" style="margin-top:22px;">
+    <strong>Perché conta.</strong> La distanza tra il luogo di origine di una materia prima e quello di
+    trasformazione determina le emissioni di CO₂ del trasporto. Più la filiera è corta, più bassa è
+    l'impronta: il semaforo verde indica una filiera virtuosa.
+  </div>
+  <div class="foot"><span>ECO-VISA · Report di Sostenibilità 2026</span><span>Azienda Agricola Stalla Franco · pag. 3</span></div>
+</section>
+
+<!-- PRODOTTI -->
+<section class="page">
+  <div class="brandbar"></div>
+  <div class="kicker">I prodotti</div>
+  <h2 style="font-size:24pt;margin-top:6px;">Impronta dei prodotti</h2>
+  <div class="rule"></div>
+  <p class="muted" style="font-family:Arial;font-size:10.5pt;">Valori di CO₂ del trasporto materie prime calcolati dal motore ECO-VISA. <em>(Mockup: cifre illustrative.)</em></p>
+
+  <div class="prod">
+    <div><h3>Olio essenziale BIO di lavanda officinalis</h3>
+      <div class="sub">Categoria: olio essenziale · Materia prima da Pornassio (Col di Nava)</div>
+      <div style="margin-top:10px;"><span class="pill-green"><span class="dot"></span> Filiera corta · semaforo verde</span></div></div>
+    <div class="kpi"><div class="v">0,9</div><div class="u">kg CO₂ trasporto</div><div style="margin-top:8px;font-family:Georgia,serif;font-size:14pt;color:var(--green);">€ 12,00</div></div>
+  </div>
+
+  <div class="prod">
+    <div><h3>Olio essenziale BIO di lavanda ibrida</h3>
+      <div class="sub">Categoria: olio essenziale · Materia prima da Albenga</div>
+      <div style="margin-top:10px;"><span class="pill-green"><span class="dot"></span> Filiera cortissima · semaforo verde</span></div></div>
+    <div class="kpi"><div class="v">0,2</div><div class="u">kg CO₂ trasporto</div><div style="margin-top:8px;font-family:Georgia,serif;font-size:14pt;color:var(--green);">€ 12,00</div></div>
+  </div>
+
+  <div class="prod">
+    <div><h3>Olio essenziale BIO di eucaliptus</h3>
+      <div class="sub">Categoria: olio essenziale · Materia prima da Albenga</div>
+      <div style="margin-top:10px;"><span class="pill-green"><span class="dot"></span> Filiera cortissima · semaforo verde</span></div></div>
+    <div class="kpi"><div class="v">0,2</div><div class="u">kg CO₂ trasporto</div><div style="margin-top:8px;font-family:Georgia,serif;font-size:14pt;color:var(--green);">€ 10,00</div></div>
+  </div>
+
+  <div class="grid" style="margin-top:18px;">
+    <div class="stat"><div class="n">3</div><div class="l">Prodotti analizzati</div></div>
+    <div class="stat"><div class="n">100%</div><div class="l">Prodotti con semaforo verde</div></div>
+  </div>
+  <div class="foot"><span>ECO-VISA · Report di Sostenibilità 2026</span><span>Azienda Agricola Stalla Franco · pag. 4</span></div>
+</section>
+
+<!-- METODO + CHIUSURA -->
+<section class="page">
+  <div class="brandbar"></div>
+  <div class="kicker">Metodologia & validazione</div>
+  <h2 style="font-size:24pt;margin-top:6px;">Come calcoliamo l'impronta</h2>
+  <div class="rule"></div>
+  <p>Per ogni prodotto, ECO-VISA individua le origini delle materie prime e lo stabilimento di trasformazione,
+    ne ricava la distanza e stima le emissioni di CO₂ del trasporto. Il risultato è sintetizzato in un
+    <strong>semaforo</strong> (verde/giallo/rosso) e in un valore di CO₂ confrontabile.</p>
+  <p>Il dato è <strong>verificabile pubblicamente</strong>: ogni prodotto ha un passaporto ecologico
+    consultabile via QR, e l'azienda è presente sulla mappa delle realtà a km zero.</p>
+
+  <div class="method" style="margin-top:14px;">
+    <strong>Validazione ECO-VISA.</strong> Questo report è generato dai dati pubblicati e verificati
+    sull'account dell'azienda. La certificazione biologica (dal 2016) e gli impianti di energia rinnovabile
+    sono dichiarazioni dell'azienda, parte integrante del suo impegno ambientale.
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:40px;">
+    <div class="seal">🌱 Impronta verificata · ECO-VISA</div>
+    <div class="qr">QR → passaporto<br/>ecologico</div>
+  </div>
+
+  <p style="margin-top:40px;font-family:Arial;font-size:9.5pt;color:var(--muted);">
+    Documento generato da ECO-VISA per Azienda Agricola Stalla Franco. © 2026 ECO-VISA · ecovisa.it</p>
+  <div class="foot"><span>ECO-VISA · Report di Sostenibilità 2026</span><span>Azienda Agricola Stalla Franco · pag. 5</span></div>
+</section>
+
+</body>
+</html>

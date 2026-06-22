@@ -101,7 +101,16 @@ export function UserMenu() {
           <Link
             href="/dashboard/#messaggi"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              setOpen(false);
+              // se sono GIÀ in dashboard, Next non scrolla all'ancora: lo faccio a mano
+              // (endsWith gestisce anche il basePath /eco-visa di GitHub Pages)
+              if (window.location.pathname.replace(/\/+$/, "").endsWith("/dashboard")) {
+                e.preventDefault();
+                document.getElementById("messaggi")?.scrollIntoView({ behavior: "smooth" });
+                window.history.replaceState(null, "", "#messaggi");
+              }
+            }}
             className="block px-4 py-2 text-sm font-semibold text-green-800 hover:bg-leaf/50"
           >
             💬 Messaggi / chat
