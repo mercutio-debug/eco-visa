@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { PRODUCTS } from "@/lib/data";
-import { tutteLeZone } from "@/lib/zone";
+import { tutteLeZone, tutteLeRegioni } from "@/lib/zone";
 
 // Sitemap statica (output: export → genera /sitemap.xml al build). Dominio
 // canonico di produzione (Hostinger a root): ecovisa.it.
@@ -30,5 +30,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.8,
   }));
-  return [...statiche, ...prodotti, ...zone];
+  const regioni: MetadataRoute.Sitemap = (await tutteLeRegioni()).map((r) => ({
+    url: `${BASE}/spesa-km0/regione/${r.slug}/`,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+  return [...statiche, ...prodotti, ...regioni, ...zone];
 }

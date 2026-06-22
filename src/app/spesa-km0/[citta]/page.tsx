@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { tutteLeZone, zonaBySlug } from "@/lib/zone";
+import { tutteLeZone, zonaBySlug, regioneDiCitta } from "@/lib/zone";
 import { Semaforo } from "@/components/Semaforo";
 
 // Pagina SEO statica: una landing "Spesa a km zero a {Città}" per ogni località
@@ -40,6 +40,7 @@ export default async function ZonaPage({
   if (!z) notFound();
 
   const altre = (await tutteLeZone()).filter((x) => x.slug !== z.slug);
+  const regione = regioneDiCitta(z.citta);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -63,6 +64,17 @@ export default async function ZonaPage({
         <Link href="/spesa-km0" className="font-bold text-green-700 hover:text-lime-500">
           Spesa a km zero
         </Link>{" "}
+        {regione && (
+          <>
+            /{" "}
+            <Link
+              href={`/spesa-km0/regione/${regione.slug}`}
+              className="font-bold text-green-700 hover:text-lime-500"
+            >
+              {regione.nome}
+            </Link>{" "}
+          </>
+        )}
         / <span>{z.citta}</span>
       </nav>
 
