@@ -13,6 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/prodotti/`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE}/spesa-km0/`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE}/servizi-extra/`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE}/calcola/`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE}/biofido/`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${BASE}/abbonamenti/`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/termini-vendita/`, changeFrequency: "yearly", priority: 0.3 },
