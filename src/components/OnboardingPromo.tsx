@@ -16,7 +16,7 @@ export function OnboardingPromo() {
               Novità · Onboarding assistito
             </div>
             <h2 className="mt-1 font-display text-2xl text-green-800 md:text-3xl">
-              Hai un&apos;azienda bio? La mettiamo online noi.
+              Hai un&apos;azienda? La mettiamo online noi.
             </h2>
             <p className="mt-2 max-w-xl text-green-900/75">
               Tu invii listino e foto, al resto pensiamo noi. Guarda come funziona:
