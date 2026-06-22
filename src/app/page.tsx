@@ -7,6 +7,7 @@ import { HomeSearch } from "@/components/HomeSearch";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { MappaAziende } from "@/components/MappaAziende";
 import { GoldPromoBanner } from "@/components/GoldPromoBanner";
+import { OnboardingPromo } from "@/components/OnboardingPromo";
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
@@ -220,6 +221,9 @@ export default function Home() {
           <MappaAziende />
         </div>
       </section>
+
+      {/* Riquadro promozionale: demo onboarding incorporata, sotto la mappa */}
+      <OnboardingPromo />
 
       {/* Banner Gold: invito alle aziende (sotto la mappa delle aziende) */}
       <GoldPromoBanner portale="ECO-VISA" />
