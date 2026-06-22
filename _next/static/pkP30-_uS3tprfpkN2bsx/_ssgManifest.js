@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fprodotti\u002F[slug]","\u002Fspesa-km0\u002F[citta]","\u002Fspesa-km0\u002Fregione\u002F[regione]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()
