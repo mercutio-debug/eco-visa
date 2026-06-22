@@ -45,6 +45,7 @@ import {
 import { ChatPrenotazione } from "@/components/ChatPrenotazione";
 import { listContatti, setContattoGestito, type Contatto } from "@/lib/contatti";
 import { NotificheToggle } from "@/components/NotificheToggle";
+import { SmsNotificheToggle } from "@/components/SmsNotificheToggle";
 import { PLAN_MAP, isDowngrade, perditeDowngrade, type Plan } from "@/lib/piani";
 
 type Azienda = {
@@ -1357,6 +1358,7 @@ function MessaggiCard({ ownerId }: { ownerId: string }) {
       </p>
 
       <NotificheToggle />
+      <SmsNotificheToggle ownerId={ownerId} />
 
       {loading ? (
         <p className="mt-4 text-sm text-green-900/60">Caricamento…</p>
