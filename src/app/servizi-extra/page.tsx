@@ -4,7 +4,7 @@ import { ServiziExtra } from "@/components/ServiziExtra";
 export const metadata: Metadata = {
   title: "Servizi extra · ECO-VISA",
   description:
-    "Potenzia la tua azienda su ECO-VISA: onboarding assistito, report di sostenibilità brandizzato e badge fisico verificato.",
+    "Potenzia la tua azienda su ECO-VISA: «Ci pensiamo noi» (ti mettiamo online noi), report di sostenibilità brandizzato e badge fisico verificato.",
   alternates: { canonical: "https://ecovisa.it/servizi-extra/" },
 };
 
