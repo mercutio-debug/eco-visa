@@ -9,6 +9,12 @@ import { MappaAziende } from "@/components/MappaAziende";
 import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 import { OnboardingPromo } from "@/components/OnboardingPromo";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Home() {
