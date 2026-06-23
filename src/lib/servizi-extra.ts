@@ -9,6 +9,8 @@ export type ServizioExtra = {
   nome: string;
   desc: string;
   prezzo: string;
+  /** prezzo numerico in € (per il totale nel carrello) */
+  prezzoNum: number;
 };
 
 export const SERVIZI_EXTRA: ServizioExtra[] = [
@@ -18,6 +20,7 @@ export const SERVIZI_EXTRA: ServizioExtra[] = [
     nome: "Ci pensiamo noi",
     desc: "Mettiamo online la tua azienda: tu invii listino e foto, al resto pensiamo noi. Negozio completo, verificato e pubblicato.",
     prezzo: "€ 59 una-tantum · −10% entro il 31/12/2026",
+    prezzoNum: 59,
   },
   {
     key: "report",
@@ -25,6 +28,7 @@ export const SERVIZI_EXTRA: ServizioExtra[] = [
     nome: "Report di Sostenibilità",
     desc: "Un PDF professionale della tua impronta ecologica, col tuo marchio. Da mostrare a clienti, partner e bandi. Si rigenera ogni anno.",
     prezzo: "€ 19 / anno",
+    prezzoNum: 19,
   },
   {
     key: "badge",
@@ -32,5 +36,6 @@ export const SERVIZI_EXTRA: ServizioExtra[] = [
     nome: "Badge fisico",
     desc: "Il sigillo «Impronta verificata» da esporre: targhetta con QR al passaporto, busta brandizzata e set di adesivi per il punto vendita.",
     prezzo: "€ 29 + spedizione",
+    prezzoNum: 29,
   },
 ];

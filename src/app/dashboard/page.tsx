@@ -35,6 +35,7 @@ import { syncBioFido } from "@/lib/biofido-scheda";
 import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { getExtraScelti } from "@/lib/extra-selezionati";
+import { PurchasePopup } from "@/components/PurchasePopup";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import {
   listMyBookings,
@@ -83,6 +84,9 @@ type Prodotto = {
   descrizione?: string | null;
   foto2?: string | null;
   giacenza?: number | null;
+  confezione?: string | null;
+  contenuto?: number | null;
+  unita?: string | null;
   ingredienti: Ingrediente[];
 };
 
@@ -100,6 +104,8 @@ export default function DashboardPage() {
   const [activePlan, setActivePlan] = useState<Plan>("free");
   const [pianoScelto, setPianoScelto] = useState<Plan>("free");
   const [periodo, setPeriodo] = useState<"monthly" | "annual">("annual");
+  // popup-carrello del pagamento (reminder all'azienda quando sceglie un piano)
+  const [popupPag, setPopupPag] = useState<{ plan: Plan; period: "monthly" | "annual" } | null>(null);
 
   // ---- caricamento dati ----
   const loadAll = useCallback(async () => {
@@ -183,6 +189,8 @@ export default function DashboardPage() {
     setPianoScelto(p);
     setPeriodo(per);
     window.localStorage.setItem("ecovisa_plan", p);
+    // piano a pagamento → apri il popup-carrello come reminder al pagamento
+    if (p !== "free") setPopupPag({ plan: p, period: per });
   }
 
   // Tiene la scheda BioFido allineata ai dati ECO-VISA (descrizione, prodotti
@@ -280,6 +288,20 @@ export default function DashboardPage() {
       </section>
 
       <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
+
+      {popupPag && (
+        <PurchasePopup
+          plan={popupPag.plan}
+          period={popupPag.period}
+          planLabel={PLAN_MAP[popupPag.plan].label}
+          planPrice={
+            popupPag.period === "annual"
+              ? PLAN_MAP[popupPag.plan].annualPrice
+              : PLAN_MAP[popupPag.plan].monthlyPrice
+          }
+          onClose={() => setPopupPag(null)}
+        />
+      )}
 
       <GoldPromoBanner portale="ECO-VISA" />
 
@@ -1117,6 +1139,15 @@ function ProdottiCard({
                     onChange={onChange}
                   />
                 )}
+                {gold && (
+                  <ConfezioneProdotto
+                    prodottoId={p.id}
+                    confezione={p.confezione ?? null}
+                    contenuto={p.contenuto ?? null}
+                    unita={p.unita ?? null}
+                    onChange={onChange}
+                  />
+                )}
                 {canSell && (
                   <PrenotabileToggle
                     prodottoId={p.id}
@@ -1531,6 +1562,91 @@ function DescrizioneProdotto({
       />
       <button type="button" className="btn-lime mt-1 text-sm" onClick={salva} disabled={saving}>
         {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva descrizione"}
+      </button>
+    </div>
+  );
+}
+
+const CONFEZIONI = ["flacone", "barattolo", "sacchetto", "scatola", "bottiglia", "vasetto", "confezione"];
+const UNITA_CONTENUTO = ["gr", "kg", "l", "dl", "ml", "cl", "pz"];
+
+/** Confezione + contenuto del prodotto (Gold): es. flacone · 10 ml. */
+function ConfezioneProdotto({
+  prodottoId,
+  confezione,
+  contenuto,
+  unita,
+  onChange,
+}: {
+  prodottoId: string;
+  confezione: string | null;
+  contenuto: number | null;
+  unita: string | null;
+  onChange: () => void;
+}) {
+  const [c, setC] = useState(confezione ?? "");
+  const [q, setQ] = useState(contenuto != null ? String(contenuto) : "");
+  const [u, setU] = useState(unita ?? "");
+  const [saving, setSaving] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSaving(true);
+    setSalvato(false);
+    const { error } = await supabase
+      .from("prodotti")
+      .update({
+        confezione: c.trim() || null,
+        contenuto: q.trim() === "" ? null : Number(q),
+        unita: u.trim() || null,
+      })
+      .eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      alert(
+        /confezione|contenuto|unita/i.test(error.message)
+          ? "Per confezione e contenuto aggiungi prima le colonne al database (te le ho indicate)."
+          : error.message,
+      );
+      return;
+    }
+    setSalvato(true);
+    setTimeout(() => setSalvato(false), 1500);
+    onChange();
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-leaf/40 p-2">
+      <span className="text-xs font-bold uppercase tracking-wide text-green-700">
+        Confezione
+      </span>
+      <select className="field h-9 py-1" value={c} onChange={(e) => setC(e.target.value)}>
+        <option value="">—</option>
+        {CONFEZIONI.map((x) => (
+          <option key={x} value={x}>
+            {x}
+          </option>
+        ))}
+      </select>
+      <input
+        type="number"
+        min={0}
+        step="any"
+        className="field h-9 w-20 py-1"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="qtà"
+      />
+      <select className="field h-9 py-1" value={u} onChange={(e) => setU(e.target.value)}>
+        <option value="">unità</option>
+        {UNITA_CONTENUTO.map((x) => (
+          <option key={x} value={x}>
+            {x}
+          </option>
+        ))}
+      </select>
+      <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
+        {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva"}
       </button>
     </div>
   );

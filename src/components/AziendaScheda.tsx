@@ -223,8 +223,14 @@ export function AziendaScheda({
           {prodottiConFp.map(({ p, fp }) => (
             <div key={p.id} className="card overflow-hidden p-0">
               {p.immagine && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.immagine} alt={p.nome} className="h-40 w-full object-cover" />
+                <div className="h-40 w-full overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.immagine}
+                    alt={p.nome}
+                    className="h-40 w-full object-cover transition-transform duration-300 hover:scale-150"
+                  />
+                </div>
               )}
               <div className="p-5">
                 {p.categoria && (
@@ -244,6 +250,16 @@ export function AziendaScheda({
                   <div className="mt-1 text-lg font-bold text-green-800">{formatPrezzo(p.prezzo)}</div>
                 )}
                 <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
+                {(p.confezione || p.contenuto != null) && (
+                  <p className="mt-1 text-xs font-semibold text-green-900/70">
+                    {[
+                      p.confezione,
+                      p.contenuto != null ? `${p.contenuto} ${p.unita ?? ""}`.trim() : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                )}
 
                 {p.prenotabile && azienda.owner && (
                   <button
@@ -294,12 +310,19 @@ export function AziendaScheda({
                   </p>
                 )}
                 {p.foto2 && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.foto2}
-                    alt={`${p.nome} — etichetta`}
-                    className="mt-3 h-32 w-full rounded-lg object-cover"
-                  />
+                  <figure className="mt-3">
+                    <div className="h-32 w-full overflow-hidden rounded-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={p.foto2}
+                        alt={`${p.nome} — etichetta`}
+                        className="h-32 w-full object-cover transition-transform duration-300 hover:scale-150"
+                      />
+                    </div>
+                    <figcaption className="mt-1 text-center text-xs font-semibold text-green-900/60">
+                      Etichetta
+                    </figcaption>
+                  </figure>
                 )}
                 {p.in_shop &&
                   (p.giacenza === 0 ? (
