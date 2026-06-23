@@ -10,6 +10,8 @@ import {
 } from "@/lib/azienda-pubblica";
 import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
+import { supabase } from "@/lib/supabase";
+import { addToCart } from "@/lib/carrello";
 import { Semaforo } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
@@ -56,6 +58,41 @@ export function AziendaScheda({
   const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
+  const [cartMsg, setCartMsg] = useState<string | null>(null);
+
+  // 🛒 Aggiungi al carrello con gate login: ospiti → messaggio + pagina accedi;
+  // loggati → prodotto nel carrello (il checkout completo arriva con la Fase B).
+  const aggiungiCarrello = async (p: ProdottoPubblico) => {
+    if (!dati) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(
+            "postLoginRedirect",
+            window.location.pathname + window.location.search,
+          );
+        } catch {
+          /* ignore */
+        }
+        alert("Per ordinare questo prodotto devi registrarti o accedere.");
+        window.location.href = "/accedi";
+      }
+      return;
+    }
+    addToCart({
+      prodottoId: p.id,
+      nome: p.nome,
+      prezzo: p.prezzo ?? null,
+      aziendaId: dati.azienda.id,
+      aziendaNome: dati.azienda.nome,
+      immagine: p.immagine,
+    });
+    setCartMsg(`“${p.nome}” aggiunto al carrello`);
+    setTimeout(() => setCartMsg(null), 2500);
+  };
 
   useEffect(() => {
     if (!id) {
@@ -248,6 +285,29 @@ export function AziendaScheda({
                     ))}
                   </ul>
                 )}
+
+                {p.descrizione && (
+                  <p className="mt-3 whitespace-pre-line text-sm text-green-900/75">
+                    {p.descrizione}
+                  </p>
+                )}
+                {p.foto2 && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.foto2}
+                    alt={`${p.nome} — etichetta`}
+                    className="mt-3 h-32 w-full rounded-lg object-cover"
+                  />
+                )}
+                {p.in_shop && (
+                  <button
+                    type="button"
+                    onClick={() => aggiungiCarrello(p)}
+                    className="btn-lime mt-3 w-full justify-center text-sm"
+                  >
+                    🛒 Aggiungi al carrello
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -396,6 +456,12 @@ export function AziendaScheda({
           portale="ECO-VISA"
           onClose={() => setSegnala(null)}
         />
+      )}
+
+      {cartMsg && (
+        <div className="fixed bottom-5 left-1/2 z-[300] -translate-x-1/2 rounded-full bg-green-800 px-5 py-2 text-sm font-bold text-white shadow-lg">
+          🛒 {cartMsg}
+        </div>
       )}
     </>
   );

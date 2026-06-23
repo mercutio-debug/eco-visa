@@ -77,6 +77,9 @@ type Prodotto = {
   immagine: string | null;
   prezzo?: string | null;
   prenotabile?: boolean | null;
+  in_shop?: boolean | null;
+  descrizione?: string | null;
+  foto2?: string | null;
   ingredienti: Ingrediente[];
 };
 
@@ -1073,6 +1076,14 @@ function ProdottiCard({
                           onChange={onChange}
                         />
                       )}
+                      {gold && (
+                        <Foto2ProdottoBtn
+                          prodottoId={p.id}
+                          aziendaId={aziendaId}
+                          foto2={p.foto2 ?? null}
+                          onChange={onChange}
+                        />
+                      )}
                       <button
                         className="text-xs font-bold text-traffic-red hover:underline"
                         onClick={async () => {
@@ -1095,10 +1106,24 @@ function ProdottiCard({
                     </div>
                   )
                 )}
+                {gold && (
+                  <DescrizioneProdotto
+                    prodottoId={p.id}
+                    descrizione={p.descrizione ?? null}
+                    onChange={onChange}
+                  />
+                )}
                 {canSell && (
                   <PrenotabileToggle
                     prodottoId={p.id}
                     prenotabile={!!p.prenotabile}
+                    onChange={onChange}
+                  />
+                )}
+                {gold && (
+                  <ShopToggle
+                    prodottoId={p.id}
+                    inShop={!!p.in_shop}
                     onChange={onChange}
                   />
                 )}
@@ -1300,6 +1325,150 @@ function PrenotabileToggle({
         ✨ Servizio extra prenotabile dal cliente {saving ? "…" : ""}
       </span>
     </label>
+  );
+}
+
+/** Flag e-commerce: il prodotto è ordinabile dai clienti nello shop (Gold). */
+function ShopToggle({
+  prodottoId,
+  inShop,
+  onChange,
+}: {
+  prodottoId: string;
+  inShop: boolean;
+  onChange: () => void;
+}) {
+  const [on, setOn] = useState(inShop);
+  const [saving, setSaving] = useState(false);
+
+  async function toggle(v: boolean) {
+    setOn(v);
+    setSaving(true);
+    const { error } = await supabase.from("prodotti").update({ in_shop: v }).eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      setOn(!v);
+      alert(
+        /in_shop/i.test(error.message)
+          ? "Per lo shop aggiungi prima la colonna 'in_shop' al database (te l'ho indicata)."
+          : error.message,
+      );
+      return;
+    }
+    onChange();
+  }
+
+  return (
+    <label className="mt-2 flex items-center gap-2 rounded-xl bg-leaf/40 p-2 text-sm">
+      <input
+        type="checkbox"
+        className="h-5 w-5 accent-[var(--lime-500)]"
+        checked={on}
+        disabled={saving}
+        onChange={(e) => toggle(e.target.checked)}
+      />
+      <span className="font-semibold text-green-800">
+        🛒 Ordinabile dallo shop dai clienti {saving ? "…" : ""}
+      </span>
+    </label>
+  );
+}
+
+/** Seconda foto del prodotto (es. l'etichetta) — Gold. */
+function Foto2ProdottoBtn({
+  prodottoId,
+  aziendaId,
+  foto2,
+  onChange,
+}: {
+  prodottoId: string;
+  aziendaId: string;
+  foto2: string | null;
+  onChange: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  return (
+    <label className="cursor-pointer text-xs font-bold text-green-700 hover:underline">
+      {uploading ? "Carico…" : foto2 ? "🏷️ Cambia 2ª foto" : "🏷️ Foto etichetta"}
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          setUploading(true);
+          try {
+            const url = await caricaImmagineCatalogo(aziendaId, f);
+            const { error } = await supabase.from("prodotti").update({ foto2: url }).eq("id", prodottoId);
+            if (error) throw error;
+            onChange();
+          } catch (err) {
+            alert(
+              /foto2/i.test((err as Error).message)
+                ? "Per la 2ª foto aggiungi prima la colonna 'foto2' al database (te l'ho indicata)."
+                : (err as Error).message,
+            );
+          } finally {
+            setUploading(false);
+          }
+        }}
+      />
+    </label>
+  );
+}
+
+/** Descrizione estesa del prodotto (Gold), mostrata nella scheda pubblica. */
+function DescrizioneProdotto({
+  prodottoId,
+  descrizione,
+  onChange,
+}: {
+  prodottoId: string;
+  descrizione: string | null;
+  onChange: () => void;
+}) {
+  const [val, setVal] = useState(descrizione ?? "");
+  const [saving, setSaving] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSaving(true);
+    setSalvato(false);
+    const { error } = await supabase
+      .from("prodotti")
+      .update({ descrizione: val.trim() || null })
+      .eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      alert(
+        /descrizione/i.test(error.message)
+          ? "Per la descrizione prodotto aggiungi prima la colonna 'descrizione' al database (te l'ho indicata)."
+          : error.message,
+      );
+      return;
+    }
+    setSalvato(true);
+    setTimeout(() => setSalvato(false), 1500);
+    onChange();
+  }
+
+  return (
+    <div className="mt-2 rounded-xl bg-leaf/40 p-2">
+      <span className="text-xs font-bold uppercase tracking-wide text-green-700">
+        Descrizione prodotto (Gold)
+      </span>
+      <textarea
+        className="field mt-1 w-full"
+        rows={3}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Racconta il prodotto: lavorazione, gusto, formato, cosa c'è sull'etichetta…"
+      />
+      <button type="button" className="btn-lime mt-1 text-sm" onClick={salva} disabled={saving}>
+        {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva descrizione"}
+      </button>
+    </div>
   );
 }
 
