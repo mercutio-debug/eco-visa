@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Anton, Barlow } from "next/font/google";
 import "./globals.css";
 import { SiteChrome } from "@/components/SiteChrome";
+import { CartDrawer } from "@/components/CartDrawer";
 
 const anton = Anton({
   weight: "400",
@@ -89,6 +90,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <SiteChrome>{children}</SiteChrome>
+        <CartDrawer portale="ECO-VISA" />
       </body>
     </html>
   );

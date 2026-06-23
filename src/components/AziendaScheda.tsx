@@ -88,6 +88,7 @@ export function AziendaScheda({
       prezzo: p.prezzo ?? null,
       aziendaId: dati.azienda.id,
       aziendaNome: dati.azienda.nome,
+      owner: dati.azienda.owner ?? null,
       immagine: p.immagine,
     });
     setCartMsg(`“${p.nome}” aggiunto al carrello`);
