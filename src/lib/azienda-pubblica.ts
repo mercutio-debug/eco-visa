@@ -21,6 +21,8 @@ export type ProdottoPubblico = {
   descrizione?: string | null;
   /** seconda foto, es. etichetta (Gold) */
   foto2?: string | null;
+  /** giacenza a magazzino (Gold); null = non gestita */
+  giacenza?: number | null;
   ingredienti: IngredientInput[];
 };
 
@@ -66,6 +68,7 @@ type ProdRow = {
   in_shop?: boolean | null;
   descrizione?: string | null;
   foto2?: string | null;
+  giacenza?: number | null;
   azienda_id: string;
 };
 type IngRow = { prodotto_id: string; nome: string; origine: string };
@@ -128,6 +131,7 @@ export async function loadAziendaPubblica(
     in_shop: gold ? (p.in_shop ?? false) : false,
     descrizione: gold ? (p.descrizione ?? null) : null,
     foto2: gold ? (p.foto2 ?? null) : null,
+    giacenza: gold ? (p.giacenza ?? null) : null,
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 

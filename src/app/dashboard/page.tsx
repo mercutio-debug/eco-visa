@@ -81,6 +81,7 @@ type Prodotto = {
   in_shop?: boolean | null;
   descrizione?: string | null;
   foto2?: string | null;
+  giacenza?: number | null;
   ingredienti: Ingrediente[];
 };
 
@@ -1129,6 +1130,13 @@ function ProdottiCard({
                     onChange={onChange}
                   />
                 )}
+                {gold && p.in_shop && (
+                  <GiacenzaProdotto
+                    prodottoId={p.id}
+                    giacenza={p.giacenza ?? null}
+                    onChange={onChange}
+                  />
+                )}
                 {info.badgeEmbed && <EmbedSnippet id={p.id} />}
               </li>
             );
@@ -1373,6 +1381,59 @@ function ShopToggle({
         🛒 Ordinabile dallo shop dai clienti {saving ? "…" : ""}
       </span>
     </label>
+  );
+}
+
+/** Giacenza a magazzino del prodotto (Gold). Vuoto = non gestita/illimitata. */
+function GiacenzaProdotto({
+  prodottoId,
+  giacenza,
+  onChange,
+}: {
+  prodottoId: string;
+  giacenza: number | null;
+  onChange: () => void;
+}) {
+  const [val, setVal] = useState(giacenza == null ? "" : String(giacenza));
+  const [saving, setSaving] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+
+  async function salva() {
+    setSaving(true);
+    setSalvato(false);
+    const n = val.trim() === "" ? null : Math.max(0, Math.floor(Number(val)) || 0);
+    const { error } = await supabase.from("prodotti").update({ giacenza: n }).eq("id", prodottoId);
+    setSaving(false);
+    if (error) {
+      alert(
+        /giacenza/i.test(error.message)
+          ? "Per il magazzino aggiungi prima la colonna 'giacenza' al database (te l'ho indicata)."
+          : error.message,
+      );
+      return;
+    }
+    setSalvato(true);
+    setTimeout(() => setSalvato(false), 1500);
+    onChange();
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-2 rounded-xl bg-leaf/40 p-2">
+      <span className="text-xs font-bold uppercase tracking-wide text-green-700">
+        📦 Magazzino (Gold)
+      </span>
+      <input
+        type="number"
+        min={0}
+        className="field h-9 w-28 py-1"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="qtà · vuoto = ∞"
+      />
+      <button type="button" className="btn-lime text-sm" onClick={salva} disabled={saving}>
+        {saving ? "Salvo…" : salvato ? "Salvato ✓" : "Salva"}
+      </button>
+    </div>
   );
 }
 

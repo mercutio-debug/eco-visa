@@ -90,6 +90,7 @@ export function AziendaScheda({
       aziendaNome: dati.azienda.nome,
       owner: dati.azienda.owner ?? null,
       immagine: p.immagine,
+      giacenza: p.giacenza ?? null,
     });
     setCartMsg(`“${p.nome}” aggiunto al carrello`);
     setTimeout(() => setCartMsg(null), 2500);
@@ -300,15 +301,27 @@ export function AziendaScheda({
                     className="mt-3 h-32 w-full rounded-lg object-cover"
                   />
                 )}
-                {p.in_shop && (
-                  <button
-                    type="button"
-                    onClick={() => aggiungiCarrello(p)}
-                    className="btn-lime mt-3 w-full justify-center text-sm"
-                  >
-                    🛒 Aggiungi al carrello
-                  </button>
-                )}
+                {p.in_shop &&
+                  (p.giacenza === 0 ? (
+                    <div className="mt-3 rounded-lg bg-[#f3dada] py-2 text-center text-sm font-bold text-traffic-red">
+                      Esaurito
+                    </div>
+                  ) : (
+                    <>
+                      {typeof p.giacenza === "number" && (
+                        <div className="mt-2 text-xs font-semibold text-green-900/60">
+                          Disponibili: {p.giacenza}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => aggiungiCarrello(p)}
+                        className="btn-lime mt-1 w-full justify-center text-sm"
+                      >
+                        🛒 Aggiungi al carrello
+                      </button>
+                    </>
+                  ))}
               </div>
             </div>
           ))}
