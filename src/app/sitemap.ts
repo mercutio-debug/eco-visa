@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { PRODUCTS } from "@/lib/data";
 import { tutteLeZone, tutteLeRegioni } from "@/lib/zone";
+import { tutteLeAziendePubbliche } from "@/lib/azienda-pubblica";
 
 // Sitemap statica (output: export → genera /sitemap.xml al build). Dominio
 // canonico di produzione (Hostinger a root): ecovisa.it.
@@ -35,5 +36,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly",
     priority: 0.7,
   }));
-  return [...statiche, ...prodotti, ...regioni, ...zone];
+  let aziende: MetadataRoute.Sitemap = [];
+  try {
+    aziende = (await tutteLeAziendePubbliche()).map((a) => ({
+      url: `${BASE}/azienda/${a.slug}/`,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch {
+    aziende = [];
+  }
+  return [...statiche, ...prodotti, ...regioni, ...zone, ...aziende];
 }

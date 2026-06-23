@@ -161,6 +161,49 @@ export async function loadAziendaPubblica(
   return { azienda: az as AziendaPubblica, prodotti, servizi, vendita };
 }
 
+/** Slug url-safe da un nome (minuscolo, accenti rimossi, spazi → -). */
+export function aziendaSlug(nome: string): string {
+  return (nome || "azienda")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "azienda";
+}
+
+export type AziendaElenco = { id: string; nome: string; citta: string | null; slug: string };
+
+/**
+ * Elenco pubblico delle aziende iscritte, con uno slug STABILE e UNIVOCO per
+ * la pagina condivisibile /azienda/[slug]. Ordino per id (stabile tra build) e
+ * disambiguo i nomi duplicati con un suffisso derivato dall'id.
+ */
+export async function tutteLeAziendePubbliche(): Promise<AziendaElenco[]> {
+  let rows: { id: string; nome: string; citta_sede: string | null }[] = [];
+  try {
+    const { data } = await supabase
+      .from("aziende_pubbliche")
+      .select("id,nome,citta_sede")
+      .order("id");
+    rows = (data as typeof rows) ?? [];
+  } catch {
+    rows = [];
+  }
+  const used = new Set<string>();
+  return rows.map((r) => {
+    let slug = aziendaSlug(r.nome);
+    if (used.has(slug)) slug = `${slug}-${r.id.slice(0, 4)}`;
+    while (used.has(slug)) slug = `${slug}-${r.id.slice(0, 8)}`;
+    used.add(slug);
+    return { id: r.id, nome: r.nome, citta: r.citta_sede, slug };
+  });
+}
+
+/** Risolve uno slug nell'azienda corrispondente (per la pagina statica). */
+export async function aziendaBySlug(slug: string): Promise<AziendaElenco | null> {
+  return (await tutteLeAziendePubbliche()).find((a) => a.slug === slug) ?? null;
+}
+
 export type ProdottoConAzienda = ProdottoPubblico & {
   aziendaId: string;
   aziendaNome: string;
