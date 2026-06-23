@@ -19,6 +19,8 @@ import { ComuneAutocomplete } from "@/components/ComuneAutocomplete";
 import { IndirizzoAutocomplete } from "@/components/IndirizzoAutocomplete";
 import { ImportoInput } from "@/components/ImportoInput";
 import { DatiFatturazioneForm, type PrefillFatturazione } from "@/components/DatiFatturazioneForm";
+import { caricaDatiFatturazione, salvaDatiFatturazione } from "@/lib/fatturazione";
+import { caricaDatiBio, salvaDatiBio, ENTI_CERTIFICATORI } from "@/lib/bio";
 import { SezioneBio } from "@/components/SezioneBio";
 import { SchedaServizi } from "@/components/SchedaServizi";
 import { ServiziExtra } from "@/components/ServiziExtra";
@@ -638,6 +640,32 @@ function AnagraficaCard({
   const [saving, setSaving] = useState(false);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // Dati fiscali (SDI/PEC/email) e bio: in UI un'unica anagrafica; dietro restano
+  // le tabelle dedicate (dati_fatturazione, azienda_bio).
+  const [sdi, setSdi] = useState("");
+  const [pec, setPec] = useState("");
+  const [emailFatt, setEmailFatt] = useState("");
+  const [isBio, setIsBio] = useState(false);
+  const [enteCert, setEnteCert] = useState("");
+  const [numeroCert, setNumeroCert] = useState("");
+  const [autocert, setAutocert] = useState(false);
+
+  // carica dati fiscali e bio (riga propria via RLS)
+  useEffect(() => {
+    caricaDatiFatturazione().then((d) => {
+      if (!d) return;
+      setSdi(d.codice_sdi && d.codice_sdi !== "0000000" ? d.codice_sdi : "");
+      setPec(d.pec ?? "");
+      setEmailFatt(d.email ?? "");
+    });
+    caricaDatiBio().then((b) => {
+      if (!b) return;
+      setIsBio(!!b.is_bio);
+      setEnteCert(b.ente_certificatore ?? "");
+      setNumeroCert(b.numero_certificazione ?? "");
+      setAutocert(!!b.autocertificato);
+    });
+  }, [ownerId]);
 
   // Se l'azienda è già salvata uso i suoi dati; altrimenti ripristino la BOZZA
   // locale, così cambiando pagina o ricaricando NON si perde quanto digitato.
@@ -780,6 +808,36 @@ function AnagraficaCard({
       if (error && new RegExp(`\\b${col}\\b`, "i").test(error.message)) {
         delete payload[col];
         ({ error } = await esegui(payload));
+      }
+    }
+    // salva anche dati fiscali + bio (best-effort: non bloccano l'anagrafica)
+    if (!error && ownerId) {
+      try {
+        await salvaDatiFatturazione(ownerId, {
+          ragione_sociale: nome,
+          partita_iva: piva,
+          codice_fiscale: (cfUguale ? piva : cf) || "",
+          indirizzo,
+          cap,
+          citta,
+          provincia,
+          paese: "IT",
+          codice_sdi: sdi.trim() ? sdi.trim().toUpperCase() : "0000000",
+          pec: pec.trim(),
+          email: emailFatt.trim(),
+        });
+      } catch {
+        /* tabella/colonne fatturazione assenti: ignora */
+      }
+      try {
+        await salvaDatiBio(ownerId, {
+          is_bio: isBio,
+          ente_certificatore: enteCert,
+          numero_certificazione: numeroCert,
+          autocertificato: autocert,
+        });
+      } catch {
+        /* tabella azienda_bio assente: ignora */
       }
     }
     setSaving(false);
@@ -1005,6 +1063,100 @@ function AnagraficaCard({
           </p>
         </div>
       </div>
+
+      {/* DATI PER LA FATTURA: non obbligatori ora, richiesti all'acquisto */}
+      <div className="mt-4 rounded-2xl border border-[#e3eed7] bg-leaf/30 p-4">
+        <div className="font-display text-lg text-green-800">Dati per la fattura</div>
+        <p className="mt-0.5 text-xs text-green-900/65">
+          Non obbligatori ora; necessari quando acquisti un abbonamento (fattura
+          elettronica). Indica SDI <strong>oppure</strong> PEC.
+        </p>
+        <div className="mt-3 grid gap-4 md:grid-cols-3">
+          <label className="block">
+            <span className="label">Codice SDI</span>
+            <input
+              className="field mt-1"
+              value={sdi}
+              maxLength={7}
+              onChange={(e) => setSdi(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7))}
+              placeholder="7 caratteri"
+            />
+          </label>
+          <label className="block">
+            <span className="label">PEC</span>
+            <input
+              className="field mt-1"
+              value={pec}
+              onChange={(e) => setPec(e.target.value)}
+              placeholder="pec@esempio.it"
+            />
+          </label>
+          <label className="block">
+            <span className="label">Email referente</span>
+            <input
+              className="field mt-1"
+              value={emailFatt}
+              onChange={(e) => setEmailFatt(e.target.value)}
+              placeholder="email personale"
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* PRODUTTORE BIOLOGICO → BioFido */}
+      <div className="mt-3 rounded-2xl border border-[#cfe6b0] bg-leaf/30 p-4">
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-[var(--lime-500)]"
+            checked={isBio}
+            onChange={(e) => setIsBio(e.target.checked)}
+          />
+          <span className="font-display text-lg text-green-800">
+            🌱 Sono un produttore biologico — iscrivimi anche a BioFido
+          </span>
+        </label>
+        {isBio && (
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="label">Ente certificatore</span>
+              <input
+                className="field mt-1"
+                list="enti-cert"
+                value={enteCert}
+                onChange={(e) => setEnteCert(e.target.value)}
+                placeholder="Es. ICEA, Suolo e Salute…"
+              />
+              <datalist id="enti-cert">
+                {ENTI_CERTIFICATORI.map((e) => (
+                  <option key={e} value={e} />
+                ))}
+              </datalist>
+            </label>
+            <label className="block">
+              <span className="label">Numero di iscrizione</span>
+              <input
+                className="field mt-1"
+                value={numeroCert}
+                onChange={(e) => setNumeroCert(e.target.value)}
+              />
+            </label>
+            <label className="flex items-start gap-2 text-sm md:col-span-2">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+                checked={autocert}
+                onChange={(e) => setAutocert(e.target.checked)}
+              />
+              <span className="text-green-900/80">
+                Dichiaro che i dati di certificazione biologica sono veritieri
+                (autocertificazione).
+              </span>
+            </label>
+          </div>
+        )}
+      </div>
+
       <div className="mt-4 flex items-center gap-3">
         <button className="btn-lime" onClick={save} disabled={saving || !nome}>
           {saving ? "Salvataggio…" : azienda ? "Aggiorna dati" : "Salva azienda"}
