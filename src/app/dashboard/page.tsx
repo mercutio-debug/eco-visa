@@ -26,6 +26,7 @@ import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { CatalogoCard } from "@/components/CatalogoCard";
 import { AnteprimaScheda } from "@/components/AnteprimaScheda";
+import { OrdiniShopRicevuti } from "@/components/OrdiniShopRicevuti";
 import { StatisticheCard } from "@/components/StatisticheCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
@@ -331,6 +332,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {user && <OrdiniShopRicevuti />}
       {user && <MessaggiCard ownerId={user.id} />}
 
       {user && PLAN_MAP[pianoScelto].canSell && <PrenotazioniCard ownerId={user.id} />}
