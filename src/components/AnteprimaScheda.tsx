@@ -6,6 +6,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { prefetchGeocode } from "@/lib/geo";
 import { Semaforo } from "@/components/Semaforo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
+import { tutteLeAziendePubbliche } from "@/lib/azienda-pubblica";
 
 type Prod = {
   id: string;
@@ -115,6 +116,19 @@ export function AnteprimaScheda({ ownerId, plan }: { ownerId: string; plan: Plan
   const [voci, setVoci] = useState<Voce[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setVer] = useState(0);
+  const [paginaUrl, setPaginaUrl] = useState<string | null>(null);
+  const [copiato, setCopiato] = useState(false);
+
+  const copia = async () => {
+    if (!paginaUrl) return;
+    try {
+      await navigator.clipboard.writeText(paginaUrl);
+      setCopiato(true);
+      setTimeout(() => setCopiato(false), 1800);
+    } catch {
+      /* clipboard non disponibile: l'utente può selezionare e copiare a mano */
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -127,8 +141,18 @@ export function AnteprimaScheda({ ownerId, plan }: { ownerId: string; plan: Plan
     setAzienda(a?.nome ?? "");
     if (!a) {
       setVoci([]);
+      setPaginaUrl(null);
       setLoading(false);
       return;
+    }
+    // URL pubblico condivisibile: lo slug è identico a quello della pagina
+    // statica /azienda/[slug] (risolto dalla stessa funzione, per id).
+    try {
+      const elenco = await tutteLeAziendePubbliche();
+      const mine = elenco.find((x) => x.id === a.id);
+      setPaginaUrl(mine ? `https://ecovisa.it/azienda/${mine.slug}/` : null);
+    } catch {
+      setPaginaUrl(null);
     }
     const { data: pr } = await supabase
       .from("prodotti")
@@ -173,6 +197,35 @@ export function AnteprimaScheda({ ownerId, plan }: { ownerId: string; plan: Plan
         È <strong>esattamente</strong> il passaporto ecologico che i clienti vedono in
         vetrina e sul tuo sito (embed). Salva un prodotto, poi premi «Aggiorna».
       </p>
+
+      {paginaUrl && (
+        <div className="mt-4 rounded-2xl border border-[#cfe6b0] bg-leaf/50 p-4">
+          <div className="text-sm font-bold text-green-800">🔗 La tua pagina pubblica</div>
+          <p className="mt-0.5 text-xs text-green-900/70">
+            Condividila su social, sito, email e carta intestata: è il tuo mini-sito
+            su ECO-VISA, con tutti i tuoi prodotti e l&apos;impronta ecologica.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input
+              readOnly
+              value={paginaUrl}
+              onFocus={(e) => e.currentTarget.select()}
+              className="min-w-0 flex-1 rounded-lg border border-[#d6e6c4] bg-white px-3 py-1.5 text-sm text-green-900"
+            />
+            <button type="button" onClick={copia} className="btn-lime text-sm">
+              {copiato ? "✓ Copiato" : "Copia link"}
+            </button>
+            <a
+              href={paginaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost text-sm"
+            >
+              Apri ↗
+            </a>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <p className="mt-4 text-sm text-green-900/60">Carico l&apos;anteprima…</p>
