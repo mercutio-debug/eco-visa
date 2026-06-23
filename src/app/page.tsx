@@ -184,8 +184,12 @@ export default function Home() {
             <h3 className="font-display text-3xl text-green-800">
               Cerchi prodotti biologici intorno a te, scarica la nostra app BioFido!
             </h3>
-            {/* cornice attorno all'icona BioFido */}
-            <div className="mt-4 flex justify-center rounded-2xl border-2 border-[var(--lime-500)] bg-leaf/40 p-6">
+            {/* l'intera cornice è il link a BioFido (più intuitivo di un tasto sotto) */}
+            <Link
+              href="/biofido"
+              aria-label="Apri BioFido"
+              className="mt-4 flex flex-col items-center gap-2 rounded-2xl border-2 border-[var(--lime-500)] bg-leaf/40 p-6 transition hover:-translate-y-0.5 hover:bg-leaf"
+            >
               <Image
                 src={`${BASE}/brand/biofido-solologo.png`}
                 alt="BioFido"
@@ -193,18 +197,14 @@ export default function Home() {
                 height={210}
                 className="h-24 w-auto"
               />
-            </div>
+              <span className="font-display text-lg text-green-700">🐾 Apri BioFido →</span>
+            </Link>
             <p className="mt-2 max-w-md text-green-900/80">
               Il segugio del biologico: trova i produttori, i negozi e le
               attività bio intorno a te (fino a 70 km) e fatti guidare fin lì.
               Aprila dal telefono e tocca <strong>“Aggiungi a schermata Home”</strong>:
               la usi come un&apos;app, gratis.
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link href="/biofido" className="btn-lime">
-                🐾 Apri BioFido
-              </Link>
-            </div>
             <p className="mt-3 text-xs text-green-900/55">
               Si apre qui sul portale. Dall&apos;app, tocca “Scarica l&apos;app sul
               tuo smartphone” per installarla (Android e iPhone). Presto anche sugli store.
