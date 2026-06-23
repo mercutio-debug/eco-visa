@@ -303,7 +303,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <GoldPromoBanner portale="ECO-VISA" />
+      <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
 
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
