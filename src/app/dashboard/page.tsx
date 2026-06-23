@@ -34,6 +34,7 @@ import { getMyPlan } from "@/lib/plan";
 import { syncBioFido } from "@/lib/biofido-scheda";
 import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
+import { getExtraScelti } from "@/lib/extra-selezionati";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import {
   listMyBookings,
@@ -406,7 +407,7 @@ function PagamentoFinale({
     setBusy(true);
     setMsg(null);
     try {
-      await startCheckout(scelto, per);
+      await startCheckout(scelto, per, getExtraScelti());
     } catch (e) {
       setBusy(false);
       setMsg((e as Error).message);
