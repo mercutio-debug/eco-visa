@@ -239,6 +239,54 @@ export default function DashboardPage() {
     return <div className="mx-auto max-w-4xl px-4 py-16 text-green-900/70">Caricamento…</div>;
   }
 
+  // GATING: senza anagrafica minima (nome + P.IVA o CF + città + indirizzo) non si
+  // entra nella dashboard. Così dietro ogni profilo c'è un'azienda reale. SDI/PEC
+  // sono richiesti solo all'acquisto di un abbonamento (nel popup di pagamento).
+  const a = azienda;
+  const anagraficaOk = !!(
+    a &&
+    a.nome?.trim() &&
+    (a.piva?.trim() || a.codice_fiscale?.trim()) &&
+    a.citta_sede?.trim() &&
+    a.indirizzo?.trim()
+  );
+  if (!anagraficaOk) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
+          Area aziende
+        </div>
+        <h1 className="title-pangea text-3xl text-green-700 md:text-4xl">
+          Completa la tua anagrafica
+        </h1>
+        <p className="mt-3 rounded-xl bg-[#fff3d4] p-4 text-sm font-semibold text-[#7a5a00]">
+          Per accedere alla dashboard, pubblicare e ordinare, completa prima la scheda
+          anagrafica della tua azienda (nome, P.IVA o codice fiscale, città e indirizzo).
+          Serve a garantire che dietro ogni profilo ci sia un&apos;azienda reale. I dati
+          fiscali completi (SDI o PEC) ti verranno richiesti solo al momento
+          dell&apos;acquisto di un abbonamento.
+        </p>
+        <div className="mt-6">
+          <AnagraficaCard
+            azienda={azienda}
+            initialNome={(user?.user_metadata as { nome?: string })?.nome}
+            ownerId={user?.id ?? ""}
+            onSaved={loadAll}
+          />
+        </div>
+        <button
+          className="btn-ghost mt-6 text-sm"
+          onClick={async () => {
+            await supabase.auth.signOut();
+            router.push("/");
+          }}
+        >
+          Esci
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="flex items-center justify-between">
