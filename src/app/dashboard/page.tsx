@@ -260,11 +260,11 @@ export default function DashboardPage() {
           Completa la tua anagrafica
         </h1>
         <p className="mt-3 rounded-xl bg-[#fff3d4] p-4 text-sm font-semibold text-[#7a5a00]">
-          Per accedere alla dashboard, pubblicare e ordinare, completa prima la scheda
-          anagrafica della tua azienda (nome, P.IVA o codice fiscale, città e indirizzo).
-          Serve a garantire che dietro ogni profilo ci sia un&apos;azienda reale. I dati
-          fiscali completi (SDI o PEC) ti verranno richiesti solo al momento
-          dell&apos;acquisto di un abbonamento.
+          Abbiamo bisogno dei tuoi dati per essere sicuri che tu sia una vera azienda:
+          questa sezione è dedicata alle imprese, non ai privati o agli hobbisti. In
+          questo modo tuteliamo i consumatori. Completa nome, P.IVA o codice fiscale,
+          città e indirizzo per accedere alla dashboard. I dati fiscali completi (SDI o
+          PEC) ti verranno richiesti solo al momento dell&apos;acquisto di un abbonamento.
         </p>
         <div className="mt-6">
           <AnagraficaCard
@@ -364,12 +364,20 @@ export default function DashboardPage() {
 
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
-      <AnagraficaCard
-        azienda={azienda}
-        initialNome={(user?.user_metadata as { nome?: string })?.nome}
-        ownerId={user?.id ?? ""}
-        onSaved={loadAll}
-      />
+      {/* Anagrafica dietro un link a comparsa: dashboard più pulita */}
+      <details className="card mt-6 p-0">
+        <summary className="cursor-pointer list-none px-6 py-4 font-display text-lg text-green-800">
+          📋 La tua anagrafica e i dati fiscali — clicca per vedere/modificare
+        </summary>
+        <div className="px-2 pb-2">
+          <AnagraficaCard
+            azienda={azienda}
+            initialNome={(user?.user_metadata as { nome?: string })?.nome}
+            ownerId={user?.id ?? ""}
+            onSaved={loadAll}
+          />
+        </div>
+      </details>
 
       {user && (
         <SezioneBio
