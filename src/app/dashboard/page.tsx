@@ -36,6 +36,8 @@ import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
 import { getExtraScelti } from "@/lib/extra-selezionati";
 import { PurchasePopup } from "@/components/PurchasePopup";
+import { DashboardPlanHeader } from "@/components/DashboardPlanHeader";
+import { URL_BIOFIDO } from "@/lib/portale";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import {
   listMyBookings,
@@ -258,6 +260,13 @@ export default function DashboardPage() {
           Esci
         </button>
       </div>
+
+      <DashboardPlanHeader
+        plan={activePlan}
+        crossUrl={URL_BIOFIDO}
+        crossLabel="🐾 Vai su BioFido"
+        crossSeBio
+      />
 
       {/* IL SEMAFORO È LA PRIMA COSA SU ECO-VISA: compila il prodotto e ottieni il giudizio */}
       <section className="card mt-6 border-2 border-lime-500 p-6">
