@@ -389,7 +389,7 @@ export default function DashboardPage() {
       {/* Anagrafica dietro un link a comparsa: dashboard più pulita */}
       <details className="card mt-6 p-0">
         <summary className="cursor-pointer list-none px-6 py-4 font-display text-lg text-green-800">
-          📋 La tua anagrafica e i dati fiscali — clicca per vedere/modificare
+          📋 Anagrafica, dati fiscali e posizione sulla mappa — clicca per vedere/modificare
         </summary>
         <div className="px-2 pb-2">
           <AnagraficaCard
@@ -436,7 +436,11 @@ export default function DashboardPage() {
       {user && <OrdiniShopRicevuti />}
       {user && <MessaggiCard ownerId={user.id} />}
 
-      {user && PLAN_MAP[pianoScelto].canSell && <PrenotazioniCard ownerId={user.id} />}
+      {user && PLAN_MAP[pianoScelto].canSell && (
+        <div id="prenotazioni" className="scroll-mt-20">
+          <PrenotazioniCard ownerId={user.id} />
+        </div>
+      )}
 
       {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
@@ -654,6 +658,10 @@ function AnagraficaCard({
       : null,
   );
   const [geoBusy, setGeoBusy] = useState(false);
+  // centro di ripiego della mappa quando non c'è ancora una posizione salvata:
+  // così la mappa è SEMPRE visibile (centrata sulla città) e si può trascinare
+  // il segnaposto anche prima di premere «Localizza».
+  const [cittaCenter, setCittaCenter] = useState<{ lat: number; lon: number } | null>(null);
   const [sito, setSito] = useState(azienda?.sito_web ?? "");
   const [descrizione, setDescrizione] = useState(azienda?.descrizione ?? "");
   const [immagine, setImmagine] = useState<string | null>(azienda?.immagine ?? null);
@@ -687,6 +695,19 @@ function AnagraficaCard({
       setAutocert(!!b.autocertificato);
     });
   }, [ownerId]);
+
+  // Se non c'è una posizione salvata ma c'è la città, centro la mappa sulla città
+  // (solo per inquadrare: il pin diventa "vero" solo quando lo trascini/localizzi).
+  useEffect(() => {
+    if (coord || !citta.trim()) return;
+    let vivo = true;
+    prefetchGeocode(citta.trim()).then((c) => {
+      if (vivo && c) setCittaCenter({ lat: c.lat, lon: c.lon });
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [citta, coord]);
 
   // Se l'azienda è già salvata uso i suoi dati; altrimenti ripristino la BOZZA
   // locale, così cambiando pagina o ricaricando NON si perde quanto digitato.
@@ -1003,22 +1024,21 @@ function AnagraficaCard({
           />
         </label>
 
-        {/* Mappa per la posizione esatta: compare dopo «Localizza» (o se già
-            salvata). L'utente può trascinare il pin se l'indirizzo non basta. */}
-        {coord && (
-          <div className="block md:col-span-2">
-            <span className="label">Posizione sulla mappa</span>
-            <p className="mt-1 mb-2 text-[11px] text-green-900/55">
-              Trascina il segnaposto (o tocca un punto) per correggere la posizione
-              esatta dell&apos;azienda. Ricordati di premere «Aggiorna dati» per salvarla.
-            </p>
-            <MappaPicker
-              lat={coord.lat}
-              lon={coord.lon}
-              onChange={(la, lo) => setCoord({ lat: la, lon: lo })}
-            />
-          </div>
-        )}
+        {/* Mappa SEMPRE visibile: centrata sulla posizione salvata, o sulla città,
+            o (in mancanza) sull'Italia. L'utente trascina il pin per la precisione. */}
+        <div className="block md:col-span-2">
+          <span className="label">Posizione sulla mappa</span>
+          <p className="mt-1 mb-2 text-[11px] text-green-900/55">
+            {coord
+              ? "Trascina il segnaposto (o tocca un punto) per correggere la posizione esatta. Ricordati di premere «Aggiorna dati» per salvarla."
+              : "Scegli un indirizzo dai suggerimenti o premi «Localizza»; poi trascina il segnaposto sul punto esatto. La posizione si salva con «Aggiorna dati»."}
+          </p>
+          <MappaPicker
+            lat={(coord ?? cittaCenter)?.lat ?? 41.9028}
+            lon={(coord ?? cittaCenter)?.lon ?? 12.4964}
+            onChange={(la, lo) => setCoord({ lat: la, lon: lo })}
+          />
+        </div>
         <label className="block md:col-span-2">
           <span className="label">Descrizione azienda</span>
           <textarea
