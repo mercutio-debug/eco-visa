@@ -7,6 +7,8 @@ export type Company = {
   email: string | null;
   createdAt: string | null;
   nome: string | null;
+  /** "cliente" | "azienda" dal metadato di registrazione (può mancare sui vecchi account) */
+  tipo: string | null;
   vuoleBiofido: boolean;
   emailVerificata: boolean;
   azienda: Record<string, unknown> | null;
@@ -18,6 +20,31 @@ export type Company = {
   prodottiEcovisa: number;
   prodottiBiofido: number;
 };
+
+/**
+ * Elenco di TUTTE le aziende iscritte con tutti i dati (solo amministratore).
+ * Chiama l'Edge Function admin-companies (service role, verifica i permessi).
+ */
+export async function adminListCompanies(): Promise<{ companies?: Company[]; error?: string }> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return { error: "Non autenticato" };
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/admin-companies`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    },
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: data.error || "Operazione non riuscita" };
+  return { companies: data.companies ?? [] };
+}
 
 /**
  * Assegna manualmente un piano a un utente (solo amministratore).
@@ -46,29 +73,4 @@ export async function adminSetPlan(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return { error: data.error || "Operazione non riuscita" };
   return { ok: true, email: data.email };
-}
-
-/**
- * Elenco di TUTTE le aziende iscritte con tutti i dati (solo amministratore).
- * Chiama l'Edge Function admin-companies (service role, verifica i permessi).
- */
-export async function adminListCompanies(): Promise<{ companies?: Company[]; error?: string }> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) return { error: "Non autenticato" };
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/admin-companies`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    },
-  );
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) return { error: data.error || "Operazione non riuscita" };
-  return { companies: data.companies ?? [] };
 }
