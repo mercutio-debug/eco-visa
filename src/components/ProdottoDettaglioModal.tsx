@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { ProdottoPubblico } from "@/lib/azienda-pubblica";
 import { formatPrezzo } from "@/lib/prezzo";
 
@@ -25,7 +27,16 @@ export function ProdottoDettaglioModal({
     p.contenuto != null ? `${p.contenuto} ${p.unita ?? ""}`.trim() : null;
   const esaurito = p.in_shop && p.giacenza === 0;
 
-  return (
+  // blocca lo scroll della pagina sotto mentre il modale è aperto
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const contenuto = (
     <div
       className="fixed inset-0 z-[2000] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4"
       onClick={onClose}
@@ -127,4 +138,8 @@ export function ProdottoDettaglioModal({
       </div>
     </div>
   );
+
+  // Portale su document.body: il modale non viene "agganciato" da eventuali
+  // antenati con transform (che lo renderebbero decentrato o non cliccabile).
+  return typeof document !== "undefined" ? createPortal(contenuto, document.body) : null;
 }
