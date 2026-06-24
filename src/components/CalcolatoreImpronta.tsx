@@ -272,6 +272,11 @@ export function CalcolatoreImpronta({
                   />
                   ➕ Aggiungi ai miei prodotti
                 </label>
+                <p className="mt-2 text-xs text-[#dceec2]">
+                  Se sei un utente <strong>Silver</strong> o <strong>Gold</strong>, scorri
+                  verso il basso: nella scheda prodotto, oltre al semaforo, puoi aggiungere
+                  molte più informazioni e arricchire la tua scheda.
+                </p>
                 {aggiungi && (
                   <>
                     <button

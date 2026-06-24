@@ -182,8 +182,15 @@ export default function DashboardPage() {
     if (!user) return;
     getMyPlan().then((p) => {
       setActivePlan(p);
-      const saved = window.localStorage.getItem("ecovisa_plan") as Plan | null;
-      setPianoScelto(p !== "free" ? p : saved && saved in PLAN_MAP ? saved : "free");
+      // Parto SEMPRE dal piano reale: un Free vede selezionato Free (non più Gold
+      // preselezionato da una vecchia scelta in localStorage). Scegliendo un piano
+      // diverso si apre il popup-carrello.
+      setPianoScelto(p);
+      try {
+        window.localStorage.setItem("ecovisa_plan", p);
+      } catch {
+        /* ignore */
+      }
     });
   }, [user]);
 
@@ -512,7 +519,7 @@ export default function DashboardPage() {
           Potenzia la tua azienda. Guarda la demo di ciascun servizio.
         </p>
         <div className="mt-4">
-          <ServiziExtra showPrices />
+          <ServiziExtra showPrices plan={activePlan} />
         </div>
       </section>
     </div>
