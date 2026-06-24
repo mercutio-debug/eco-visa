@@ -42,9 +42,14 @@ export function MappaAziende() {
     (async () => {
       // Vista pubblica (senza P.IVA / cod. fiscale): select("*") qui è sicuro.
       const { data: az } = await supabase.from("aziende_pubbliche").select("*");
-      const tutte = ((az as { id: string; nome: string; citta_sede: string | null; plan?: string | null }[]) ?? []).filter(
-        (a) => a.citta_sede,
-      );
+      const tutte = ((az as {
+        id: string;
+        nome: string;
+        citta_sede: string | null;
+        plan?: string | null;
+        lat?: number | null;
+        lon?: number | null;
+      }[]) ?? []).filter((a) => a.citta_sede);
 
       // FILOSOFIA ECO-VISA: in pubblico compaiono SOLO le aziende che hanno
       // caricato almeno un prodotto (col semaforo di sostenibilità). Il semaforo
@@ -60,17 +65,24 @@ export function MappaAziende() {
 
       // 1) aziende REGISTRATE con almeno un prodotto (prima)
       if (lista.length > 0) {
-        // geolocalizza le sedi su OpenStreetMap
-        for (const a of lista) await prefetchGeocode(a.citta_sede as string);
         for (const a of lista) {
-          const g = geocode(a.citta_sede as string);
-          if (!g) continue;
+          // USA la posizione PRECISA salvata dall'azienda (pin trascinato sulla
+          // mappa). Solo se manca, ripiega sul geocoding del comune (centro paese).
+          let lat = a.lat ?? null;
+          let lon = a.lon ?? null;
+          if (lat == null || lon == null) {
+            await prefetchGeocode(a.citta_sede as string);
+            const g = geocode(a.citta_sede as string);
+            if (!g) continue;
+            lat = g.lat;
+            lon = g.lon;
+          }
           ms.push({
             id: a.id,
             nome: a.nome,
             citta: a.citta_sede as string,
-            lat: g.lat,
-            lon: g.lon,
+            lat,
+            lon,
             conSemaforo: true,
             plan: a.plan ?? "free",
           });

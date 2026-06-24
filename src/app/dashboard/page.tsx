@@ -881,6 +881,19 @@ function AnagraficaCard({
       } catch {
         /* tabella azienda_bio assente: ignora */
       }
+      // Allinea il segnaposto su BioFido alla posizione PRECISA appena salvata,
+      // così non resta il vecchio centro-paese se ti eri iscritto prima di
+      // spostare il pin (update best-effort: se non sei sulla mappa, è un no-op).
+      if (coord) {
+        try {
+          await supabase
+            .from("biofido_businesses")
+            .update({ lat: coord.lat, lon: coord.lon })
+            .eq("owner", ownerId);
+        } catch {
+          /* non iscritto a BioFido o colonna assente: ignora */
+        }
+      }
     }
     setSaving(false);
     if (error) setMsg("Errore: " + error.message);
