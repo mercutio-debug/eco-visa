@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/useAuth";
 // l'utente resta sempre su ECO-VISA (nessun salto di sito). L'iscrizione avviene
 // nella propria pagina, spuntando "Iscriviti anche a BioFido" dopo la
 // certificazione biologica.
-const BIOFIDO_MAPPA = "https://mercutio-debug.github.io/biofido/";
+const BIOFIDO_MAPPA = "https://biofido.it/";
 
 export default function BioFidoPage() {
   const { user, loading } = useAuth();
