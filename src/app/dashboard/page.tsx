@@ -276,8 +276,23 @@ export default function DashboardPage() {
             onSaved={loadAll}
           />
         </div>
+
+        {/* Specchietto: cosa potrai fare con i piani + servizi extra */}
+        <div className="mt-10">
+          <h2 className="title-pangea text-2xl text-green-700">
+            Intanto, scopri cosa potrai fare
+          </h2>
+          <p className="mt-1 text-sm text-green-900/70">
+            Ecco i piani e i servizi extra: sceglierai quando vuoi, dopo aver completato
+            l&apos;anagrafica.
+          </p>
+          <div className="mt-4">
+            <PianiAbbonamento />
+          </div>
+        </div>
+
         <button
-          className="btn-ghost mt-6 text-sm"
+          className="btn-ghost mt-8 text-sm"
           onClick={async () => {
             await supabase.auth.signOut();
             router.push("/");
@@ -413,16 +428,6 @@ export default function DashboardPage() {
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
 
-      <section className="card mt-6 p-6">
-        <h2 className="font-display text-2xl text-green-800">Servizi extra</h2>
-        <p className="mt-1 text-sm text-green-900/70">
-          Potenzia la tua azienda. Guarda la demo di ciascun servizio.
-        </p>
-        <div className="mt-4">
-          <ServiziExtra showPrices />
-        </div>
-      </section>
-
       {user && <OrdiniShopRicevuti />}
       {user && <MessaggiCard ownerId={user.id} />}
 
@@ -446,6 +451,17 @@ export default function DashboardPage() {
           }}
         />
       )}
+
+      {/* Servizi extra: in fondo (già richiamati più volte sopra) */}
+      <section className="card mt-6 p-6">
+        <h2 className="font-display text-2xl text-green-800">Servizi extra</h2>
+        <p className="mt-1 text-sm text-green-900/70">
+          Potenzia la tua azienda. Guarda la demo di ciascun servizio.
+        </p>
+        <div className="mt-4">
+          <ServiziExtra showPrices />
+        </div>
+      </section>
     </div>
   );
 }
