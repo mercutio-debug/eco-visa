@@ -21,6 +21,7 @@ import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
 import { SegnalaModal } from "@/components/SegnalaModal";
+import { ProdottoDettaglioModal } from "@/components/ProdottoDettaglioModal";
 
 const MappaPosizione = dynamic(() => import("@/components/MappaPosizione"), { ssr: false });
 
@@ -60,6 +61,7 @@ export function AziendaScheda({
   const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
   const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
+  const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
   const [cartMsg, setCartMsg] = useState<string | null>(null);
 
@@ -242,14 +244,19 @@ export function AziendaScheda({
           {prodottiConFp.map(({ p, fp }) => (
             <div key={p.id} className="card overflow-hidden p-0">
               {p.immagine && (
-                <div className="h-40 w-full overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setDettaglio(p)}
+                  className="block h-40 w-full overflow-hidden"
+                  title="Apri la scheda del prodotto"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.immagine}
                     alt={p.nome}
-                    className="h-40 w-full object-cover transition-transform duration-300 hover:scale-150"
+                    className="h-40 w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-150"
                   />
-                </div>
+                </button>
               )}
               <div className="p-5">
                 {p.categoria && (
@@ -323,25 +330,14 @@ export function AziendaScheda({
                   </ul>
                 )}
 
-                {p.descrizione && (
-                  <p className="mt-3 whitespace-pre-line text-sm text-green-900/75">
-                    {p.descrizione}
-                  </p>
-                )}
-                {p.foto2 && (
-                  <figure className="mt-3">
-                    <div className="h-32 w-full overflow-hidden rounded-lg">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={p.foto2}
-                        alt={`${p.nome} — etichetta`}
-                        className="h-32 w-full object-cover transition-transform duration-300 hover:scale-150"
-                      />
-                    </div>
-                    <figcaption className="mt-1 text-center text-xs font-semibold text-green-900/60">
-                      Etichetta
-                    </figcaption>
-                  </figure>
+                {(p.descrizione || p.foto2) && (
+                  <button
+                    type="button"
+                    onClick={() => setDettaglio(p)}
+                    className="mt-3 w-full rounded-lg border border-green-600/40 py-2 text-sm font-bold text-green-700 hover:bg-leaf"
+                  >
+                    🔍 Dettagli e foto
+                  </button>
                 )}
                 {p.in_shop &&
                   (p.giacenza === 0 ? (
@@ -511,6 +507,16 @@ export function AziendaScheda({
           prodottoNome={segnala.nome}
           portale="ECO-VISA"
           onClose={() => setSegnala(null)}
+        />
+      )}
+
+      {dettaglio && (
+        <ProdottoDettaglioModal
+          p={dettaglio}
+          ownerPresente={!!azienda.owner}
+          onClose={() => setDettaglio(null)}
+          onPrenota={() => setPrenota(dettaglio)}
+          onCarrello={() => aggiungiCarrello(dettaglio)}
         />
       )}
 
