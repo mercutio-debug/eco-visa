@@ -36,7 +36,7 @@ import { getMyPlan } from "@/lib/plan";
 import { syncBioFido } from "@/lib/biofido-scheda";
 import { formatPrezzo } from "@/lib/prezzo";
 import { billingEnabled, startCheckout, openCustomerPortal } from "@/lib/billing";
-import { getExtraScelti } from "@/lib/extra-selezionati";
+import { getExtraScelti, setExtraScelto } from "@/lib/extra-selezionati";
 import { PurchasePopup } from "@/components/PurchasePopup";
 import { DashboardPlanHeader } from "@/components/DashboardPlanHeader";
 import { OnboardingCard } from "@/components/OnboardingCard";
@@ -217,6 +217,19 @@ export default function DashboardPage() {
     // fare un nuovo checkout (utente Free) o il cambio piano con conguaglio
     // (utente già abbonato), senza creare doppioni.
     if (p !== "free") setPopupPag({ plan: p, period: per });
+  }
+
+  // Acquisto di un SERVIZIO EXTRA dalla dashboard: apre il popup-carrello sul
+  // piano minimo che lo include (o sul piano attuale, se già sufficiente), con
+  // il servizio già preselezionato — niente più rimando alla pagina esterna.
+  function acquistaServizio(key: string) {
+    const need = key === "onboarding" ? 2 : 1; // onboarding=Gold, report/badge=Silver
+    const rank: Record<string, number> = { free: 0, silver: 1, gold: 2 };
+    const target: Plan = (rank[activePlan] ?? 0) >= need ? (activePlan as Plan) : need >= 2 ? "gold" : "silver";
+    setExtraScelto(key, true);
+    setPianoScelto(target);
+    setPeriodo(periodo);
+    setPopupPag({ plan: target, period: periodo });
   }
 
   // Tiene la scheda BioFido allineata ai dati ECO-VISA (descrizione, prodotti
@@ -489,7 +502,7 @@ export default function DashboardPage() {
           Potenzia la tua azienda. Guarda la demo di ciascun servizio.
         </p>
         <div className="mt-4">
-          <ServiziExtra showPrices plan={activePlan} />
+          <ServiziExtra showPrices plan={activePlan} onAcquista={acquistaServizio} />
         </div>
       </section>
     </div>
