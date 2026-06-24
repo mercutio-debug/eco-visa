@@ -39,6 +39,7 @@ import { billingEnabled, startCheckout, openCustomerPortal, changePlan } from "@
 import { getExtraScelti } from "@/lib/extra-selezionati";
 import { PurchasePopup } from "@/components/PurchasePopup";
 import { DashboardPlanHeader } from "@/components/DashboardPlanHeader";
+import { OnboardingCard } from "@/components/OnboardingCard";
 import { URL_BIOFIDO } from "@/lib/portale";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import {
@@ -423,6 +424,9 @@ export default function DashboardPage() {
       )}
 
       <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
+
+      {/* «Ci pensiamo noi»: compare solo se l'azienda ha acquistato l'onboarding */}
+      <OnboardingCard />
 
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
