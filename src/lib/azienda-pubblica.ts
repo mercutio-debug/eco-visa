@@ -39,6 +39,8 @@ export type AziendaPubblica = {
   immagine?: string | null;
   plan?: string | null;
   owner?: string | null;
+  lat?: number | null;
+  lon?: number | null;
 };
 
 /** Servizio extra prenotabile (catalogo: visita, laboratorio, esperienza). */

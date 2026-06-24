@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   loadAziendaPubblica,
   type AziendaPubblica,
@@ -20,6 +21,8 @@ import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
 import { SegnalaModal } from "@/components/SegnalaModal";
+
+const MappaPosizione = dynamic(() => import("@/components/MappaPosizione"), { ssr: false });
 
 export type DatiAzienda = {
   azienda: AziendaPubblica;
@@ -210,6 +213,22 @@ export function AziendaScheda({
           </button>
         )}
       </div>
+
+      {azienda.lat != null && azienda.lon != null && (
+        <div className="mt-8">
+          <h2 className="font-display text-2xl text-green-800">Dove si trova</h2>
+          {azienda.citta_sede && (
+            <p className="mt-1 text-sm text-green-900/70">{azienda.citta_sede}</p>
+          )}
+          <div className="mt-3">
+            <MappaPosizione
+              lat={Number(azienda.lat)}
+              lon={Number(azienda.lon)}
+              label={azienda.nome}
+            />
+          </div>
+        </div>
+      )}
 
       <h2 className="mt-8 font-display text-2xl text-green-800">
         I prodotti ({prodottiConFp.length})

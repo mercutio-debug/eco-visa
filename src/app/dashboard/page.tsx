@@ -658,6 +658,9 @@ function AnagraficaCard({
       : null,
   );
   const [geoBusy, setGeoBusy] = useState(false);
+  // indirizzo "bloccato" dopo la verifica P.IVA (compilato da VIES): si modifica
+  // solo premendo «Modifica», così si riduce l'errore di battitura dell'azienda.
+  const [indirizzoBloccato, setIndirizzoBloccato] = useState(false);
   // centro di ripiego della mappa quando non c'è ancora una posizione salvata:
   // così la mappa è SEMPRE visibile (centrata sulla città) e si può trascinare
   // il segnaposto anche prima di premere «Localizza».
@@ -811,7 +814,25 @@ function AnagraficaCard({
       } else {
         if (d.ragione_sociale) setNome(d.ragione_sociale);
         if (d.citta) setCitta(d.citta);
-        setMsg("Dati recuperati dal registro VIES ✓");
+        if (d.provincia) setProvincia(d.provincia);
+        if (d.cap) setCap(d.cap);
+        if (d.indirizzo) {
+          // indirizzo ufficiale dal registro: lo compilo e lo BLOCCO (riduce gli
+          // errori di battitura → geolocalizzazione più precisa). Poi geocodifico.
+          setIndirizzo(d.indirizzo);
+          setIndirizzoBloccato(true);
+          const p = await geocodeIndirizzo(
+            d.indirizzo,
+            d.citta ?? citta,
+            d.provincia ?? provincia ?? undefined,
+          );
+          if (p) setCoord(p);
+        }
+        setMsg(
+          d.indirizzo
+            ? "Dati recuperati dal registro VIES ✓ — indirizzo bloccato: se serve premi «Modifica» e correggi il pin sulla mappa."
+            : "Dati recuperati dal registro VIES ✓ — l'indirizzo non risulta, inseriscilo a mano.",
+        );
       }
     } catch (e) {
       setMsg((e as Error).message);
@@ -986,33 +1007,53 @@ function AnagraficaCard({
           <span className="label">Indirizzo (via e numero civico)</span>
           <div className="mt-1 flex gap-2">
             <div className="flex-1">
-              <IndirizzoAutocomplete
-                value={indirizzo}
-                onChange={setIndirizzo}
-                onSelect={(s) => {
-                  // riempio indirizzo, posizione e — se assenti — città/CAP/provincia
-                  setIndirizzo(s.via ?? s.label);
-                  setCoord({ lat: s.lat, lon: s.lon });
-                  if (s.citta && !citta.trim()) setCitta(s.citta);
-                  if (s.cap) setCap(s.cap);
-                  if (s.provincia) setProvincia(s.provincia);
-                  setMsg("Indirizzo trovato ✓ — se il pin non è preciso, trascinalo sulla mappa.");
-                }}
-                placeholder="Es. Regione Pontelungo Inferiore 17, Albenga"
-              />
+              {indirizzoBloccato ? (
+                <input
+                  className="field bg-leaf/40 disabled:opacity-100"
+                  value={indirizzo}
+                  disabled
+                  aria-label="Indirizzo dal registro P.IVA (bloccato)"
+                />
+              ) : (
+                <IndirizzoAutocomplete
+                  value={indirizzo}
+                  onChange={setIndirizzo}
+                  onSelect={(s) => {
+                    // riempio indirizzo, posizione e — se assenti — città/CAP/provincia
+                    setIndirizzo(s.via ?? s.label);
+                    setCoord({ lat: s.lat, lon: s.lon });
+                    if (s.citta && !citta.trim()) setCitta(s.citta);
+                    if (s.cap) setCap(s.cap);
+                    if (s.provincia) setProvincia(s.provincia);
+                    setMsg("Indirizzo trovato ✓ — se il pin non è preciso, trascinalo sulla mappa.");
+                  }}
+                  placeholder="Es. Regione Pontelungo Inferiore 17, Albenga"
+                />
+              )}
             </div>
-            <button
-              type="button"
-              className="btn-ghost whitespace-nowrap text-sm"
-              onClick={localizza}
-              disabled={geoBusy || !indirizzo.trim() || !citta.trim()}
-            >
-              {geoBusy ? "Cerco…" : "📍 Localizza"}
-            </button>
+            {indirizzoBloccato ? (
+              <button
+                type="button"
+                className="btn-ghost whitespace-nowrap text-sm"
+                onClick={() => setIndirizzoBloccato(false)}
+              >
+                ✏️ Modifica
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-ghost whitespace-nowrap text-sm"
+                onClick={localizza}
+                disabled={geoBusy || !indirizzo.trim() || !citta.trim()}
+              >
+                {geoBusy ? "Cerco…" : "📍 Localizza"}
+              </button>
+            )}
           </div>
           <p className="mt-1 text-[11px] text-green-900/55">
-            Inizia a scrivere e scegli un suggerimento: posiziona il segnaposto da
-            solo. In alternativa, premi «Localizza» o trascina il pin sulla mappa.
+            {indirizzoBloccato
+              ? "Indirizzo dal registro P.IVA (VIES). Premi «Modifica» per correggerlo; poi sistema il pin sulla mappa."
+              : "Inizia a scrivere e scegli un suggerimento: posiziona il segnaposto da solo. In alternativa, premi «Localizza» o trascina il pin sulla mappa."}
           </p>
         </label>
         <label className="block">
