@@ -2395,6 +2395,12 @@ function NuovoProdotto({
   // prodotto ordinario oppure servizio extra prenotabile dal cliente
   const [tipoVoce, setTipoVoce] = useState<"prodotto" | "servizio">("prodotto");
   const [accetta, setAccetta] = useState(false);
+  // campi extra del SERVIZIO speciale (attività in azienda): descrizione estesa,
+  // durata e una foto in più (oltre alla copertina).
+  const [descrizione, setDescrizione] = useState("");
+  const [durata, setDurata] = useState("");
+  const [foto2, setFoto2] = useState<string | null>(null);
+  const [uploading2, setUploading2] = useState(false);
 
   useEffect(() => {
     if (!stab && stabilimenti[0]) setStab(stabilimenti[0].citta);
@@ -2445,6 +2451,7 @@ function NuovoProdotto({
       return;
     }
     setSaving(true);
+    const isServizio = canSell && tipoVoce === "servizio" && accetta;
     const payload: Record<string, unknown> = {
       azienda_id: aziendaId,
       nome,
@@ -2453,13 +2460,22 @@ function NuovoProdotto({
       // foto solo per il piano Gold
       immagine: gold ? immagine : null,
       // servizio prenotabile solo per chi può vendere (Silver/Gold)
-      prenotabile: canSell && tipoVoce === "servizio" && accetta,
+      prenotabile: isServizio,
     };
+    // dati extra del servizio speciale: descrizione estesa, durata, foto in più
+    if (isServizio) {
+      if (descrizione.trim()) payload.descrizione = descrizione.trim();
+      if (durata.trim()) payload.durata = durata.trim();
+      if (gold && foto2) payload.foto2 = foto2;
+    }
     let res = await supabase.from("prodotti").insert(payload).select("id").single();
-    // se la colonna prenotabile non esiste ancora, riprovo senza
-    if (res.error && /prenotabile/i.test(res.error.message)) {
-      delete payload.prenotabile;
-      res = await supabase.from("prodotti").insert(payload).select("id").single();
+    // se una colonna non esiste ancora nel DB, la tolgo e riprovo (così il
+    // salvataggio non si rompe finché non lanci la migrazione)
+    for (const col of ["prenotabile", "descrizione", "durata", "foto2"]) {
+      if (res.error && new RegExp(`\\b${col}\\b`, "i").test(res.error.message)) {
+        delete payload[col];
+        res = await supabase.from("prodotti").insert(payload).select("id").single();
+      }
     }
     const { data, error } = res;
     if (error || !data) {
@@ -2479,6 +2495,9 @@ function NuovoProdotto({
     setImmagine(null);
     setTipoVoce("prodotto");
     setAccetta(false);
+    setDescrizione("");
+    setDurata("");
+    setFoto2(null);
     setIngredienti([{ nome: "", origine: "" }]);
     onSaved();
   }
@@ -2535,34 +2554,98 @@ function NuovoProdotto({
       {/* tipo voce: prodotto ordinario o servizio extra prenotabile dal cliente.
           Il "servizio prenotabile" è riservato ai piani che possono vendere. */}
       {canSell && (
-        <>
-          <label className="mt-3 block">
-            <span className="label">Tipo</span>
-            <select
-              className="field mt-1"
-              value={tipoVoce}
-              onChange={(e) => setTipoVoce(e.target.value as "prodotto" | "servizio")}
-            >
-              <option value="prodotto">Prodotto ordinario</option>
-              <option value="servizio">Servizio extra (prenotabile dal cliente)</option>
-            </select>
-          </label>
-          {tipoVoce === "servizio" && (
-            <label className="mt-2 flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
-                checked={accetta}
-                onChange={(e) => setAccetta(e.target.checked)}
-              />
-              <span className="text-green-900/85">
-                <strong>Rendi prenotabile dai clienti</strong> (visite, laboratori, esperienze):
-                accetto che i clienti inviino una richiesta e, a conferma, paghino online via
-                Stripe (con la commissione del piano). Compare sia su ECO-VISA sia su BioFido.
+        <div className="mt-3">
+          <label className="flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+              checked={tipoVoce === "servizio"}
+              onChange={(e) => setTipoVoce(e.target.checked ? "servizio" : "prodotto")}
+            />
+            <span className="text-green-900/85">
+              🎓 Salva come <strong>servizio speciale</strong> prenotabile in azienda
+              <span
+                title="Spuntando questa casella, il prodotto si configura come SERVIZIO EXTRA che si svolge in azienda — visita guidata, laboratorio, attività esperienziale… Il cliente potrà prenotarlo (scegliendo un giorno sul calendario) e, alla conferma, pagarlo online."
+                className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-green-700 text-[10px] font-bold text-white"
+                aria-label="Cos'è un servizio speciale"
+              >
+                ?
               </span>
-            </label>
+            </span>
+          </label>
+
+          {tipoVoce === "servizio" && (
+            <div className="mt-2 space-y-3 rounded-xl border border-badge-yellow bg-[#fffef6] p-3">
+              <label className="block">
+                <span className="label">Descrizione estesa dell&apos;attività</span>
+                <textarea
+                  className="field mt-1"
+                  rows={3}
+                  value={descrizione}
+                  onChange={(e) => setDescrizione(e.target.value)}
+                  placeholder="Racconta com'è l'esperienza: cosa si fa, cosa è incluso, per chi è adatta…"
+                />
+              </label>
+              <label className="block">
+                <span className="label">Durata</span>
+                <input
+                  className="field mt-1"
+                  value={durata}
+                  onChange={(e) => setDurata(e.target.value)}
+                  placeholder="Es. 2 ore, mezza giornata…"
+                />
+              </label>
+              {gold && (
+                <div>
+                  <span className="label">Foto extra dell&apos;attività (facoltativa)</span>
+                  <div className="mt-1 flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {foto2 ? (
+                      <img src={foto2} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                    ) : (
+                      <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">
+                        nessuna
+                      </span>
+                    )}
+                    <label className="btn-ghost cursor-pointer text-sm">
+                      {uploading2 ? "Carico…" : foto2 ? "Cambia foto" : "Carica foto"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          setUploading2(true);
+                          try {
+                            setFoto2(await caricaImmagineCatalogo(aziendaId, f));
+                          } catch (err) {
+                            alert((err as Error).message);
+                          } finally {
+                            setUploading2(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-5 w-5 accent-[var(--lime-500)]"
+                  checked={accetta}
+                  onChange={(e) => setAccetta(e.target.checked)}
+                />
+                <span className="text-green-900/85">
+                  <strong>Confermo</strong>: i clienti possono inviare una richiesta e, a
+                  conferma, pagare online via Stripe (con la commissione del piano). Compare
+                  su ECO-VISA e BioFido.
+                </span>
+              </label>
+            </div>
           )}
-        </>
+        </div>
       )}
 
       {/* immagine del prodotto (solo Gold), ridimensionata in automatico */}

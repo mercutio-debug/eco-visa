@@ -78,6 +78,9 @@ export function ProdottoDettaglioModal({
               {[p.confezione, volume].filter(Boolean).join(" · ")}
             </p>
           )}
+          {p.durata && (
+            <p className="mt-1 text-sm font-semibold text-green-900/75">⏱ Durata: {p.durata}</p>
+          )}
           {p.stabilimento_citta && (
             <p className="mt-1 text-xs text-green-900/60">Stabilimento: {p.stabilimento_citta}</p>
           )}

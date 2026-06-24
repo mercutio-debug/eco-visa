@@ -288,6 +288,9 @@ export function AziendaScheda({
                       .join(" · ")}
                   </p>
                 )}
+                {p.durata && (
+                  <p className="mt-1 text-xs font-semibold text-green-900/70">⏱ Durata: {p.durata}</p>
+                )}
 
                 {p.prenotabile && azienda.owner && (
                   <button

@@ -27,6 +27,8 @@ export type ProdottoPubblico = {
   confezione?: string | null;
   contenuto?: number | null;
   unita?: string | null;
+  /** durata dell'attività, se è un servizio speciale (es. "2 ore") */
+  durata?: string | null;
   ingredienti: IngredientInput[];
 };
 
@@ -78,6 +80,7 @@ type ProdRow = {
   confezione?: string | null;
   contenuto?: number | null;
   unita?: string | null;
+  durata?: string | null;
   azienda_id: string;
 };
 type IngRow = { prodotto_id: string; nome: string; origine: string };
@@ -144,6 +147,7 @@ export async function loadAziendaPubblica(
     confezione: gold ? (p.confezione ?? null) : null,
     contenuto: gold ? (p.contenuto ?? null) : null,
     unita: gold ? (p.unita ?? null) : null,
+    durata: gold ? (p.durata ?? null) : null,
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
