@@ -82,8 +82,10 @@ export function AziendaScheda({
         } catch {
           /* ignore */
         }
-        alert("Per ordinare questo prodotto devi registrarti o accedere.");
-        window.location.href = "/accedi";
+        // chi ordina è quasi sempre un CLIENTE → mando all'iscrizione cliente
+        // (da lì può comunque accedere o passare all'area aziende).
+        alert("Per ordinare questo prodotto accedi o crea un account cliente (è gratis).");
+        window.location.href = "/registrati?tipo=cliente";
       }
       return;
     }

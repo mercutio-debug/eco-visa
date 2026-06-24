@@ -168,6 +168,11 @@ export default function DashboardPage() {
       router.replace("/accedi");
       return;
     }
+    // La dashboard è l'AREA AZIENDE: un cliente non deve finirci. Lo rimando a casa.
+    if ((user.user_metadata as { tipo?: string } | undefined)?.tipo === "cliente") {
+      router.replace("/");
+      return;
+    }
     loadAll();
   }, [authLoading, user, router, loadAll]);
 

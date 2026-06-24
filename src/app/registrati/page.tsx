@@ -86,7 +86,15 @@ export default function RegistratiPage() {
         : "";
     if (data.session) {
       // conferma email disattivata: si entra subito
-      router.push(isAzienda ? "/dashboard" : "/");
+      let dest = "";
+      try {
+        dest = sessionStorage.getItem("postLoginRedirect") ?? "";
+        if (dest) sessionStorage.removeItem("postLoginRedirect");
+      } catch {
+        /* ignore */
+      }
+      // aziende → dashboard; clienti → dove stavano (es. la scheda da cui ordinavano) o home
+      router.push(isAzienda ? "/dashboard" : dest || "/");
     } else {
       // conferma email attiva: bisogna confermare prima di accedere
       setInfo(
