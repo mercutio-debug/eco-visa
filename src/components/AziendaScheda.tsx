@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   loadAziendaPubblica,
+  tutteLeAziendePubbliche,
   type AziendaPubblica,
   type ProdottoPubblico,
   type ServizioPubblico,
@@ -113,6 +114,20 @@ export function AziendaScheda({
       setLoading(false);
     });
   }, [id]);
+
+  // Sulla pagina dinamica /azienda/?id=, appena carico l'azienda riscrivo l'URL
+  // nello slug pulito /azienda/[slug]/ (condivisibile + branded), SOLO se quella
+  // pagina statica esiste già (azienda presente nell'ultimo build → niente 404).
+  useEffect(() => {
+    if (initial || !id || !dati) return;
+    tutteLeAziendePubbliche().then((list) => {
+      const found = list.find((a) => a.id === id);
+      if (found && typeof window !== "undefined") {
+        const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+        window.history.replaceState(null, "", `${base}/azienda/${found.slug}/`);
+      }
+    });
+  }, [id, dati, initial]);
 
   // Risolve su OpenStreetMap stabilimenti + origini, poi ricalcola i semafori
   const nomiLuoghi = useMemo(() => {
