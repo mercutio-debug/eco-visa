@@ -81,17 +81,24 @@ export default function MappaAziendeMappa({ markers }: { markers: AziendaMarker[
       // all'elenco generico; le aziende iscritte aprono la LORO pagina.
       const isEsempio = m.id.startsWith("esempio-");
       const href = isEsempio ? `${BASE}/prodotti/` : `${BASE}/azienda/?id=${m.id}`;
-      L.marker([m.lat, m.lon], { icon })
-        .addTo(layer)
-        .bindPopup(
-          `<strong>${m.nome}</strong><br/>${m.citta}<br/>${
-            m.conSemaforo
-              ? '<span style="color:#3a7d12;font-weight:700">🚦 ha prodotti col semaforo</span>'
-              : '<span style="color:#888">iscritta — ancora senza prodotti</span>'
-          }<br/><a href="${href}" style="color:#3a7d12;font-weight:700">${
-            isEsempio ? "Vedi i prodotti →" : "Apri la scheda dell'azienda →"
-          }</a>`,
-        );
+      const marker = L.marker([m.lat, m.lon], { icon }).addTo(layer);
+      // nome al passaggio (desktop) + popup informativo
+      marker.bindTooltip(`${m.nome} · ${m.citta}`);
+      marker.bindPopup(
+        `<strong>${m.nome}</strong><br/>${m.citta}<br/>${
+          m.conSemaforo
+            ? '<span style="color:#3a7d12;font-weight:700">🚦 ha prodotti col semaforo</span>'
+            : '<span style="color:#888">iscritta — ancora senza prodotti</span>'
+        }<br/><a href="${href}" style="color:#3a7d12;font-weight:700">${
+          isEsempio ? "Vedi i prodotti →" : "Apri la scheda dell'azienda →"
+        }</a>`,
+      );
+      // FIX mobile: il tap sul link dentro il popup spesso non naviga. Apro la
+      // pagina dell'azienda direttamente al clic sul segnaposto (mobile + desktop),
+      // così la scheda si apre SEMPRE con il suo URL.
+      marker.on("click", () => {
+        window.location.assign(href);
+      });
     }
     const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lon] as [number, number]));
     map.fitBounds(bounds.pad(0.2), { maxZoom: 12 });
