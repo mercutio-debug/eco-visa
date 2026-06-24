@@ -415,9 +415,6 @@ export default function DashboardPage() {
 
       <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
 
-      {/* «Ci pensiamo noi»: compare solo se l'azienda ha acquistato l'onboarding */}
-      <OnboardingCard />
-
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
 
       {/* Anagrafica dietro un link a comparsa: dashboard più pulita */}
@@ -505,6 +502,9 @@ export default function DashboardPage() {
           <ServiziExtra showPrices plan={activePlan} onAcquista={acquistaServizio} />
         </div>
       </section>
+
+      {/* «Ci pensiamo noi»: subito sotto i servizi extra, compare solo se acquistato */}
+      <OnboardingCard />
     </div>
   );
 }
