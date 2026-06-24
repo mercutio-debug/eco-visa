@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -112,8 +112,12 @@ export default function DashboardPage() {
   const [popupPag, setPopupPag] = useState<{ plan: Plan; period: "monthly" | "annual" } | null>(null);
 
   // ---- caricamento dati ----
+  const primoCaricamento = useRef(true);
   const loadAll = useCallback(async () => {
-    setLoading(true);
+    // solo il PRIMO caricamento mostra "Caricamento…" (che rimonta la pagina e
+    // riporta lo scroll in cima): i ricaricamenti dopo un salvataggio sono
+    // silenziosi, così resti sulla scheda che stai compilando.
+    if (primoCaricamento.current) setLoading(true);
     const { data: az } = await supabase.from("aziende").select("*").limit(1);
     const a = (az?.[0] as Azienda) ?? null;
     setAzienda(a);
@@ -155,6 +159,7 @@ export default function DashboardPage() {
       })();
     }
     setLoading(false);
+    primoCaricamento.current = false;
   }, []);
 
   useEffect(() => {
