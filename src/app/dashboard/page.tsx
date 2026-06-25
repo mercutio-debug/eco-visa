@@ -111,6 +111,9 @@ export default function DashboardPage() {
   const [periodo, setPeriodo] = useState<"monthly" | "annual">("annual");
   // popup-carrello del pagamento (reminder all'azienda quando sceglie un piano)
   const [popupPag, setPopupPag] = useState<{ plan: Plan; period: "monthly" | "annual" } | null>(null);
+  // Gate ECO-VISA: non ci si abbona se non si è pubblicato almeno un prodotto col
+  // semaforo di sostenibilità (è il cuore del servizio). Mostra l'invito gentile.
+  const [gateSemaforo, setGateSemaforo] = useState(false);
 
   // ---- caricamento dati ----
   const primoCaricamento = useRef(true);
@@ -195,6 +198,11 @@ export default function DashboardPage() {
   }, [user]);
 
   async function scegliPiano(p: Plan, per: "monthly" | "annual") {
+    // Niente abbonamento senza almeno un prodotto/semaforo pubblicato.
+    if (p !== "free" && prodotti.length === 0) {
+      setGateSemaforo(true);
+      return;
+    }
     const downgrade = isDowngrade(activePlan, p);
     // Downgrade: avviso che i contenuti/funzioni non inclusi nel piano scelto
     // non saranno più visibili (i dati restano salvati, tornano col re-upgrade).
@@ -223,6 +231,11 @@ export default function DashboardPage() {
   // piano minimo che lo include (o sul piano attuale, se già sufficiente), con
   // il servizio già preselezionato — niente più rimando alla pagina esterna.
   function acquistaServizio(key: string) {
+    // Anche i servizi extra richiedono un abbonamento → stesso gate del semaforo.
+    if (prodotti.length === 0) {
+      setGateSemaforo(true);
+      return;
+    }
     const need = key === "onboarding" ? 2 : 1; // onboarding=Gold, report/badge=Silver
     const rank: Record<string, number> = { free: 0, silver: 1, gold: 2 };
     const target: Plan = (rank[activePlan] ?? 0) >= need ? (activePlan as Plan) : need >= 2 ? "gold" : "silver";
@@ -413,6 +426,43 @@ export default function DashboardPage() {
         />
       )}
 
+      {gateSemaforo && (
+        <div
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-3"
+          onClick={() => setGateSemaforo(false)}
+        >
+          <div className="card w-full max-w-md bg-white p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/uomo-semaforo.png`}
+              alt="Carica un prodotto e ottieni il semaforo di sostenibilità"
+              className="mx-auto w-full max-w-xs"
+            />
+            <h3 className="mt-3 font-display text-2xl text-green-800">Un attimo!</h3>
+            <p className="mt-3 text-green-900/85">
+              Prima di abbonarti, carica almeno un prodotto/semaforo di sostenibilità:
+              per pagare c&apos;è sempre tempo, prima fai vedere quanto tu e i tuoi
+              prodotti siete speciali!
+            </p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setGateSemaforo(false);
+                  document.getElementById("i-tuoi-prodotti")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="btn-lime flex-1 justify-center"
+              >
+                🚀 Carica un prodotto
+              </button>
+              <button type="button" onClick={() => setGateSemaforo(false)} className="btn-ghost flex-1 justify-center">
+                Più tardi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
 
       <SchedaServizi piano={pianoScelto} attivo={activePlan} />
@@ -480,6 +530,8 @@ export default function DashboardPage() {
           ownerId={user.id}
           scelto={pianoScelto}
           attivo={activePlan}
+          bloccato={prodotti.length === 0}
+          onBloccato={() => setGateSemaforo(true)}
           prefill={{
             ragione_sociale: azienda?.nome ?? undefined,
             partita_iva: azienda?.piva ?? undefined,
@@ -539,11 +591,15 @@ function PagamentoFinale({
   scelto,
   attivo,
   prefill,
+  bloccato = false,
+  onBloccato,
 }: {
   ownerId: string;
   scelto: Plan;
   attivo: Plan;
   prefill?: PrefillFatturazione;
+  bloccato?: boolean;
+  onBloccato?: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -552,6 +608,10 @@ function PagamentoFinale({
   const giaAttivo = attivo === scelto && attivo !== "free";
 
   async function paga(per: "monthly" | "annual") {
+    if (bloccato) {
+      onBloccato?.();
+      return;
+    }
     setBusy(true);
     setMsg(null);
     try {
@@ -1400,7 +1460,7 @@ function ProdottiCard({
   const gold = plan === "gold";
   const canSell = info.canSell;
   return (
-    <section className="card mt-6 p-6">
+    <section id="i-tuoi-prodotti" className="card mt-6 p-6 scroll-mt-20">
       <h2 className="font-display text-2xl text-green-800">I tuoi prodotti</h2>
       <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
         🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
