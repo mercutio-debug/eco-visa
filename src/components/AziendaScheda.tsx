@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import {
   loadAziendaPubblica,
   tutteLeAziendePubbliche,
+  aziendaSlug,
   type AziendaPubblica,
   type ProdottoPubblico,
   type ServizioPubblico,
@@ -65,6 +66,38 @@ export function AziendaScheda({
   const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
   const [cartMsg, setCartMsg] = useState<string | null>(null);
+  const [condiviso, setCondiviso] = useState(false);
+
+  // "Condividi scheda": condivide l'URL CANONICO /azienda/{slug} (anteprima
+  // ricca: nome + copertina), via menu nativo o copia link. Utile soprattutto
+  // su mobile/in-app dove non c'è la barra dell'URL da copiare.
+  async function condividiScheda(nome: string, citta: string | null) {
+    let slug = aziendaSlug(nome);
+    try {
+      const lista = await tutteLeAziendePubbliche();
+      const found = lista.find((x) => String(x.id) === String(id));
+      if (found) slug = found.slug;
+    } catch {
+      /* offline: uso lo slug derivato dal nome */
+    }
+    const url = `${window.location.origin}/azienda/${slug}/`;
+    const titolo = `${nome}${citta ? ` · ${citta}` : ""} — su ECO-VISA`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: titolo, url });
+        return;
+      }
+    } catch {
+      return; /* condivisione annullata dall'utente */
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCondiviso(true);
+      setTimeout(() => setCondiviso(false), 2500);
+    } catch {
+      /* clipboard non disponibile */
+    }
+  }
 
   // 🛒 Aggiungi al carrello con gate login: ospiti → messaggio + pagina accedi;
   // loggati → prodotto nel carrello (il checkout completo arriva con la Fase B).
@@ -222,15 +255,24 @@ export function AziendaScheda({
           </p>
         )}
 
-        {azienda.owner && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {azienda.owner && (
+            <button
+              type="button"
+              onClick={() => setContatta(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-green-600 px-4 py-1.5 text-sm font-bold text-green-700 hover:bg-leaf"
+            >
+              ✉️ Contatta l&apos;azienda
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setContatta(true)}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-green-600 px-4 py-1.5 text-sm font-bold text-green-700 hover:bg-leaf"
+            onClick={() => condividiScheda(azienda.nome, azienda.citta_sede)}
+            className="inline-flex items-center gap-2 rounded-full border border-green-600 px-4 py-1.5 text-sm font-bold text-green-700 hover:bg-leaf"
           >
-            ✉️ Contatta l&apos;azienda
+            🔗 {condiviso ? "Link copiato!" : "Condividi scheda"}
           </button>
-        )}
+        </div>
       </div>
 
       {azienda.lat != null && azienda.lon != null && (

@@ -38,6 +38,9 @@ export async function generateMetadata({
       description: `Prodotti locali e impronta ecologica di ${a.nome}${luogo}.`,
       url: `https://ecovisa.it/azienda/${slug}/`,
       type: "profile",
+      // anteprima link: copertina dell'azienda se presente, altrimenti l'immagine
+      // di default del sito (campagna). URL assoluto risolto via metadataBase.
+      images: [a.immagine || "/demo/onboarding/img/campagna.jpg"],
     },
   };
 }
