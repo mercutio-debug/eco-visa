@@ -52,7 +52,7 @@ export type EcoLevel = "verde" | "giallo" | "rosso";
      giallo_scuro    1000–2000 km, fuori Italia
      rosso_chiaro    > 2000 km, in Europa
      rosso_scuro     > 2000 km, America/Africa
-     rosso_scurissimo (porpora)  Asia
+     rosso_scurissimo  Asia (rosso sangue scurissimo)
    ============================================================ */
 export type TierIng =
   | "super_green"

@@ -2,7 +2,7 @@ import type { Giudizio, TierIng, EcoLevel } from "@/lib/footprint";
 import { categoriaDiTier } from "@/lib/footprint";
 
 /* Semaforo grande: scala a 8 tonalità. La lampada accesa (verde/giallo/rosso)
-   prende il COLORE della tonalità specifica (es. giallo scuro, rosso porpora). */
+   prende il COLORE della tonalità specifica (es. giallo scuro, rosso scurissimo). */
 type Meta = { label: string; color: string; lampada: EcoLevel; desc: string };
 
 const META: Record<Giudizio, Meta> = {
@@ -50,7 +50,7 @@ const META: Record<Giudizio, Meta> = {
   },
   rosso_scurissimo: {
     label: "Rosso scurissimo — filiera lunghissima",
-    color: "#7b1fa2",
+    color: "#9c0604",
     lampada: "rosso",
     desc: "Materie prime dall'Asia: la filiera più lunga.",
   },
@@ -156,7 +156,7 @@ const COLORE_TIER: Record<TierIng, string> = {
   giallo_scuro: "#d99a00",
   rosso_chiaro: "#ef5350",
   rosso_scuro: "#c62828",
-  rosso_scurissimo: "#7b1fa2",
+  rosso_scurissimo: "#9c0604",
 };
 
 export function SemaforoIngrediente({ tier }: { tier: TierIng }) {
