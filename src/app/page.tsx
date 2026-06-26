@@ -51,14 +51,10 @@ export default function Home() {
               </Link>
               <Link
                 href="/semaforo"
-                className="btn-ghost inline-flex items-center gap-2"
+                className="inline-flex items-center gap-2 rounded-full border-2 border-lime-500 bg-white px-5 py-2.5 font-bold text-green-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-leaf"
                 aria-label="Come funziona il semaforo"
               >
-                <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-[#222] px-1 py-1">
-                  <span className="h-2.5 w-2.5 rounded-full bg-traffic-red" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-traffic-yellow" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#45a82f]" />
-                </span>
+                <span className="text-xl leading-none">🚦</span>
                 Come funziona il semaforo
               </Link>
               <Link href="/calcola" className="btn-lime">
