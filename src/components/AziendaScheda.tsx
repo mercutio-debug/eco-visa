@@ -146,6 +146,27 @@ export function AziendaScheda({
     setTimeout(() => setCartMsg(null), 2500);
   };
 
+  // Ordine di un prodotto: TASSATIVO essere loggati (l'azienda deve sapere chi
+  // ordina). Stesso gate del carrello. I SERVIZI extra restano aperti agli ospiti.
+  const ordinaProdotto = async (v: ServizioPubblico) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("postLoginRedirect", window.location.pathname + window.location.search);
+        } catch {
+          /* ignore */
+        }
+        alert("Per ordinare un prodotto accedi o crea un account cliente (è gratis).");
+        window.location.href = "/registrati?tipo=cliente";
+      }
+      return;
+    }
+    setOrdina(v);
+  };
+
   useEffect(() => {
     if (!id) {
       setLoading(false);
@@ -223,7 +244,7 @@ export function AziendaScheda({
         <img
           src={azienda.immagine}
           alt={azienda.nome}
-          className="mt-3 max-h-[30rem] w-full rounded-2xl object-contain"
+          className="mt-3 h-48 w-full rounded-2xl object-cover object-top md:h-64"
         />
       )}
 
@@ -471,7 +492,7 @@ export function AziendaScheda({
                   {azienda.owner && (
                     <button
                       type="button"
-                      onClick={() => setOrdina(v)}
+                      onClick={() => ordinaProdotto(v)}
                       className="btn-lime mt-3 w-full justify-center text-sm"
                     >
                       🛒 Ordina
