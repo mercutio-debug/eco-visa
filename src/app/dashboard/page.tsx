@@ -110,6 +110,8 @@ export default function DashboardPage() {
   const [prodotti, setProdotti] = useState<Prodotto[]>([]);
   // cambia a ogni salvataggio (prodotto/servizio) per ricaricare l'anteprima scheda
   const [previewKey, setPreviewKey] = useState(0);
+  // "pagina prodotti": vista dedicata a tutto schermo per prodotti + servizi extra
+  const [vistaProdotti, setVistaProdotti] = useState(false);
   // setGeoV forza il re-render (e il ricalcolo CO₂) quando OSM risolve le località salvate
   const [, setGeoV] = useState(0);
   // piano: attivo (da subscriptions, condiviso con BioFido) e scelto per la configurazione
@@ -395,6 +397,51 @@ export default function DashboardPage() {
     );
   }
 
+  // PAGINA PRODOTTI dedicata: tutta la gestione prodotti + servizi extra, a tutto
+  // schermo, per tenere ordinata la dashboard principale.
+  if (vistaProdotti) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <button onClick={() => setVistaProdotti(false)} className="btn-ghost text-sm">
+          ← Torna alla dashboard
+        </button>
+        <h1 className="title-pangea mt-3 text-3xl text-green-700 md:text-4xl">Prodotti & Servizi</h1>
+        <p className="mt-1 text-sm text-green-900/70">
+          Aggiungi e gestisci i tuoi prodotti (col semaforo) e i servizi extra prenotabili.
+        </p>
+        {azienda && (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 md:items-start">
+              <ProdottiCard
+                aziendaId={azienda.id}
+                stabilimenti={stabilimenti}
+                prodotti={prodotti}
+                plan={activePlan}
+                onChange={refreshAll}
+                vista="form"
+              />
+              {user && (
+                <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" onChange={refreshAll} />
+              )}
+            </div>
+            <h2 className="mt-10 font-display text-3xl text-green-700">I tuoi prodotti & servizi</h2>
+            <ProdottiCard
+              aziendaId={azienda.id}
+              stabilimenti={stabilimenti}
+              prodotti={prodotti}
+              plan={activePlan}
+              onChange={refreshAll}
+              vista="lista"
+            />
+            {user && (
+              <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" onChange={refreshAll} />
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="flex items-center justify-between">
@@ -569,20 +616,22 @@ export default function DashboardPage() {
             stabilimenti={stabilimenti}
             onChange={loadAll}
           />
-          {/* sotto gli stabilimenti: a sinistra inserisci prodotto, a destra i servizi extra */}
-          <div className="grid gap-6 md:grid-cols-2 md:items-start">
-            <ProdottiCard
-              aziendaId={azienda.id}
-              stabilimenti={stabilimenti}
-              prodotti={prodotti}
-              plan={activePlan}
-              onChange={refreshAll}
-              vista="form"
-            />
-            {user && (
-              <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" onChange={refreshAll} />
-            )}
-          </div>
+          {/* la gestione prodotti/servizi vive in una PAGINA dedicata, per tenere
+              ordinata la dashboard (così non si fa confusione) */}
+          <button
+            type="button"
+            onClick={() => setVistaProdotti(true)}
+            className="card mt-6 flex w-full items-center justify-between gap-4 p-6 text-left hover:bg-leaf/30"
+          >
+            <span>
+              <span className="font-display text-2xl text-green-800">📦 I tuoi prodotti e servizi</span>
+              <span className="mt-1 block text-sm text-green-900/70">
+                Aggiungi prodotti (col semaforo) e servizi extra, gestisci magazzino, foto e prezzi.
+                {prodotti.length > 0 ? ` · ${prodotti.length} prodotti caricati` : ""}
+              </span>
+            </span>
+            <span className="font-display text-3xl text-green-700">→</span>
+          </button>
         </>
       )}
 
@@ -632,25 +681,6 @@ export default function DashboardPage() {
 
       {/* «Ci pensiamo noi»: subito sotto i servizi extra, compare solo se acquistato */}
       <OnboardingCard />
-
-      {/* Gruppo PRODOTTI & SERVIZI: gli elenchi già caricati, IN FONDO, così non si
-          scrolla all'infinito per aggiungerne uno (i form sono in alto). */}
-      {azienda && (
-        <>
-          <h2 className="mt-10 font-display text-3xl text-green-700">Prodotti & Servizi</h2>
-          <ProdottiCard
-            aziendaId={azienda.id}
-            stabilimenti={stabilimenti}
-            prodotti={prodotti}
-            plan={activePlan}
-            onChange={refreshAll}
-            vista="lista"
-          />
-          {user && (
-            <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" onChange={refreshAll} />
-          )}
-        </>
-      )}
     </div>
   );
 }
