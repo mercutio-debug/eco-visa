@@ -54,7 +54,12 @@ export default function Home() {
                 className="inline-flex items-center gap-2 rounded-full border-2 border-lime-500 bg-white px-5 py-2.5 font-bold text-green-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-leaf"
                 aria-label="Come funziona il semaforo"
               >
-                <span className="text-xl leading-none">🚦</span>
+                <svg width="15" height="21" viewBox="0 0 15 21" aria-hidden="true" className="flex-none">
+                  <rect x="1.5" y="1" width="12" height="19" rx="4.5" fill="#33402c" />
+                  <circle cx="7.5" cy="6" r="2.3" fill="#e2231a" />
+                  <circle cx="7.5" cy="10.5" r="2.3" fill="#f6c416" />
+                  <circle cx="7.5" cy="15" r="2.3" fill="#45a82f" />
+                </svg>
                 Come funziona il semaforo
               </Link>
               <Link href="/calcola" className="btn-lime">
