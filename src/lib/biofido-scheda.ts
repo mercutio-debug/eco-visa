@@ -112,11 +112,35 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
   // su ECO-VISA appaia IDENTICO anche su BioFido (è il nostro elemento distintivo).
   type MP = { nome: string; origine: string; lat?: number; lon?: number };
   let products:
-    | { id?: string; name: string; price?: string; image?: string; prenotabile?: boolean; ingredients?: MP[] }[]
+    | {
+        id?: string;
+        name: string;
+        price?: string;
+        image?: string;
+        prenotabile?: boolean;
+        ingredients?: MP[];
+        in_shop?: boolean;
+        giacenza?: number;
+        foto2?: string;
+        description?: string;
+        category?: string;
+      }[]
     | null = null;
   if (a?.id) {
     const { data: pr } = await supabase.from("prodotti").select("*").eq("azienda_id", a.id);
-    const prodotti = (pr as { id: string; nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [];
+    const prodotti =
+      (pr as {
+        id: string;
+        nome: string;
+        prezzo?: string | null;
+        immagine?: string | null;
+        prenotabile?: boolean | null;
+        in_shop?: boolean | null;
+        giacenza?: number | null;
+        foto2?: string | null;
+        descrizione?: string | null;
+        categoria?: string | null;
+      }[]) ?? [];
     const ids = prodotti.map((p) => p.id);
     // ingredienti dei prodotti → geocodificati (lat/lon) per il semaforo BioFido
     const ingByProd = new Map<string, MP[]>();
@@ -143,6 +167,11 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
           ...(p.immagine ? { image: p.immagine } : {}),
           ...(p.prenotabile ? { prenotabile: true } : {}),
           ...(ingredients && ingredients.length ? { ingredients } : {}),
+          ...(p.in_shop ? { in_shop: true } : {}),
+          ...(p.giacenza != null ? { giacenza: p.giacenza } : {}),
+          ...(p.foto2 ? { foto2: p.foto2 } : {}),
+          ...(p.descrizione ? { description: p.descrizione } : {}),
+          ...(p.categoria ? { category: p.categoria } : {}),
         };
       });
     products = list.length ? list : null;
