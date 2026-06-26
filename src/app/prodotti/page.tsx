@@ -2,8 +2,8 @@ import Link from "next/link";
 import { PRODUCTS } from "@/lib/data";
 import { computeFootprint } from "@/lib/footprint";
 import { Semaforo } from "@/components/Semaforo";
-import { VetrinaAziende } from "@/components/VetrinaAziende";
 import { ProdottiIscritti } from "@/components/ProdottiIscritti";
+// NB: niente <VetrinaAziende /> qui — ripeteva "Dalle aziende iscritte" (duplicazione rimossa).
 
 export const metadata = { title: "Prodotti — ECO-VISA" };
 
@@ -51,8 +51,6 @@ export default function ProdottiPage() {
           </Link>
         ))}
       </div>
-
-      <VetrinaAziende />
     </div>
   );
 }

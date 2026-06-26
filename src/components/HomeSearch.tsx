@@ -111,7 +111,7 @@ export function HomeSearch() {
           <div className="flex items-center gap-2">
             <input
               className="w-full bg-transparent px-3 py-3 text-lg text-green-900 outline-none placeholder:text-green-900/40"
-              placeholder="Es. Le Macine, biscotti, olio…"
+              placeholder="Es. biscotti, olio, passata…"
               value={q}
               onChange={(e) => {
                 setQ(e.target.value);
