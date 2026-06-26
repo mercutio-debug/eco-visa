@@ -7,7 +7,7 @@ import {
   KM0_STORES,
 } from "@/lib/data";
 import { computeFootprint } from "@/lib/footprint";
-import { Semaforo } from "@/components/Semaforo";
+import { Semaforo, SemaforoIngrediente } from "@/components/Semaforo";
 import { ProductTools, type AltDTO, type Km0DTO } from "@/components/ProductTools";
 
 export function generateStaticParams() {
@@ -110,13 +110,26 @@ export default async function ProductPage({
         </div>
       </div>
 
+      {/* nota: il semaforo è un giudizio qualitativo, non una somma di CO₂ */}
+      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-lime-500/40 bg-leaf/40 p-3 text-sm text-green-900/80">
+        <span>
+          💡 Il semaforo <strong>non somma la CO₂</strong> degli ingredienti: dà un
+          giudizio <strong>qualitativo della composizione</strong> — ogni materia prima
+          ha il suo colore (qui sotto), e l&apos;insieme determina il risultato.
+        </span>
+        <Link href="/semaforo" className="font-bold text-green-700 underline">
+          Come funziona il semaforo →
+        </Link>
+      </div>
+
       {/* tabella ingredienti */}
-      <h2 className="title-pangea mt-10 text-3xl text-green-700">Ingredienti e origine</h2>
+      <h2 className="title-pangea mt-8 text-3xl text-green-700">Ingredienti e origine</h2>
       <div className="card mt-4 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="eco-table">
             <thead>
               <tr>
+                <th>Colore</th>
                 <th>Materia prima</th>
                 <th>Origine</th>
                 <th>Trasporto</th>
@@ -127,6 +140,7 @@ export default async function ProductPage({
             <tbody>
               {fp.ingredients.map((ing, i) => (
                 <tr key={i}>
+                  <td><SemaforoIngrediente tier={ing.tier} /></td>
                   <td className="font-semibold text-green-900">{ing.name}</td>
                   <td>
                     {ing.origin}
@@ -154,7 +168,7 @@ export default async function ProductPage({
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={3}>Totale impronta di trasporto</td>
+                <td colSpan={4}>Totale impronta di trasporto</td>
                 <td className="text-right">{fp.totalKm.toLocaleString("it-IT")} km</td>
                 <td className="text-right">
                   {fp.totalCo2Kg.toLocaleString("it-IT")} kg

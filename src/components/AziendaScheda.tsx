@@ -15,7 +15,7 @@ import { computeFootprint } from "@/lib/footprint";
 import { useGeoResolve } from "@/lib/useGeoResolve";
 import { supabase } from "@/lib/supabase";
 import { addToCart } from "@/lib/carrello";
-import { Semaforo } from "@/components/Semaforo";
+import { Semaforo, SemaforoIngrediente } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
@@ -361,6 +361,13 @@ export function AziendaScheda({
 
                 <div className="mt-3">
                   <Semaforo level={fp.level} score={fp.score} consigli={fp.consigli} />
+                  <p className="mt-1 text-[11px] text-green-900/60">
+                    Giudizio <strong>qualitativo della composizione</strong> (ogni materia
+                    prima ha il suo colore, qui sotto), non una somma di CO₂.{" "}
+                    <Link href="/semaforo" className="font-semibold text-green-700 underline">
+                      Come funziona →
+                    </Link>
+                  </p>
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-[#e8f1dc] pt-3">
                   <span className="text-sm font-semibold text-green-900/70">
@@ -381,8 +388,11 @@ export function AziendaScheda({
                 {p.ingredienti.length > 0 && (
                   <ul className="mt-3 border-t border-[#e8f1dc] pt-2 text-xs text-green-900/70">
                     {fp.ingredients.map((ing, i) => (
-                      <li key={i} className="flex justify-between gap-2">
-                        <span className="truncate">{ing.name}</span>
+                      <li key={i} className="flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 items-center gap-1">
+                          <SemaforoIngrediente tier={ing.tier} />
+                          <span className="truncate">{ing.name}</span>
+                        </span>
                         <span className="shrink-0 text-green-900/50">
                           {ing.origin}
                           {ing.resolved ? ` · ${ing.totalKm.toLocaleString("it-IT")} km` : ""}
