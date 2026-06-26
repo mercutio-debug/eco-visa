@@ -22,7 +22,6 @@ import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { createPortal } from "react-dom";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
-import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
 import { SegnalaModal } from "@/components/SegnalaModal";
 import { ProdottoDettaglioModal } from "@/components/ProdottoDettaglioModal";
 
@@ -69,7 +68,6 @@ export function AziendaScheda({
   const [loading, setLoading] = useState(!initial);
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
   const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
-  const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
   const [servDettaglio, setServDettaglio] = useState<ServizioPubblico | null>(null);
@@ -146,26 +144,6 @@ export function AziendaScheda({
     setTimeout(() => setCartMsg(null), 2500);
   };
 
-  // Ordine di un prodotto: TASSATIVO essere loggati (l'azienda deve sapere chi
-  // ordina). Stesso gate del carrello. I SERVIZI extra restano aperti agli ospiti.
-  const ordinaProdotto = async (v: ServizioPubblico) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      if (typeof window !== "undefined") {
-        try {
-          sessionStorage.setItem("postLoginRedirect", window.location.pathname + window.location.search);
-        } catch {
-          /* ignore */
-        }
-        alert("Per ordinare un prodotto accedi o crea un account cliente (è gratis).");
-        window.location.href = "/registrati?tipo=cliente";
-      }
-      return;
-    }
-    setOrdina(v);
-  };
 
   useEffect(() => {
     if (!id) {
@@ -489,15 +467,6 @@ export function AziendaScheda({
                   {v.prezzo != null && (
                     <div className="mt-2 text-lg font-bold text-green-800">{euroNum(v.prezzo)}</div>
                   )}
-                  {azienda.owner && (
-                    <button
-                      type="button"
-                      onClick={() => ordinaProdotto(v)}
-                      className="btn-lime mt-3 w-full justify-center text-sm"
-                    >
-                      🛒 Ordina
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => setSegnala(v)}
@@ -595,18 +564,6 @@ export function AziendaScheda({
           ownerId={azienda.owner}
           aziendaNome={azienda.nome}
           onClose={() => setContatta(false)}
-        />
-      )}
-
-      {ordina && azienda.owner && (
-        <OrdineProdottoModal
-          prodottoId={ordina.id}
-          owner={azienda.owner}
-          prodottoNome={ordina.nome}
-          prezzo={ordina.prezzo != null ? euroNum(ordina.prezzo) : null}
-          aziendaNome={azienda.nome}
-          portale="ECO-VISA"
-          onClose={() => setOrdina(null)}
         />
       )}
 
