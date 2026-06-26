@@ -43,6 +43,8 @@ export type AziendaPubblica = {
   owner?: string | null;
   lat?: number | null;
   lon?: number | null;
+  /** false = shop in attesa di approvazione (prodotti in_shop nascosti al pubblico) */
+  shop_approvato?: boolean | null;
 };
 
 /** Servizio extra prenotabile (catalogo: visita, laboratorio, esperienza). */
@@ -138,7 +140,12 @@ export async function loadAziendaPubblica(
   const gold = plan === "gold";
   const limite = info.maxProducts === Infinity ? prods.length : info.maxProducts;
 
-  const prodotti: ProdottoPubblico[] = prods.slice(0, limite).map((p) => ({
+  // Gate "Ci pensiamo noi": finché l'azienda non approva lo shop (shop_approvato
+  // === false), i prodotti messi in vendita (in_shop) NON compaiono al pubblico.
+  const shopOk = (az as AziendaPubblica).shop_approvato !== false;
+  const visibili = shopOk ? prods : prods.filter((p) => !p.in_shop);
+
+  const prodotti: ProdottoPubblico[] = visibili.slice(0, limite).map((p) => ({
     id: p.id,
     nome: p.nome,
     categoria: p.categoria,
@@ -262,10 +269,11 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
   const aziendaIds = [...new Set(prods.map((p) => p.azienda_id))];
   const { data: az } = await supabase
     .from("aziende_pubbliche")
-    .select("id,nome,plan")
+    .select("id,nome,plan,shop_approvato")
     .in("id", aziendaIds);
   const azById = new Map(
-    ((az as { id: string; nome: string; plan?: string | null }[]) ?? []).map((a) => [a.id, a]),
+    ((az as { id: string; nome: string; plan?: string | null; shop_approvato?: boolean | null }[]) ??
+      []).map((a) => [a.id, a]),
   );
 
   const { data: ing } = await supabase
@@ -281,10 +289,14 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
   // "prenotabile" solo per chi vende, numero prodotti limitato dal piano.
   // Su downgrade ciò che eccede il piano sparisce dall'elenco pubblico.
   const planDi = (id: string) => (azById.get(id)?.plan ?? "free") as Plan;
+  // gate "Ci pensiamo noi": se l'azienda non ha approvato lo shop, i suoi prodotti
+  // in vendita (in_shop) non compaiono nemmeno nell'elenco pubblico.
+  const shopOkDi = (id: string) => azById.get(id)?.shop_approvato !== false;
   const contatore = new Map<string, number>();
 
   return prods
     .filter((p) => {
+      if (p.in_shop && !shopOkDi(p.azienda_id)) return false;
       const info = PLAN_MAP[planDi(p.azienda_id)] ?? PLAN_MAP.free;
       const n = (contatore.get(p.azienda_id) ?? 0) + 1;
       contatore.set(p.azienda_id, n);
