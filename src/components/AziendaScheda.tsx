@@ -19,6 +19,7 @@ import { Semaforo, SemaforoIngrediente } from "@/components/Semaforo";
 import { AlberiCompensazione } from "@/components/AlberiCompensazione";
 import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
+import { createPortal } from "react-dom";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { OrdineProdottoModal } from "@/components/OrdineProdottoModal";
@@ -64,6 +65,7 @@ export function AziendaScheda({
   const [ordina, setOrdina] = useState<ServizioPubblico | null>(null);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
+  const [servDettaglio, setServDettaglio] = useState<ServizioPubblico | null>(null);
   const [contatta, setContatta] = useState(false);
   const [cartMsg, setCartMsg] = useState<string | null>(null);
   const [condiviso, setCondiviso] = useState(false);
@@ -214,7 +216,7 @@ export function AziendaScheda({
         <img
           src={azienda.immagine}
           alt={azienda.nome}
-          className="mt-3 h-48 w-full rounded-2xl object-cover md:h-64"
+          className="mt-3 max-h-[30rem] w-full rounded-2xl object-contain"
         />
       )}
 
@@ -513,11 +515,18 @@ export function AziendaScheda({
                     <div className="shrink-0 text-sm font-bold text-green-800">{euroNum(s.prezzo)}</div>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setServDettaglio(s)}
+                  className="btn-ghost mt-3 w-full justify-center text-sm"
+                >
+                  🔍 Dettagli e foto
+                </button>
                 {azienda.owner && (
                   <button
                     type="button"
                     onClick={() => setPrenotaServizio(s)}
-                    className="btn-lime mt-3 w-full justify-center text-sm"
+                    className="btn-lime mt-2 w-full justify-center text-sm"
                   >
                     ✨ Prenota / richiedi
                   </button>
@@ -591,6 +600,72 @@ export function AziendaScheda({
           onCarrello={() => aggiungiCarrello(dettaglio)}
         />
       )}
+
+      {servDettaglio &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 p-3 sm:p-4"
+            onClick={() => setServDettaglio(null)}
+          >
+            <div
+              className="card max-h-[88dvh] w-full max-w-lg overflow-y-auto overscroll-contain p-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {servDettaglio.immagine && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={servDettaglio.immagine}
+                  alt={servDettaglio.nome}
+                  className="max-h-80 w-full rounded-t-2xl bg-leaf/30 object-contain"
+                />
+              )}
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
+                      {TIPO_SERVIZIO[servDettaglio.tipo] ?? "Servizio"}
+                    </div>
+                    <h3 className="font-display text-2xl text-green-800">{servDettaglio.nome}</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setServDettaglio(null)}
+                    aria-label="Chiudi"
+                    className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-leaf text-green-800 hover:bg-leaf/70"
+                  >
+                    ✕
+                  </button>
+                </div>
+                {servDettaglio.prezzo != null && (
+                  <div className="mt-2 text-2xl font-bold text-green-800">{euroNum(servDettaglio.prezzo)}</div>
+                )}
+                {servDettaglio.durata && (
+                  <p className="mt-1 text-sm font-semibold text-green-900/75">⏱ Durata: {servDettaglio.durata}</p>
+                )}
+                {servDettaglio.descrizione ? (
+                  <p className="mt-3 whitespace-pre-line text-green-900/80">{servDettaglio.descrizione}</p>
+                ) : (
+                  <p className="mt-3 text-sm text-green-900/45">Nessuna descrizione disponibile.</p>
+                )}
+                {azienda.owner && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const s = servDettaglio;
+                      setServDettaglio(null);
+                      setPrenotaServizio(s);
+                    }}
+                    className="btn-lime mt-5 w-full justify-center text-sm"
+                  >
+                    ✨ Prenota / richiedi
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {cartMsg && (
         <div className="fixed bottom-5 left-1/2 z-[300] -translate-x-1/2 rounded-full bg-green-800 px-5 py-2 text-sm font-bold text-white shadow-lg">

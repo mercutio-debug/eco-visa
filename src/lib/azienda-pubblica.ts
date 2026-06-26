@@ -53,6 +53,7 @@ export type ServizioPubblico = {
   prezzo: number | null;
   descrizione: string | null;
   immagine: string | null;
+  durata?: string | null;
 };
 
 type CatRow = {
@@ -63,6 +64,7 @@ type CatRow = {
   descrizione: string | null;
   immagine: string | null;
   numero?: number;
+  durata?: string | null;
 };
 
 type ProdRow = {
@@ -160,7 +162,7 @@ export async function loadAziendaPubblica(
   if (owner && gold) {
     const { data: cat } = await supabase
       .from("catalogo")
-      .select("id, nome, tipo, prezzo, descrizione, immagine, numero")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata")
       .eq("owner", owner)
       .neq("tipo", "prodotto")
       .order("numero");
@@ -171,12 +173,13 @@ export async function loadAziendaPubblica(
       prezzo: c.prezzo ?? null,
       descrizione: c.descrizione ?? null,
       immagine: c.immagine ?? null,
+      durata: c.durata ?? null,
     }));
 
     // Prodotti in vendita (catalogo tipo 'prodotto'): ordinabili dal cliente.
     const { data: catV } = await supabase
       .from("catalogo")
-      .select("id, nome, tipo, prezzo, descrizione, immagine, numero")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata")
       .eq("owner", owner)
       .eq("tipo", "prodotto")
       .order("numero");
@@ -187,6 +190,7 @@ export async function loadAziendaPubblica(
       prezzo: c.prezzo ?? null,
       descrizione: c.descrizione ?? null,
       immagine: c.immagine ?? null,
+      durata: c.durata ?? null,
     }));
   }
 
