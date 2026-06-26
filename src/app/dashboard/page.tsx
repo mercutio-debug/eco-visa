@@ -561,13 +561,18 @@ export default function DashboardPage() {
             stabilimenti={stabilimenti}
             onChange={loadAll}
           />
-          <ProdottiCard
-            aziendaId={azienda.id}
-            stabilimenti={stabilimenti}
-            prodotti={prodotti}
-            plan={activePlan}
-            onChange={loadAll}
-          />
+          {/* sotto gli stabilimenti: a sinistra inserisci prodotto, a destra i servizi extra */}
+          <div className="grid gap-6 md:grid-cols-2 md:items-start">
+            <ProdottiCard
+              aziendaId={azienda.id}
+              stabilimenti={stabilimenti}
+              prodotti={prodotti}
+              plan={activePlan}
+              onChange={loadAll}
+              vista="form"
+            />
+            {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
+          </div>
         </>
       )}
 
@@ -584,8 +589,6 @@ export default function DashboardPage() {
           <PrenotazioniCard ownerId={user.id} />
         </div>
       )}
-
-      {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
 
       {user && (
         <PagamentoFinale
@@ -619,6 +622,19 @@ export default function DashboardPage() {
 
       {/* «Ci pensiamo noi»: subito sotto i servizi extra, compare solo se acquistato */}
       <OnboardingCard />
+
+      {/* lista dei prodotti già caricati: IN FONDO, così non si scrolla all'infinito
+          per aggiungerne uno nuovo (il form è in alto sotto gli stabilimenti) */}
+      {azienda && (
+        <ProdottiCard
+          aziendaId={azienda.id}
+          stabilimenti={stabilimenti}
+          prodotti={prodotti}
+          plan={activePlan}
+          onChange={loadAll}
+          vista="lista"
+        />
+      )}
     </div>
   );
 }
@@ -1509,12 +1525,15 @@ function ProdottiCard({
   prodotti,
   plan,
   onChange,
+  vista = "tutto",
 }: {
   aziendaId: string;
   stabilimenti: Stabilimento[];
   prodotti: Prodotto[];
   plan: Plan;
   onChange: () => void;
+  /** "form" = solo cornice "inserisci prodotto"; "lista" = solo elenco prodotti */
+  vista?: "form" | "lista" | "tutto";
 }) {
   // Diritti per piano: foto e prezzo sono riservati al Gold; i servizi
   // prenotabili a chi può vendere (Silver e Gold); la categoria è per tutti.
@@ -1523,14 +1542,24 @@ function ProdottiCard({
   const canSell = info.canSell;
   return (
     <section id="i-tuoi-prodotti" className="card mt-6 p-6 scroll-mt-20">
-      <h2 className="font-display text-2xl text-green-800">I tuoi prodotti</h2>
-      <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
-        🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
-        prodotti mostrando a tutti il loro valore. Per pubblicare la tua bacheca (Silver o
-        Gold) serve <strong>almeno un prodotto con il semaforo</strong>.
-      </p>
+      <h2 className="font-display text-2xl text-green-800">
+        {vista === "lista" ? "I tuoi prodotti" : "🚦 Inserisci prodotto"}
+      </h2>
+      {vista !== "lista" && (
+        <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
+          🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
+          prodotti mostrando a tutti il loro valore. Per pubblicare la tua bacheca (Silver o
+          Gold) serve <strong>almeno un prodotto con il semaforo</strong>.
+        </p>
+      )}
 
-      {prodotti.length > 0 && (
+      {vista !== "form" && prodotti.length === 0 && (
+        <p className="mt-3 text-sm text-green-900/60">
+          Non hai ancora prodotti: aggiungili dalla cornice «Inserisci prodotto» in alto.
+        </p>
+      )}
+
+      {vista !== "form" && prodotti.length > 0 && (
         <ul className="mt-4 space-y-3">
           {prodotti.map((p) => {
             const fp = computeFootprint(
@@ -1644,13 +1673,16 @@ function ProdottiCard({
         </ul>
       )}
 
-      <NuovoProdotto
-        aziendaId={aziendaId}
-        stabilimenti={stabilimenti}
-        plan={plan}
-        count={prodotti.length}
-        onSaved={onChange}
-      />
+      {vista !== "lista" && (
+        <NuovoProdotto
+          aziendaId={aziendaId}
+          stabilimenti={stabilimenti}
+          plan={plan}
+          count={prodotti.length}
+          onSaved={onChange}
+          soloProdotto
+        />
+      )}
     </section>
   );
 }
@@ -2491,6 +2523,7 @@ function NuovoProdotto({
   plan,
   count,
   onSaved,
+  soloProdotto = false,
 }: {
   aziendaId: string;
   stabilimenti: Stabilimento[];
@@ -2498,6 +2531,8 @@ function NuovoProdotto({
   /** quanti prodotti ha già l'azienda (per il limite del piano) */
   count: number;
   onSaved: () => void;
+  /** true = solo prodotto (niente toggle "servizio"): i servizi stanno nella loro cornice */
+  soloProdotto?: boolean;
 }) {
   // Diritti per piano: foto solo Gold; servizio prenotabile a chi vende
   // (Silver/Gold); numero massimo di prodotti per piano.
@@ -2727,8 +2762,9 @@ function NuovoProdotto({
       </div>
 
       {/* tipo voce: prodotto ordinario o servizio extra prenotabile dal cliente.
-          Il "servizio prenotabile" è riservato ai piani che possono vendere. */}
-      {canSell && (
+          Il "servizio prenotabile" è riservato ai piani che possono vendere.
+          In modalità soloProdotto il toggle sparisce: i servizi hanno la loro cornice. */}
+      {!soloProdotto && canSell && (
         <div className="mt-3">
           <label className="flex items-start gap-2 rounded-xl border-2 border-badge-yellow bg-[#fffbe9] p-3 text-sm">
             <input
