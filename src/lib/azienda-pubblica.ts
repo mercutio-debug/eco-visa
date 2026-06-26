@@ -54,6 +54,8 @@ export type ServizioPubblico = {
   descrizione: string | null;
   immagine: string | null;
   durata?: string | null;
+  lingue?: string[] | null;
+  foto2?: string | null;
 };
 
 type CatRow = {
@@ -65,6 +67,8 @@ type CatRow = {
   immagine: string | null;
   numero?: number;
   durata?: string | null;
+  lingue?: string[] | null;
+  foto2?: string | null;
 };
 
 type ProdRow = {
@@ -162,7 +166,7 @@ export async function loadAziendaPubblica(
   if (owner && gold) {
     const { data: cat } = await supabase
       .from("catalogo")
-      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata, lingue, foto2")
       .eq("owner", owner)
       .neq("tipo", "prodotto")
       .order("numero");
@@ -174,12 +178,14 @@ export async function loadAziendaPubblica(
       descrizione: c.descrizione ?? null,
       immagine: c.immagine ?? null,
       durata: c.durata ?? null,
+      lingue: c.lingue ?? null,
+      foto2: c.foto2 ?? null,
     }));
 
     // Prodotti in vendita (catalogo tipo 'prodotto'): ordinabili dal cliente.
     const { data: catV } = await supabase
       .from("catalogo")
-      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata")
+      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata, lingue, foto2")
       .eq("owner", owner)
       .eq("tipo", "prodotto")
       .order("numero");
@@ -191,6 +197,8 @@ export async function loadAziendaPubblica(
       descrizione: c.descrizione ?? null,
       immagine: c.immagine ?? null,
       durata: c.durata ?? null,
+      lingue: c.lingue ?? null,
+      foto2: c.foto2 ?? null,
     }));
   }
 

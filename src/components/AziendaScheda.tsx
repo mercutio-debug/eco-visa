@@ -45,6 +45,13 @@ const TIPO_SERVIZIO: Record<string, string> = {
   esperienza: "Esperienza",
 };
 
+/** Etichette delle lingue dei servizi (per i turisti stranieri). */
+const LINGUE_LABEL: Record<string, string> = {
+  it: "🇮🇹 Italiano", en: "🇬🇧 English", fr: "🇫🇷 Français", de: "🇩🇪 Deutsch",
+  es: "🇪🇸 Español", pt: "🇵🇹 Português", nl: "🇳🇱 Nederlands", zh: "🇨🇳 中文",
+  ru: "🇷🇺 Русский", ar: "🇸🇦 العربية",
+};
+
 /**
  * Scheda pubblica di un'azienda. Usata sia dalla pagina statica condivisibile
  * /azienda/[slug] (con `initial` = dati al build → contenuto nell'HTML,
@@ -612,13 +619,18 @@ export function AziendaScheda({
               className="card max-h-[88dvh] w-full max-w-lg overflow-y-auto overscroll-contain p-0"
               onClick={(e) => e.stopPropagation()}
             >
-              {servDettaglio.immagine && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={servDettaglio.immagine}
-                  alt={servDettaglio.nome}
-                  className="max-h-80 w-full rounded-t-2xl bg-leaf/30 object-contain"
-                />
+              {(servDettaglio.immagine || servDettaglio.foto2) && (
+                <div className={`grid gap-1 ${servDettaglio.immagine && servDettaglio.foto2 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
+                  {[servDettaglio.immagine, servDettaglio.foto2].filter(Boolean).map((src, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={i}
+                      src={src as string}
+                      alt={servDettaglio.nome}
+                      className="max-h-72 w-full bg-leaf/30 object-contain first:rounded-tl-2xl last:rounded-tr-2xl"
+                    />
+                  ))}
+                </div>
               )}
               <div className="p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -642,6 +654,11 @@ export function AziendaScheda({
                 )}
                 {servDettaglio.durata && (
                   <p className="mt-1 text-sm font-semibold text-green-900/75">⏱ Durata: {servDettaglio.durata}</p>
+                )}
+                {servDettaglio.lingue && servDettaglio.lingue.length > 0 && (
+                  <p className="mt-1 text-sm font-semibold text-green-900/75">
+                    🗣 Lingue: {servDettaglio.lingue.map((c) => LINGUE_LABEL[c] ?? c).join(" · ")}
+                  </p>
                 )}
                 {servDettaglio.descrizione ? (
                   <p className="mt-3 whitespace-pre-line text-green-900/80">{servDettaglio.descrizione}</p>
