@@ -69,7 +69,7 @@ export default async function ProductPage({
           </h1>
         </div>
         <div className="card flex items-center gap-4 p-4">
-          <Semaforo level={fp.level} score={fp.score} />
+          <Semaforo level={fp.level} score={fp.score} consigli={fp.consigli} />
           <div className="border-l border-[#e8f1dc] pl-4 text-right">
             <div className="font-display text-3xl text-green-800">
               {fp.totalCo2Kg.toLocaleString("it-IT")} kg

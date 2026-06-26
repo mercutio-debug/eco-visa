@@ -360,7 +360,7 @@ export function AziendaScheda({
                 )}
 
                 <div className="mt-3">
-                  <Semaforo level={fp.level} score={fp.score} />
+                  <Semaforo level={fp.level} score={fp.score} consigli={fp.consigli} />
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-[#e8f1dc] pt-3">
                   <span className="text-sm font-semibold text-green-900/70">
