@@ -111,7 +111,16 @@ function Legenda({ plan }: { plan: Plan }) {
  * passaporti ecologici (semaforo + CO₂) esattamente come appaiono in vetrina e
  * nell'embed, più una legenda-guida.
  */
-export function AnteprimaScheda({ ownerId, plan }: { ownerId: string; plan: Plan }) {
+export function AnteprimaScheda({
+  ownerId,
+  plan,
+  refreshKey = 0,
+}: {
+  ownerId: string;
+  plan: Plan;
+  /** cambia quando salvi un prodotto/servizio → ricarica l'anteprima */
+  refreshKey?: number;
+}) {
   const [azienda, setAzienda] = useState<string>("");
   const [voci, setVoci] = useState<Voce[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,7 +190,7 @@ export function AnteprimaScheda({ ownerId, plan }: { ownerId: string; plan: Plan
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, refreshKey]);
 
   return (
     <section className="card mt-6 p-6">

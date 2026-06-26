@@ -108,6 +108,8 @@ export default function DashboardPage() {
   const [azienda, setAzienda] = useState<Azienda | null>(null);
   const [stabilimenti, setStabilimenti] = useState<Stabilimento[]>([]);
   const [prodotti, setProdotti] = useState<Prodotto[]>([]);
+  // cambia a ogni salvataggio (prodotto/servizio) per ricaricare l'anteprima scheda
+  const [previewKey, setPreviewKey] = useState(0);
   // setGeoV forza il re-render (e il ricalcolo CO₂) quando OSM risolve le località salvate
   const [, setGeoV] = useState(0);
   // piano: attivo (da subscriptions, condiviso con BioFido) e scelto per la configurazione
@@ -172,6 +174,12 @@ export default function DashboardPage() {
     setLoading(false);
     primoCaricamento.current = false;
   }, []);
+
+  // ricarica i dati E aggiorna l'anteprima scheda (dopo salva/elimina prodotto o servizio)
+  const refreshAll = useCallback(() => {
+    loadAll();
+    setPreviewKey((k) => k + 1);
+  }, [loadAll]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -568,15 +576,17 @@ export default function DashboardPage() {
               stabilimenti={stabilimenti}
               prodotti={prodotti}
               plan={activePlan}
-              onChange={loadAll}
+              onChange={refreshAll}
               vista="form"
             />
-            {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" />}
+            {user && (
+              <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" onChange={refreshAll} />
+            )}
           </div>
         </>
       )}
 
-      {user && azienda && <AnteprimaScheda ownerId={user.id} plan={pianoScelto} />}
+      {user && azienda && <AnteprimaScheda ownerId={user.id} plan={pianoScelto} refreshKey={previewKey} />}
       {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
 
       {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
@@ -633,10 +643,12 @@ export default function DashboardPage() {
             stabilimenti={stabilimenti}
             prodotti={prodotti}
             plan={activePlan}
-            onChange={loadAll}
+            onChange={refreshAll}
             vista="lista"
           />
-          {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" />}
+          {user && (
+            <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" onChange={refreshAll} />
+          )}
         </>
       )}
     </div>

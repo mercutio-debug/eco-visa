@@ -25,7 +25,7 @@ const SERVIZI: Servizio[] = [
   { icona: "🔗", nome: "Badge da incorporare sul tuo sito", descr: "Il semaforo del prodotto, sul tuo sito web.", min: "silver" },
   { icona: "⬆️", nome: "Priorità nella vetrina pubblica", descr: "Sali nei risultati della directory.", min: "silver" },
   { icona: "📊", nome: "Statistiche base", descr: "Quante visite riceve la tua scheda.", min: "silver" },
-  { icona: "➕", nome: "Fino a 100 prodotti", descr: "Sblocca il «+» per caricarne fino a 100.", min: "gold" },
+  { icona: "➕", nome: "Fino a 100 prodotti e/o servizi extra", descr: "Sblocca il «+» per caricarne fino a 100.", min: "gold" },
   { icona: "💶", nome: "Prezzi e prodotti in vendita", descr: "Mostra il prezzo e vendi i tuoi prodotti.", min: "gold" },
   { icona: "🗓️", nome: "Prenotazioni via widget", descr: "I clienti richiedono visite ed esperienze dalla scheda.", min: "gold" },
   { icona: "📈", nome: "Statistiche avanzate", descr: "Andamento nel tempo e area geografica dei visitatori.", min: "gold" },
@@ -169,7 +169,7 @@ export function SchedaServizi({ piano }: { piano: Plan; attivo?: Plan }) {
             </p>
             <ul className="mt-2 space-y-1 text-sm text-green-900/85">
               <li>✓ Tutto il Silver, più:</li>
-              <li>✓ Fino a 100 prodotti</li>
+              <li>✓ Fino a 100 prodotti e/o servizi extra</li>
               <li>✓ Prezzi e prodotti in vendita</li>
               <li>✓ Prenotazioni via widget</li>
               <li>✓ Statistiche avanzate</li>

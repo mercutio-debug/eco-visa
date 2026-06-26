@@ -36,11 +36,14 @@ export function CatalogoCard({
   ownerId,
   gold,
   vista = "tutto",
+  onChange,
 }: {
   ownerId: string;
   gold: boolean;
   /** "form" = solo "Inserisci servizio extra"; "lista" = solo l'elenco */
   vista?: "form" | "lista" | "tutto";
+  /** notifica al genitore (per aggiornare l'anteprima) dopo salva/elimina */
+  onChange?: () => void;
 }) {
   const [voci, setVoci] = useState<VoceCatalogo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,6 +119,7 @@ export function CatalogoCard({
           onSaved={() => {
             setFormKey((k) => k + 1);
             ricarica();
+            onChange?.();
           }}
         />
       )}
@@ -128,7 +132,7 @@ export function CatalogoCard({
             return (
               <li
                 key={v.id}
-                className="flex items-center gap-3 rounded-xl border border-[#e3eed7] bg-white px-3 py-2"
+                className="flex items-center gap-3 rounded-xl border border-badge-yellow bg-[#fffef6] px-3 py-2"
               >
                 <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-leaf text-xs font-bold text-green-800">
                   {v.numero}
@@ -154,6 +158,7 @@ export function CatalogoCard({
                   onClick={async () => {
                     if (v.id) await eliminaVoce(v.id);
                     ricarica();
+                    onChange?.();
                   }}
                 >
                   Elimina
@@ -184,6 +189,7 @@ export function CatalogoCard({
           onSaved={() => {
             setEditing(null);
             ricarica();
+            onChange?.();
           }}
         />
       )}
@@ -280,7 +286,7 @@ function VoceEditor({
           <label className="block">
             <span className="label">Tipo</span>
             <select className="field mt-1" value={v.tipo} onChange={(e) => set("tipo", e.target.value as TipoVoce)}>
-              {TIPI_VOCE.map((t) => (
+              {(inline ? TIPI_VOCE.filter((t) => t.servizio) : TIPI_VOCE).map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.label}
                 </option>

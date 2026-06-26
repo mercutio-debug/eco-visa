@@ -201,10 +201,12 @@ export function computeIngredient(
   }
 
   const legs: Leg[] = [];
+  const SAME_TOWN_KM = 5; // entro ~5 km in linea d'aria = stesso comune → km0, 0 CO₂
 
   if (viaCamion(o.lat, o.lon)) {
-    // Europa + Nord Africa: tutta la tratta via camion
-    const km = Math.round(haversineKm(o, plant) * ROAD_FACTOR);
+    // Europa + Nord Africa: tutta la tratta via camion. Stesso comune → 0.
+    const straight = haversineKm(o, plant);
+    const km = straight < SAME_TOWN_KM ? 0 : Math.round(straight * ROAD_FACTOR);
     legs.push({
       mode: "camion",
       from: o.name,
