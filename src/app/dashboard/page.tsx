@@ -2524,6 +2524,15 @@ function NuovoProdotto({
   const [durata, setDurata] = useState("");
   const [foto2, setFoto2] = useState<string | null>(null);
   const [uploading2, setUploading2] = useState(false);
+  // campi di VENDITA del prodotto (solo Gold), così la scheda si salva COMPLETA
+  // in un unico passaggio: prezzo, confezione/contenuto, ordinabile + giacenza.
+  const [prezzo, setPrezzo] = useState("");
+  const [confezione, setConfezione] = useState("");
+  const [contenuto, setContenuto] = useState("");
+  const [unita, setUnita] = useState("");
+  const [inShop, setInShop] = useState(false);
+  const [giacenzaVal, setGiacenzaVal] = useState("");
+  const MAX_DESC = 2000;
 
   useEffect(() => {
     if (!stab && stabilimenti[0]) setStab(stabilimenti[0].citta);
@@ -2562,7 +2571,13 @@ function NuovoProdotto({
 
   async function save() {
     const validIngr = ingredienti.filter((i) => i.nome.trim() && i.origine.trim());
-    if (!nome.trim() || !stab.trim() || validIngr.length === 0) return;
+    const isServizioMode = tipoVoce === "servizio";
+    if (!nome.trim() || !stab.trim()) return;
+    // il semaforo (ingredienti) riguarda SOLO i prodotti, non i servizi speciali
+    if (!isServizioMode && validIngr.length === 0) {
+      alert("Aggiungi almeno una materia prima con la sua origine: è il semaforo del prodotto.");
+      return;
+    }
     if (pieno) {
       alert(
         `Il tuo piano (${info.label}) consente fino a ${limite} prodotto/i. Passa a un piano superiore per aggiungerne altri.`,
@@ -2585,16 +2600,37 @@ function NuovoProdotto({
       // servizio prenotabile solo per chi può vendere (Silver/Gold)
       prenotabile: isServizio,
     };
-    // dati extra del servizio speciale: descrizione estesa, durata, foto in più
+    // dati extra del servizio speciale: descrizione estesa, durata, 2ª foto
     if (isServizio) {
-      if (descrizione.trim()) payload.descrizione = descrizione.trim();
+      if (descrizione.trim()) payload.descrizione = descrizione.trim().slice(0, MAX_DESC);
       if (durata.trim()) payload.durata = durata.trim();
       if (gold && foto2) payload.foto2 = foto2;
+      if (gold && prezzo.trim()) payload.prezzo = prezzo.trim();
+    } else if (gold) {
+      // PRODOTTO Gold: salvo TUTTO in un colpo (prezzo, descrizione, 2ª foto,
+      // confezione/contenuto, ordinabile dallo shop + giacenza).
+      if (prezzo.trim()) payload.prezzo = prezzo.trim();
+      if (descrizione.trim()) payload.descrizione = descrizione.trim().slice(0, MAX_DESC);
+      if (foto2) payload.foto2 = foto2;
+      if (confezione.trim()) payload.confezione = confezione.trim();
+      if (contenuto.trim()) payload.contenuto = Number(contenuto) || null;
+      if (unita.trim()) payload.unita = unita.trim();
+      if (inShop) {
+        payload.in_shop = true;
+        const g = giacenzaVal.trim() === "" ? null : Math.max(0, Math.floor(Number(giacenzaVal)) || 0);
+        if (g != null) {
+          payload.giacenza = g;
+          payload.giacenza_iniziale = g;
+        }
+      }
     }
     let res = await supabase.from("prodotti").insert(payload).select("id").single();
     // se una colonna non esiste ancora nel DB, la tolgo e riprovo (così il
     // salvataggio non si rompe finché non lanci la migrazione)
-    for (const col of ["prenotabile", "descrizione", "durata", "foto2"]) {
+    for (const col of [
+      "prenotabile", "descrizione", "durata", "foto2", "prezzo",
+      "confezione", "contenuto", "unita", "in_shop", "giacenza", "giacenza_iniziale",
+    ]) {
       if (res.error && new RegExp(`\\b${col}\\b`, "i").test(res.error.message)) {
         delete payload[col];
         res = await supabase.from("prodotti").insert(payload).select("id").single();
@@ -2606,12 +2642,15 @@ function NuovoProdotto({
       alert("Errore nel salvare il prodotto: " + (error?.message ?? ""));
       return;
     }
-    const rows = validIngr.map((i) => ({
-      prodotto_id: data.id,
-      nome: i.nome,
-      origine: i.origine,
-    }));
-    await supabase.from("ingredienti").insert(rows);
+    // ingredienti (semaforo) solo per i prodotti
+    if (validIngr.length) {
+      const rows = validIngr.map((i) => ({
+        prodotto_id: data.id,
+        nome: i.nome,
+        origine: i.origine,
+      }));
+      await supabase.from("ingredienti").insert(rows);
+    }
     setSaving(false);
     setNome("");
     setCategoria("");
@@ -2621,6 +2660,12 @@ function NuovoProdotto({
     setDescrizione("");
     setDurata("");
     setFoto2(null);
+    setPrezzo("");
+    setConfezione("");
+    setContenuto("");
+    setUnita("");
+    setInShop(false);
+    setGiacenzaVal("");
     setIngredienti([{ nome: "", origine: "" }]);
     onSaved();
   }
@@ -2630,11 +2675,18 @@ function NuovoProdotto({
   return (
     <div className="mt-6 rounded-2xl border-2 border-dashed border-[#cfe3b4] bg-leaf/40 p-5">
       <h3 className="font-display text-xl text-green-800">
-        Aggiungi un prodotto{" "}
+        {tipoVoce === "servizio" ? "🎓 Nuovo servizio speciale" : "🚦 Nuova scheda prodotto"}{" "}
         <span className="text-sm font-normal text-green-900/60">
           ({count}/{limite === Infinity ? "∞" : limite} · piano {info.label})
         </span>
       </h3>
+      {tipoVoce !== "servizio" && (
+        <p className="mt-1 text-xs text-green-900/70">
+          🚦 Su ECO-VISA, per essere visibili serve <strong>almeno un prodotto con il semaforo</strong>:
+          inserisci le materie prime qui sotto — prezzo, foto e descrizione si salvano <strong>tutti
+          insieme</strong>, in un solo passaggio.
+        </p>
+      )}
       {!hasStab && (
         <p className="mt-2 text-sm font-semibold text-traffic-red">
           Aggiungi prima almeno uno stabilimento di produzione qui sopra.
@@ -2704,20 +2756,35 @@ function NuovoProdotto({
                 <textarea
                   className="field mt-1"
                   rows={3}
+                  maxLength={MAX_DESC}
                   value={descrizione}
                   onChange={(e) => setDescrizione(e.target.value)}
                   placeholder="Racconta com'è l'esperienza: cosa si fa, cosa è incluso, per chi è adatta…"
                 />
+                <span className="text-[11px] text-green-900/45">{descrizione.length}/{MAX_DESC}</span>
               </label>
-              <label className="block">
-                <span className="label">Durata</span>
-                <input
-                  className="field mt-1"
-                  value={durata}
-                  onChange={(e) => setDurata(e.target.value)}
-                  placeholder="Es. 2 ore, mezza giornata…"
-                />
-              </label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="block">
+                  <span className="label">Durata</span>
+                  <input
+                    className="field mt-1"
+                    value={durata}
+                    onChange={(e) => setDurata(e.target.value)}
+                    placeholder="Es. 2 ore, mezza giornata…"
+                  />
+                </label>
+                {gold && (
+                  <label className="block">
+                    <span className="label">Prezzo a persona</span>
+                    <input
+                      className="field mt-1"
+                      value={prezzo}
+                      onChange={(e) => setPrezzo(e.target.value)}
+                      placeholder="€ 15,00"
+                    />
+                  </label>
+                )}
+              </div>
               {gold && (
                 <div>
                   <span className="label">Foto extra dell&apos;attività (facoltativa)</span>
@@ -2811,8 +2878,10 @@ function NuovoProdotto({
       </div>
       )}
 
+      {tipoVoce !== "servizio" && (
+      <>
       <div className="mt-4">
-        <span className="label">Ingredienti e loro origine</span>
+        <span className="label">Materie prime e loro origine (il semaforo)</span>
         <div className="mt-2 space-y-2">
           {ingredienti.map((row, i) => {
             const res = fp.ingredients.find((r) => r.name === row.nome);
@@ -2873,13 +2942,95 @@ function NuovoProdotto({
           )}
         </div>
       </div>
+      </>
+      )}
+
+      {/* PRODOTTO Gold: prezzo, descrizione, 2ª foto, confezione, shop+giacenza — tutto in un salvataggio */}
+      {tipoVoce !== "servizio" && gold && (
+        <div className="mt-4 space-y-3 rounded-xl border border-[#e3eed7] bg-white p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-green-800">
+            🛒 Vetrina e vendita
+            <span className="rounded-full bg-leaf px-2 py-0.5 text-[11px] font-bold">Gold</span>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <label className="block">
+              <span className="label">Prezzo</span>
+              <input className="field mt-1" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} placeholder="€ 12,00" />
+            </label>
+            <label className="block">
+              <span className="label">Confezione</span>
+              <input className="field mt-1" value={confezione} onChange={(e) => setConfezione(e.target.value)} placeholder="Flacone, barattolo…" />
+            </label>
+            <label className="block">
+              <span className="label">Contenuto + unità</span>
+              <div className="mt-1 flex gap-2">
+                <input className="field" value={contenuto} onChange={(e) => setContenuto(e.target.value)} placeholder="10" inputMode="decimal" />
+                <input className="field !w-24" value={unita} onChange={(e) => setUnita(e.target.value)} placeholder="ml" />
+              </div>
+            </label>
+          </div>
+          <label className="block">
+            <span className="label">Descrizione del prodotto</span>
+            <textarea
+              className="field mt-1"
+              rows={3}
+              maxLength={MAX_DESC}
+              value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value)}
+              placeholder="Racconta il prodotto: cos'è, com'è fatto, cosa lo rende speciale…"
+            />
+            <span className="text-[11px] text-green-900/45">{descrizione.length}/{MAX_DESC}</span>
+          </label>
+          <div>
+            <span className="label">Seconda foto (etichetta)</span>
+            <div className="mt-1 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {foto2 ? (
+                <img src={foto2} alt="" className="h-16 w-16 rounded-lg object-cover" />
+              ) : (
+                <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">nessuna</span>
+              )}
+              <label className="btn-ghost cursor-pointer text-sm">
+                {uploading2 ? "Carico…" : foto2 ? "Cambia foto" : "Carica foto"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setUploading2(true);
+                    try {
+                      setFoto2(await caricaImmagineCatalogo(aziendaId, f));
+                    } catch (err) {
+                      alert((err as Error).message);
+                    } finally {
+                      setUploading2(false);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-green-900/85">
+            <input type="checkbox" className="h-5 w-5 accent-[var(--lime-500)]" checked={inShop} onChange={(e) => setInShop(e.target.checked)} />
+            🛒 Ordinabile dallo shop (vendita online)
+          </label>
+          {inShop && (
+            <label className="block">
+              <span className="label">Giacenza a magazzino (pezzi)</span>
+              <input className="field mt-1 !w-40" value={giacenzaVal} onChange={(e) => setGiacenzaVal(e.target.value)} placeholder="Es. 30" inputMode="numeric" />
+            </label>
+          )}
+        </div>
+      )}
 
       <button
         className="btn-lime mt-4"
         onClick={save}
         disabled={saving || !hasStab || !nome.trim() || pieno}
       >
-        {saving ? "Salvataggio…" : "Salva prodotto"}
+        {saving ? "Salvataggio…" : tipoVoce === "servizio" ? "Salva servizio speciale" : "Salva prodotto"}
       </button>
     </div>
   );
