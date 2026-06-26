@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { registraVisita } from "@/lib/statistiche";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -155,6 +156,16 @@ export function AziendaScheda({
       setLoading(false);
     });
   }, [id]);
+
+  // conta una VISITA alla scheda pubblica (una sola volta per apertura)
+  const vistaContata = useRef(false);
+  useEffect(() => {
+    const owner = dati?.azienda?.owner;
+    if (owner && !vistaContata.current) {
+      vistaContata.current = true;
+      registraVisita(owner);
+    }
+  }, [dati]);
 
   // Sulla pagina dinamica /azienda/?id=, appena carico l'azienda riscrivo l'URL
   // nello slug pulito /azienda/[slug]/ (condivisibile + branded), SOLO se quella
