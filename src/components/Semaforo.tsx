@@ -1,55 +1,70 @@
 import type { Giudizio, TierIng, EcoLevel } from "@/lib/footprint";
 import { categoriaDiTier } from "@/lib/footprint";
 
-/* Semaforo grande: giudizio proporzionale (6 livelli) con widget speciali. */
+/* Semaforo grande: scala a 8 tonalità. La lampada accesa (verde/giallo/rosso)
+   prende il COLORE della tonalità specifica (es. giallo scuro, rosso porpora). */
 type Meta = { label: string; color: string; lampada: EcoLevel; desc: string };
 
 const META: Record<Giudizio, Meta> = {
-  verde_plus: {
+  super_green: {
     label: "Super Green",
     color: "#2e9e0e",
     lampada: "verde",
-    desc: "Tutte le materie prime sono a filiera corta. Eccellente!",
+    desc: "Tutte le materie prime sono a km0. Eccellente!",
   },
   verde: {
-    label: "Sostenibile",
-    color: "var(--traffic-green)",
+    label: "Verde — sostenibile",
+    color: "#45a82f",
     lampada: "verde",
-    desc: "La maggior parte delle materie prime è a filiera corta.",
+    desc: "Materie prime per lo più molto vicine.",
   },
   verde_chiaro: {
-    label: "Buono",
+    label: "Verde chiaro — buono",
     color: "#7cb342",
     lampada: "verde",
-    desc: "Metà delle materie prime è vicina, le altre a media distanza.",
+    desc: "Filiera corta: qualche ingrediente a media distanza, niente di critico.",
   },
-  giallo: {
-    label: "Migliorabile",
-    color: "var(--traffic-yellow)",
+  giallo_chiaro: {
+    label: "Giallo chiaro — migliorabile",
+    color: "#f6c416",
     lampada: "giallo",
-    desc: "Diverse materie prime arrivano da lontano.",
+    desc: "Diverse materie prime oltre i 1000 km, ma entro l'Italia.",
   },
-  rosso: {
-    label: "Alto impatto",
-    color: "var(--traffic-red)",
-    lampada: "rosso",
-    desc: "Molte materie prime percorrono lunghe distanze.",
+  giallo_scuro: {
+    label: "Giallo scuro",
+    color: "#d99a00",
+    lampada: "giallo",
+    desc: "Materie prime oltre i 1000 km e fuori dall'Italia.",
   },
-  rosso_intenso: {
-    label: "Filiera lunga",
-    color: "#b71c1c",
+  rosso_chiaro: {
+    label: "Rosso chiaro — alto impatto",
+    color: "#ef5350",
     lampada: "rosso",
-    desc: "Tutte le materie prime arrivano da molto lontano.",
+    desc: "Materie prime da oltre 2000 km, ma in Europa.",
+  },
+  rosso_scuro: {
+    label: "Rosso scuro",
+    color: "#c62828",
+    lampada: "rosso",
+    desc: "Materie prime da fuori Europa (America o Africa).",
+  },
+  rosso_scurissimo: {
+    label: "Rosso scurissimo — filiera lunghissima",
+    color: "#7b1fa2",
+    lampada: "rosso",
+    desc: "Materie prime dall'Asia: la filiera più lunga.",
   },
 };
 
 export function Semaforo({
   level,
   score,
+  consigli,
   size = "md",
 }: {
   level: Giudizio;
   score?: number;
+  consigli?: string[];
   size?: "sm" | "md";
 }) {
   const order: EcoLevel[] = ["rosso", "giallo", "verde"];
@@ -86,7 +101,7 @@ export function Semaforo({
             <div className="font-display text-xl" style={{ color: m.color }}>
               {m.label}
             </div>
-            {level === "verde_plus" && (
+            {level === "super_green" && (
               <span className="rounded-full bg-[#2e9e0e] px-2 py-0.5 text-[11px] font-bold text-white">
                 🌱 SUPER GREEN · km0
               </span>
@@ -99,15 +114,19 @@ export function Semaforo({
           )}
           <p className="mt-0.5 max-w-xs text-xs text-green-900/70">{m.desc}</p>
 
-          {level === "rosso_intenso" && (
-            <div className="mt-2 flex items-start gap-2 rounded-xl border border-traffic-red/40 bg-[#fff1f0] p-2">
-              <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-traffic-red text-sm font-bold text-white">
-                !
-              </span>
-              <p className="text-xs text-green-900/80">
-                Questo prodotto sicuramente è buonissimo, ma perché non proviamo a
-                renderlo ancora migliore usando materie prime locali?
-              </p>
+          {consigli && consigli.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {consigli.map((c, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 rounded-xl border border-lime-500/40 bg-leaf/40 p-2"
+                >
+                  <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lime-500 text-sm font-bold text-white">
+                    💡
+                  </span>
+                  <p className="text-xs text-green-900/80">{c}</p>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -116,7 +135,7 @@ export function Semaforo({
           <div className="font-display text-sm leading-tight" style={{ color: m.color }}>
             {m.label}
           </div>
-          {level === "verde_plus" && (
+          {level === "super_green" && (
             <span className="mt-0.5 inline-block rounded-full bg-[#2e9e0e] px-1.5 py-0.5 text-[9px] font-bold text-white">
               🌱 km0
             </span>
@@ -127,15 +146,17 @@ export function Semaforo({
   );
 }
 
-/* Mini-semaforo orizzontale di una singola materia prima (premia ogni
-   ingrediente in base alla distanza). I 4 verdi usano sfumature diverse. */
+/* Mini-semaforo orizzontale di una singola materia prima: la lampada accesa
+   prende il colore della tonalità (8 sfumature). */
 const COLORE_TIER: Record<TierIng, string> = {
-  km0: "#2e9e0e",
-  verde_intenso: "#4caf2a",
+  super_green: "#2e9e0e",
+  verde: "#45a82f",
   verde_chiaro: "#7cb342",
-  verde_pallido: "#aed581",
-  giallo: "var(--traffic-yellow)",
-  rosso: "var(--traffic-red)",
+  giallo_chiaro: "#f6c416",
+  giallo_scuro: "#d99a00",
+  rosso_chiaro: "#ef5350",
+  rosso_scuro: "#c62828",
+  rosso_scurissimo: "#7b1fa2",
 };
 
 export function SemaforoIngrediente({ tier }: { tier: TierIng }) {
@@ -146,7 +167,6 @@ export function SemaforoIngrediente({ tier }: { tier: TierIng }) {
       <span className="inline-flex items-center gap-0.5 rounded-full bg-[#222] px-1 py-0.5">
         {ordine.map((c) => {
           const on = c === cat;
-          const colore = c === "verde" ? COLORE_TIER[tier] : `var(--traffic-${c === "giallo" ? "yellow" : "red"})`;
           return (
             <span
               key={c}
@@ -154,14 +174,14 @@ export function SemaforoIngrediente({ tier }: { tier: TierIng }) {
                 width: 9,
                 height: 9,
                 borderRadius: "9999px",
-                background: on ? colore : "#3a3a3a",
-                boxShadow: on ? `0 0 6px ${colore}` : "none",
+                background: on ? COLORE_TIER[tier] : "#3a3a3a",
+                boxShadow: on ? `0 0 6px ${COLORE_TIER[tier]}` : "none",
               }}
             />
           );
         })}
       </span>
-      {tier === "km0" && (
+      {tier === "super_green" && (
         <span className="text-[9px] font-bold text-[#2e9e0e]">km0</span>
       )}
     </span>

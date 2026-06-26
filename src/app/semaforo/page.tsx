@@ -5,7 +5,7 @@ import { SOGLIE_TIER_KM, TRUCK_G_PER_KM, SHIP_G_PER_KM } from "@/lib/footprint";
 export const metadata = {
   title: "Come funziona il semaforo — ECO-VISA",
   description:
-    "Il criterio del semaforo ecologico ECO-VISA: ogni materia prima ha un colore in base alla distanza, il semaforo grande è un giudizio proporzionale.",
+    "Il criterio del semaforo ecologico ECO-VISA: ogni materia prima ha una tonalità in base a distanza e geografia; il semaforo grande è un punteggio pesato.",
 };
 
 export default function SemaforoPage() {
@@ -20,42 +20,51 @@ export default function SemaforoPage() {
         Il semaforo misura l&apos;<strong>impronta di trasporto delle materie
         prime</strong>: quanto vengono da lontano. Non è una somma matematica (che
         penalizzerebbe i prodotti con tanti ingredienti), ma un{" "}
-        <strong>giudizio proporzionale</strong>: ogni materia prima ha il suo
-        colore, e il semaforo grande riassume l&apos;insieme.
+        <strong>punteggio pesato</strong>: ogni materia prima ha la sua tonalità, e
+        il semaforo grande pesa l&apos;insieme — con un freno per le filiere più lunghe.
       </p>
 
       {/* Colore di ogni materia prima */}
       <section className="card mt-8 p-6">
         <h2 className="font-display text-2xl text-green-800">
-          1. Il colore di ogni materia prima
+          1. La tonalità di ogni materia prima
         </h2>
         <p className="mt-2 text-green-900/80">
-          In base alla distanza dallo stabilimento, ogni ingrediente prende un colore:
+          In base a <strong>distanza</strong> e <strong>geografia</strong> dello stabilimento,
+          ogni ingrediente prende una delle 8 tonalità:
         </p>
         <ul className="mt-4 space-y-2 text-sm">
           <li className="flex items-center gap-3">
-            <SemaforoIngrediente tier="km0" />
-            <span><strong>Super Green · km0</strong> — entro {SOGLIE_TIER_KM.km0} km</span>
+            <SemaforoIngrediente tier="super_green" />
+            <span><strong>Super Green · km0</strong> — entro {SOGLIE_TIER_KM.super_green} km</span>
           </li>
           <li className="flex items-center gap-3">
-            <SemaforoIngrediente tier="verde_intenso" />
-            <span>Verde intenso — entro {SOGLIE_TIER_KM.verde_intenso} km</span>
+            <SemaforoIngrediente tier="verde" />
+            <span>Verde — entro {SOGLIE_TIER_KM.verde} km</span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="verde_chiaro" />
-            <span>Verde chiaro — entro {SOGLIE_TIER_KM.verde_chiaro} km</span>
+            <span>Verde chiaro — entro {SOGLIE_TIER_KM.verde_chiaro} km (copre l&apos;Italia e i vicini)</span>
           </li>
           <li className="flex items-center gap-3">
-            <SemaforoIngrediente tier="verde_pallido" />
-            <span>Verde pallido — entro {SOGLIE_TIER_KM.verde_pallido} km (copre l&apos;Italia)</span>
+            <SemaforoIngrediente tier="giallo_chiaro" />
+            <span>Giallo chiaro — oltre {SOGLIE_TIER_KM.verde_chiaro} km, ma <strong>in Italia</strong></span>
           </li>
           <li className="flex items-center gap-3">
-            <SemaforoIngrediente tier="giallo" />
-            <span>Giallo — da {SOGLIE_TIER_KM.verde_pallido} a {SOGLIE_TIER_KM.giallo} km</span>
+            <SemaforoIngrediente tier="giallo_scuro" />
+            <span>Giallo scuro — oltre {SOGLIE_TIER_KM.verde_chiaro} km e <strong>fuori dall&apos;Italia</strong></span>
           </li>
           <li className="flex items-center gap-3">
-            <SemaforoIngrediente tier="rosso" />
-            <span>Rosso — oltre {SOGLIE_TIER_KM.giallo} km</span>
+            <SemaforoIngrediente tier="rosso_chiaro" />
+            <span>Rosso chiaro — oltre {SOGLIE_TIER_KM.giallo} km, ma in <strong>Europa</strong></span>
+          </li>
+          <li className="flex items-center gap-3">
+            <SemaforoIngrediente tier="rosso_scuro" />
+            <span>Rosso scuro — <strong>fuori Europa</strong> (America o Africa)</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <SemaforoIngrediente tier="rosso_scurissimo" />
+            <span>Rosso scurissimo — materie prime dall&apos;<strong>Asia</strong></span>
           </li>
         </ul>
       </section>
@@ -63,23 +72,26 @@ export default function SemaforoPage() {
       {/* Il giudizio complessivo */}
       <section className="card mt-6 p-6">
         <h2 className="font-display text-2xl text-green-800">
-          2. Il giudizio del semaforo grande
+          2. Il punteggio del semaforo grande
         </h2>
         <p className="mt-2 text-green-900/80">
-          Il semaforo grande non somma i chilometri: guarda le <strong>proporzioni</strong>
-          dei colori delle materie prime.
+          Ogni materia prima vale un <strong>punteggio qualità</strong> (più è vicina,
+          più è alto). Il prodotto è la <strong>media pesata</strong> dei punteggi — così
+          tanti ingredienti vicini contano davvero, e un singolo ingrediente esotico non
+          rovina tutto.
         </p>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-green-900/85">
-          <li><strong>Super Green</strong>: tutte le materie prime verdi.</li>
-          <li><strong>Verde</strong>: più della metà verdi (il resto giallo).</li>
-          <li><strong>Verde chiaro</strong>: metà verdi e metà gialle.</li>
-          <li><strong>Giallo</strong>: oltre metà gialle, oppure maggioranza verde ma con almeno una rossa.</li>
-          <li><strong>Rosso</strong>: metà o più rosse.</li>
-          <li><strong>Rosso intenso</strong>: tutte rosse (con l&apos;invito a usare materie prime locali).</li>
+          <li>Un prodotto resta <strong>verde</strong> anche con qualche ingrediente giallo, purché non superino la metà.</li>
+          <li>Il <strong>giallo scuro</strong> pesa più del giallo chiaro; il rosso pesa molto.</li>
+          <li>
+            <strong>Freno duro:</strong> anche un solo ingrediente <em>rosso scurissimo</em> (Asia)
+            impedisce il verde — il prodotto non supera mai il giallo scuro.
+          </li>
+          <li>Quando c&apos;è una materia prima lontana, mostriamo un <strong>consiglio</strong> con alternative più vicine.</li>
         </ul>
         <div className="mt-4 flex flex-wrap gap-6">
-          <Semaforo level="verde_plus" score={100} />
-          <Semaforo level="rosso_intenso" score={5} />
+          <Semaforo level="super_green" score={100} />
+          <Semaforo level="rosso_scurissimo" score={8} />
         </div>
       </section>
 
@@ -92,8 +104,8 @@ export default function SemaforoPage() {
           pubblicati (EU / ISPRA):
         </p>
         <ul className="mt-3 space-y-2 text-green-900/85">
-          <li>🚚 Camion (Europa): {TRUCK_G_PER_KM} g CO₂ per km.</li>
-          <li>🚢 Nave (fuori UE): {SHIP_G_PER_KM} g CO₂ per km + camion dal porto allo stabilimento.</li>
+          <li>🚚 Camion (Europa e Nord Africa): {TRUCK_G_PER_KM} g CO₂ per km.</li>
+          <li>🚢 Nave (resto del mondo): {SHIP_G_PER_KM} g CO₂ per km + camion dal porto allo stabilimento.</li>
         </ul>
         <p className="mt-3 text-sm text-green-900/60">
           Il criterio è pubblico proprio per poter essere verificato da chiunque.

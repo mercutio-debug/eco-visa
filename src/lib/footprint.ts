@@ -28,76 +28,122 @@ function viaCamion(lat: number, lon: number): boolean {
   return europa || nordAfrica;
 }
 
+/** Macro-regione di provenienza, per il giudizio geografico del semaforo. */
+export type Regione = "italia" | "europa" | "america_africa" | "asia";
+
+export function regioneDi(g: GeoPoint): Regione {
+  if (g.country === "Italia") return "italia";
+  if (g.lon > 45) return "asia"; // Medio Oriente e Asia
+  if (g.lon < -25) return "america_africa"; // Americhe
+  if (g.lat < 34) return "america_africa"; // Africa
+  return "europa";
+}
+
+/** Lampada "a 3 colori" del semaforo grande (verde/giallo/rosso). */
 export type EcoLevel = "verde" | "giallo" | "rosso";
 
 /* ============================================================
-   CRITERIO SEMAFORO (giudizio proporzionale, non somma matematica)
-   - ogni MATERIA PRIMA ha un suo tier in base alla distanza:
-       km0      ≤ 70 km   (SUPER GREEN, km0)
-       verde_intenso ≤ 200 km
-       verde_chiaro  ≤ 500 km
-       verde_pallido ≤ 1000 km  (copre la produzione italiana)
-       giallo   1000–2000 km
-       rosso    > 2000 km
-   - il SEMAFORO GRANDE è un giudizio di massima sulle proporzioni
-     dei colori delle materie prime (così i prodotti con tanti
-     ingredienti non sono più penalizzati dalla somma).
+   SCALA A 8 TONALITÀ (per ingrediente E per prodotto)
+   Tier del singolo ingrediente in base a DISTANZA + GEOGRAFIA:
+     super_green     ≤ 70 km    (km0)
+     verde           ≤ 200 km
+     verde_chiaro    ≤ 1000 km  (copre l'Italia e i vicini)
+     giallo_chiaro   1000–2000 km, in Italia
+     giallo_scuro    1000–2000 km, fuori Italia
+     rosso_chiaro    > 2000 km, in Europa
+     rosso_scuro     > 2000 km, America/Africa
+     rosso_scurissimo (porpora)  Asia
    ============================================================ */
 export type TierIng =
-  | "km0"
-  | "verde_intenso"
-  | "verde_chiaro"
-  | "verde_pallido"
-  | "giallo"
-  | "rosso";
-
-export type Giudizio =
-  | "verde_plus"
+  | "super_green"
   | "verde"
   | "verde_chiaro"
-  | "giallo"
-  | "rosso"
-  | "rosso_intenso";
+  | "giallo_chiaro"
+  | "giallo_scuro"
+  | "rosso_chiaro"
+  | "rosso_scuro"
+  | "rosso_scurissimo";
 
-export function tierIngrediente(km: number): TierIng {
-  if (km <= 70) return "km0";
-  if (km <= 200) return "verde_intenso";
-  if (km <= 500) return "verde_chiaro";
-  if (km <= 1000) return "verde_pallido";
-  if (km <= 2000) return "giallo";
+/** Il PRODOTTO è giudicato sulla stessa scala a 8 tonalità. */
+export type Giudizio = TierIng;
+
+export function tierIngrediente(km: number, reg: Regione): TierIng {
+  if (km <= 70) return "super_green";
+  if (km <= 200) return "verde";
+  if (km <= 1000) return "verde_chiaro";
+  if (km <= 2000) return reg === "italia" ? "giallo_chiaro" : "giallo_scuro";
+  if (reg === "asia") return "rosso_scurissimo";
+  if (reg === "america_africa") return "rosso_scuro";
+  return "rosso_chiaro";
+}
+
+/** Le 3 tonalità verdi → "verde"; le 2 gialle → "giallo"; le 3 rosse → "rosso". */
+export function categoriaDiTier(t: TierIng): EcoLevel {
+  if (t === "super_green" || t === "verde" || t === "verde_chiaro") return "verde";
+  if (t === "giallo_chiaro" || t === "giallo_scuro") return "giallo";
   return "rosso";
 }
 
-/** I 4 verdi contano come "verde" nel giudizio complessivo. */
-export function categoriaDiTier(t: TierIng): EcoLevel {
-  if (t === "giallo") return "giallo";
-  if (t === "rosso") return "rosso";
-  return "verde";
-}
-
-/** Giudizio del semaforo grande dalle categorie delle materie prime. */
-export function giudizioDaCategorie(cats: EcoLevel[]): Giudizio {
-  const n = cats.length;
-  if (n === 0) return "verde";
-  const g = cats.filter((c) => c === "verde").length;
-  const r = cats.filter((c) => c === "rosso").length;
-  if (r === n) return "rosso_intenso"; // tutti rossi
-  if (r * 2 >= n) return "rosso"; // metà o più rossi
-  if (r >= 1) return "giallo"; // c'è un rosso (ma meno della metà)
-  if (g === n) return "verde_plus"; // tutti verdi
-  if (g * 2 > n) return "verde"; // più della metà verdi (resto giallo)
-  if (g * 2 === n) return "verde_chiaro"; // metà verdi, metà gialli
-  return "giallo"; // più della metà gialli
-}
-
-const SCORE_GIUDIZIO: Record<Giudizio, number> = {
-  verde_plus: 100,
-  verde: 85,
-  verde_chiaro: 70,
-  giallo: 45,
-  rosso: 20,
-  rosso_intenso: 5,
+/* ============================================================
+   EQUAZIONE DEL SEMAFORO GRANDE (punteggio pesato, non proporzionale)
+   - ogni ingrediente vale un punteggio qualità 0..100;
+   - il prodotto = MEDIA dei punteggi;
+   - FRENO DURO: anche un solo "rosso scurissimo" (Asia) impedisce il verde
+     (il prodotto non supera mai il giallo scuro).
+   ============================================================ */
+const QUALITA: Record<TierIng, number> = {
+  super_green: 100,
+  verde: 92,
+  verde_chiaro: 82,
+  giallo_chiaro: 62,
+  giallo_scuro: 48,
+  rosso_chiaro: 34,
+  rosso_scuro: 24,
+  rosso_scurissimo: 8,
 };
+
+function bandaDaPunteggio(score: number): Giudizio {
+  if (score >= 95) return "super_green";
+  if (score >= 86) return "verde";
+  if (score >= 70) return "verde_chiaro";
+  if (score >= 56) return "giallo_chiaro";
+  if (score >= 42) return "giallo_scuro";
+  if (score >= 30) return "rosso_chiaro";
+  if (score >= 16) return "rosso_scuro";
+  return "rosso_scurissimo";
+}
+
+/** Giudizio del prodotto (livello + punteggio 0..100) dai tier degli ingredienti. */
+export function giudizioProdotto(tiers: TierIng[]): { level: Giudizio; score: number } {
+  if (!tiers.length) return { level: "verde_chiaro", score: 82 };
+  let score = Math.round(tiers.reduce((s, t) => s + QUALITA[t], 0) / tiers.length);
+  // freno duro: un rosso scurissimo non porta mai al verde (max giallo scuro = 49)
+  if (tiers.includes("rosso_scurissimo")) score = Math.min(score, 49);
+  return { level: bandaDaPunteggio(score), score };
+}
+
+/** Consigli contestuali per gli ingredienti lontani (giallo/rosso). */
+export function consigliIngredienti(ings: { name: string; tier: TierIng }[]): string[] {
+  const out: string[] = [];
+  for (const i of ings) {
+    if (categoriaDiTier(i.tier) === "verde") continue;
+    const n = i.name.toLowerCase();
+    if (n.includes("zucchero di canna") || n.includes("canna")) {
+      out.push(
+        "È vero, lo zucchero di canna di solito arriva da lontano — perché non provare dolcificanti locali come malto d'orzo, miele o zucchero di barbabietola grezzo?",
+      );
+    } else if (n.includes("cacao") || n.includes("cioccolat") || n.includes("caffè") || n.includes("caffe") || n.includes("vaniglia") || n.includes("spezie") || n.includes("pepe")) {
+      out.push(
+        `«${i.name}» arriva per natura da lontano: è difficile sostituirlo, ma sceglierlo da filiere certificate e a basso impatto fa la differenza.`,
+      );
+    } else {
+      out.push(
+        `«${i.name}» arriva da lontano: dove possibile, una materia prima più vicina migliorerebbe il semaforo.`,
+      );
+    }
+  }
+  return [...new Set(out)].slice(0, 3);
+}
 
 export type IngredientInput = {
   name: string;
@@ -131,7 +177,8 @@ export type ProductFootprint = {
   totalCo2Kg: number;
   avgKm: number; // distanza media (solo informativa)
   score: number; // 0..100 (più alto = meglio)
-  level: Giudizio; // giudizio proporzionale del semaforo grande
+  level: Giudizio; // giudizio a 8 tonalità del semaforo grande
+  consigli: string[]; // suggerimenti contestuali (materie prime lontane)
 };
 
 /** calcola km + CO2 di una singola materia prima fino allo stabilimento */
@@ -149,7 +196,7 @@ export function computeIngredient(
       totalKm: 0,
       co2g: 0,
       legs: [],
-      tier: "rosso",
+      tier: "rosso_scuro",
     };
   }
 
@@ -197,16 +244,15 @@ export function computeIngredient(
     totalKm,
     co2g,
     legs,
-    tier: tierIngrediente(totalKm),
+    tier: tierIngrediente(totalKm, regioneDi(o)),
   };
 }
 
 /** Soglie dei tier per-ingrediente (km), esposte per la pagina di trasparenza. */
 export const SOGLIE_TIER_KM = {
-  km0: 70,
-  verde_intenso: 200,
-  verde_chiaro: 500,
-  verde_pallido: 1000,
+  super_green: 70,
+  verde: 200,
+  verde_chiaro: 1000,
   giallo: 2000,
 } as const;
 
@@ -225,7 +271,8 @@ export function computeFootprint(
       totalCo2Kg: 0,
       avgKm: 0,
       score: 0,
-      level: "rosso",
+      level: "rosso_scuro",
+      consigli: [],
     };
   }
 
@@ -237,12 +284,13 @@ export function computeFootprint(
   const totalCo2g = results.reduce((s, r) => s + r.co2g, 0);
   const totalCo2Kg = Math.round(totalCo2g / 1000);
 
-  // Criterio semaforo: GIUDIZIO proporzionale sui colori delle materie prime.
+  // Solo le materie prime con località riconosciuta entrano nel giudizio.
   const risolti = results.filter((r) => r.resolved);
   const avgKm = risolti.length
     ? Math.round(risolti.reduce((s, r) => s + r.totalKm, 0) / risolti.length)
     : 0;
-  const giud = giudizioDaCategorie(risolti.map((r) => categoriaDiTier(r.tier)));
+  const { level, score } = giudizioProdotto(risolti.map((r) => r.tier));
+  const consigli = consigliIngredienti(risolti.map((r) => ({ name: r.name, tier: r.tier })));
 
   return {
     plant: plant.name,
@@ -251,8 +299,9 @@ export function computeFootprint(
     totalKm,
     totalCo2Kg,
     avgKm,
-    score: SCORE_GIUDIZIO[giud],
-    level: giud,
+    score,
+    level,
+    consigli,
   };
 }
 
