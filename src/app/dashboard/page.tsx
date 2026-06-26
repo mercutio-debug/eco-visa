@@ -571,7 +571,7 @@ export default function DashboardPage() {
               onChange={loadAll}
               vista="form"
             />
-            {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} />}
+            {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" />}
           </div>
         </>
       )}
@@ -623,17 +623,21 @@ export default function DashboardPage() {
       {/* «Ci pensiamo noi»: subito sotto i servizi extra, compare solo se acquistato */}
       <OnboardingCard />
 
-      {/* lista dei prodotti già caricati: IN FONDO, così non si scrolla all'infinito
-          per aggiungerne uno nuovo (il form è in alto sotto gli stabilimenti) */}
+      {/* Gruppo PRODOTTI & SERVIZI: gli elenchi già caricati, IN FONDO, così non si
+          scrolla all'infinito per aggiungerne uno (i form sono in alto). */}
       {azienda && (
-        <ProdottiCard
-          aziendaId={azienda.id}
-          stabilimenti={stabilimenti}
-          prodotti={prodotti}
-          plan={activePlan}
-          onChange={loadAll}
-          vista="lista"
-        />
+        <>
+          <h2 className="mt-10 font-display text-3xl text-green-700">Prodotti & Servizi</h2>
+          <ProdottiCard
+            aziendaId={azienda.id}
+            stabilimenti={stabilimenti}
+            prodotti={prodotti}
+            plan={activePlan}
+            onChange={loadAll}
+            vista="lista"
+          />
+          {user && <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" />}
+        </>
       )}
     </div>
   );
@@ -1541,10 +1545,20 @@ function ProdottiCard({
   const gold = plan === "gold";
   const canSell = info.canSell;
   return (
-    <section id="i-tuoi-prodotti" className="card mt-6 p-6 scroll-mt-20">
+    <section
+      id="i-tuoi-prodotti"
+      className={`card mt-6 p-6 scroll-mt-20 ${
+        vista === "form" ? "border-2 border-green-600/30 bg-leaf/20" : ""
+      }`}
+    >
       <h2 className="font-display text-2xl text-green-800">
-        {vista === "lista" ? "I tuoi prodotti" : "🚦 Inserisci prodotto"}
+        {vista === "lista" ? "I tuoi prodotti" : "Aggiungi prodotto"}
       </h2>
+      {vista === "form" && (
+        <p className="mt-0.5 text-sm font-semibold text-green-700">
+          🚦 e calcola il tuo semaforo di sostenibilità
+        </p>
+      )}
       {vista !== "lista" && (
         <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
           🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
@@ -2734,7 +2748,7 @@ function NuovoProdotto({
         </p>
       )}
 
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
+      <div className="mt-3 space-y-3">
         <label className="block">
           <span className="label">Nome prodotto *</span>
           <input className="field mt-1" value={nome} onChange={(e) => setNome(e.target.value)} />
@@ -2874,45 +2888,6 @@ function NuovoProdotto({
         </div>
       )}
 
-      {/* immagine del prodotto (solo Gold), ridimensionata in automatico */}
-      {gold && (
-      <div className="mt-3">
-        <span className="label">Immagine del prodotto (facoltativa)</span>
-        <div className="mt-1 flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {immagine ? (
-            <img src={immagine} alt="" className="h-16 w-16 rounded-lg object-cover" />
-          ) : (
-            <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">
-              nessuna
-            </span>
-          )}
-          <label className="btn-ghost cursor-pointer text-sm">
-            {uploading ? "Carico…" : immagine ? "Cambia foto" : "Carica foto"}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                setUploading(true);
-                try {
-                  setImmagine(await caricaImmagineCatalogo(aziendaId, f));
-                } catch (err) {
-                  alert((err as Error).message);
-                } finally {
-                  setUploading(false);
-                }
-              }}
-            />
-          </label>
-        </div>
-        <p className="mt-1 text-[11px] text-green-900/50">
-          Ridimensionata e alleggerita in automatico.
-        </p>
-      </div>
-      )}
 
       {tipoVoce !== "servizio" && (
       <>
@@ -2988,7 +2963,7 @@ function NuovoProdotto({
             🛒 Vetrina e vendita
             <span className="rounded-full bg-leaf px-2 py-0.5 text-[11px] font-bold">Gold</span>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="space-y-3">
             <label className="block">
               <span className="label">Prezzo</span>
               <input className="field mt-1" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} placeholder="€ 12,00" />
@@ -3028,7 +3003,38 @@ function NuovoProdotto({
             <span className="text-[11px] text-green-900/45">{descrizione.length}/{MAX_DESC}</span>
           </label>
           <div>
-            <span className="label">Seconda foto (etichetta)</span>
+            <span className="label">Foto 1 (copertina)</span>
+            <div className="mt-1 flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {immagine ? (
+                <img src={immagine} alt="" className="h-16 w-16 rounded-lg object-cover" />
+              ) : (
+                <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-leaf text-[10px] text-green-900/50">nessuna</span>
+              )}
+              <label className="btn-ghost cursor-pointer text-sm">
+                {uploading ? "Carico…" : immagine ? "Cambia foto" : "Carica foto"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setUploading(true);
+                    try {
+                      setImmagine(await caricaImmagineCatalogo(aziendaId, f));
+                    } catch (err) {
+                      alert((err as Error).message);
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+          <div>
+            <span className="label">Foto 2 (etichetta)</span>
             <div className="mt-1 flex items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {foto2 ? (

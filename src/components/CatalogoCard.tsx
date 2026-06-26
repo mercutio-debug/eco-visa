@@ -32,10 +32,25 @@ export const LINGUE_SERVIZIO: { code: string; label: string; flag: string }[] = 
  * numero, nome, tipo, prezzo, immagine). I clienti li vedranno in anteprima sul
  * widget e potranno contattare l'azienda (Fase 2).
  */
-export function CatalogoCard({ ownerId, gold }: { ownerId: string; gold: boolean }) {
+export function CatalogoCard({
+  ownerId,
+  gold,
+  vista = "tutto",
+}: {
+  ownerId: string;
+  gold: boolean;
+  /** "form" = solo "Inserisci servizio extra"; "lista" = solo l'elenco */
+  vista?: "form" | "lista" | "tutto";
+}) {
   const [voci, setVoci] = useState<VoceCatalogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<VoceCatalogo | null>(null);
+  const [formKey, setFormKey] = useState(0);
+
+  function nuovoServizio(): VoceCatalogo {
+    const numero = voci.reduce((m, v) => Math.max(m, v.numero), 0) + 1;
+    return { numero, nome: "", tipo: "visita", prezzo: null, unita: null, descrizione: null, immagine: null };
+  }
 
   function ricarica() {
     loadCatalogo(ownerId).then((v) => {
@@ -75,17 +90,38 @@ export function CatalogoCard({ ownerId, gold }: { ownerId: string; gold: boolean
   }
 
   return (
-    <section className="card mt-6 p-6">
+    <section
+      className={`card mt-6 p-6 ${vista === "form" ? "border-2 border-badge-yellow bg-[#fffbe9]" : ""}`}
+    >
       <h2 className="font-display text-2xl text-green-800">
-        Catalogo prodotti e servizi{" "}
-        <span className="text-sm font-normal text-green-900/60">(Gold)</span>
+        {vista === "lista" ? "Servizi e prodotti a catalogo" : "Inserisci servizio extra"}
+        {vista !== "lista" && (
+          <span className="text-sm font-normal text-green-900/60"> (Gold)</span>
+        )}
       </h2>
       <p className="mt-1 text-sm text-green-900/70">
-        Prodotti e servizi che vendi. I clienti li vedono in anteprima sul widget
-        e ti contattano per info o prenotazione.
+        {vista === "lista"
+          ? "Le voci del tuo catalogo (servizi e prodotti extra)."
+          : "Visite guidate, laboratori, esperienze: con lingua, durata e 2 foto. Da prenotare in azienda."}
       </p>
 
-      {!loading && voci.length > 0 && (
+      {/* FORM sempre aperto (vista "form"/"tutto") */}
+      {vista !== "lista" && (
+        <VoceEditor
+          key={formKey}
+          inline
+          ownerId={ownerId}
+          voce={nuovoServizio()}
+          onClose={() => {}}
+          onSaved={() => {
+            setFormKey((k) => k + 1);
+            ricarica();
+          }}
+        />
+      )}
+
+      {/* ELENCO (vista "lista"/"tutto") */}
+      {vista !== "form" && !loading && voci.length > 0 && (
         <ul className="mt-4 space-y-2">
           {voci.map((v) => {
             const t = TIPI_VOCE.find((x) => x.id === v.tipo);
@@ -128,9 +164,17 @@ export function CatalogoCard({ ownerId, gold }: { ownerId: string; gold: boolean
         </ul>
       )}
 
-      <button className="btn-lime mt-4 text-sm" onClick={nuova}>
-        + Aggiungi prodotto o servizio
-      </button>
+      {vista === "lista" && !loading && voci.length === 0 && (
+        <p className="mt-3 text-sm text-green-900/60">
+          Nessun servizio extra ancora: aggiungilo dalla cornice «Inserisci servizio extra» in alto.
+        </p>
+      )}
+
+      {vista === "tutto" && (
+        <button className="btn-lime mt-4 text-sm" onClick={nuova}>
+          + Aggiungi prodotto o servizio
+        </button>
+      )}
 
       {editing && (
         <VoceEditor
@@ -152,11 +196,14 @@ function VoceEditor({
   voce,
   onClose,
   onSaved,
+  inline = false,
 }: {
   ownerId: string;
   voce: VoceCatalogo;
   onClose: () => void;
   onSaved: () => void;
+  /** true = form sempre aperto dentro la cornice (niente overlay/modale) */
+  inline?: boolean;
 }) {
   const [v, setV] = useState<VoceCatalogo>(voce);
   const [saving, setSaving] = useState(false);
@@ -212,8 +259,9 @@ function VoceEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/55 p-4" onClick={onClose}>
-      <div className="card max-h-[92vh] w-full max-w-lg overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+    <div className={inline ? "" : "fixed inset-0 z-[3000] flex items-center justify-center bg-black/55 p-4"} onClick={inline ? undefined : onClose}>
+      <div className={inline ? "" : "card max-h-[92vh] w-full max-w-lg overflow-y-auto p-6"} onClick={(e) => e.stopPropagation()}>
+        {!inline && (
         <div className="flex items-center justify-between">
           <h3 className="font-display text-xl text-green-800">
             {v.id ? "Modifica voce" : `Voce n. ${v.numero}`}
@@ -222,8 +270,9 @@ function VoceEditor({
             ×
           </button>
         </div>
+        )}
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 space-y-3">
           <label className="block sm:col-span-2">
             <span className="label">Nome del prodotto o servizio</span>
             <input className="field mt-1" value={v.nome} onChange={(e) => set("nome", e.target.value)} />
@@ -247,7 +296,7 @@ function VoceEditor({
           </label>
           <label className="block sm:col-span-2">
             <span className="label">Descrizione (facoltativa)</span>
-            <textarea className="field mt-1 h-20" value={v.descrizione ?? ""} onChange={(e) => set("descrizione", e.target.value)} />
+            <textarea className="field mt-1 h-20" maxLength={2000} value={v.descrizione ?? ""} onChange={(e) => set("descrizione", e.target.value)} />
           </label>
           <label className="block sm:col-span-2">
             <span className="label">Durata (facoltativa, per i servizi — es. &quot;2 ore&quot;)</span>
@@ -330,12 +379,14 @@ function VoceEditor({
         </div>
 
         <div className="mt-5 flex items-center gap-3">
-          <button className="btn-lime" onClick={salva} disabled={saving || uploading || !v.nome.trim()}>
-            {saving ? "Salvo…" : "Salva"}
+          <button className={`btn-lime ${inline ? "w-full justify-center" : ""}`} onClick={salva} disabled={saving || uploading || !v.nome.trim()}>
+            {saving ? "Salvo…" : inline ? "Salva servizio extra" : "Salva"}
           </button>
-          <button className="btn-ghost text-sm" onClick={onClose}>
-            Annulla
-          </button>
+          {!inline && (
+            <button className="btn-ghost text-sm" onClick={onClose}>
+              Annulla
+            </button>
+          )}
         </div>
         {msg && <p className="mt-2 text-sm font-semibold text-traffic-red">{msg}</p>}
       </div>
