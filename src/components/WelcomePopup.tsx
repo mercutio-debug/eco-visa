@@ -68,8 +68,8 @@ export function WelcomePopup() {
           <CartonShip className="mt-5 w-full" />
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Link href="/biofido" onClick={close} className="btn-lime">
-              🐾 Esplora le aziende
+            <Link href="/#aziende" onClick={close} className="btn-lime">
+              🔎 Esplora le aziende
             </Link>
             <button onClick={close} className="btn-ghost">
               Più tardi

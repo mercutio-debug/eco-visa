@@ -49,6 +49,18 @@ export default function Home() {
               <Link href="/prodotti" className="btn-ghost">
                 Esplora le schede prodotto
               </Link>
+              <Link
+                href="/semaforo"
+                className="btn-ghost inline-flex items-center gap-2"
+                aria-label="Come funziona il semaforo"
+              >
+                <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-[#222] px-1 py-1">
+                  <span className="h-2.5 w-2.5 rounded-full bg-traffic-red" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-traffic-yellow" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#45a82f]" />
+                </span>
+                Come funziona il semaforo
+              </Link>
               <Link href="/calcola" className="btn-lime">
                 Calcola l'impronta del tuo prodotto
               </Link>
@@ -214,7 +226,7 @@ export default function Home() {
       </section>
 
       {/* MAPPA DELLE AZIENDE ISCRITTE (anche solo ECO-VISA) */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
+      <section id="aziende" className="mx-auto max-w-6xl px-4 py-12 scroll-mt-20">
         <h2 className="title-pangea text-4xl text-green-700 md:text-5xl">
           Le aziende su ECO-VISA
         </h2>

@@ -106,23 +106,45 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
     immagine?: string | null;
   } | null;
 
-  // prodotti → elenco {id, name, price, image, prenotabile} per la scheda BioFido.
-  // L'id serve a legare la prenotazione al listino, così il pagamento ricalcola
-  // l'importo dalla fonte vera (vedi edge function booking-pay).
+  // prodotti → elenco {id, name, price, image, prenotabile, ingredients} per BioFido.
+  // L'id lega la prenotazione al listino (il pagamento ricalcola dalla fonte vera).
+  // GLI INGREDIENTI (geocodificati) servono perché il semaforo che un prodotto ha
+  // su ECO-VISA appaia IDENTICO anche su BioFido (è il nostro elemento distintivo).
+  type MP = { nome: string; origine: string; lat?: number; lon?: number };
   let products:
-    | { id?: string; name: string; price?: string; image?: string; prenotabile?: boolean }[]
+    | { id?: string; name: string; price?: string; image?: string; prenotabile?: boolean; ingredients?: MP[] }[]
     | null = null;
   if (a?.id) {
     const { data: pr } = await supabase.from("prodotti").select("*").eq("azienda_id", a.id);
-    const list = ((pr as { id: string; nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [])
+    const prodotti = (pr as { id: string; nome: string; prezzo?: string | null; immagine?: string | null; prenotabile?: boolean | null }[]) ?? [];
+    const ids = prodotti.map((p) => p.id);
+    // ingredienti dei prodotti → geocodificati (lat/lon) per il semaforo BioFido
+    const ingByProd = new Map<string, MP[]>();
+    if (ids.length) {
+      const { data: ing } = await supabase
+        .from("ingredienti")
+        .select("prodotto_id,nome,origine")
+        .in("prodotto_id", ids);
+      for (const r of (ing as { prodotto_id: string; nome: string; origine: string }[]) ?? []) {
+        const g = await prefetchGeocode(r.origine);
+        const arr = ingByProd.get(r.prodotto_id) ?? [];
+        arr.push({ nome: r.nome, origine: r.origine, ...(g ? { lat: g.lat, lon: g.lon } : {}) });
+        ingByProd.set(r.prodotto_id, arr);
+      }
+    }
+    const list = prodotti
       .filter((p) => p.nome?.trim())
-      .map((p) => ({
-        id: p.id,
-        name: p.nome,
-        ...(p.prezzo ? { price: formatPrezzo(p.prezzo) } : {}),
-        ...(p.immagine ? { image: p.immagine } : {}),
-        ...(p.prenotabile ? { prenotabile: true } : {}),
-      }));
+      .map((p) => {
+        const ingredients = ingByProd.get(p.id);
+        return {
+          id: p.id,
+          name: p.nome,
+          ...(p.prezzo ? { price: formatPrezzo(p.prezzo) } : {}),
+          ...(p.immagine ? { image: p.immagine } : {}),
+          ...(p.prenotabile ? { prenotabile: true } : {}),
+          ...(ingredients && ingredients.length ? { ingredients } : {}),
+        };
+      });
     products = list.length ? list : null;
   }
 
