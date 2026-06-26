@@ -244,7 +244,7 @@ export function AziendaScheda({
         <img
           src={azienda.immagine}
           alt={azienda.nome}
-          className="mt-3 h-48 w-full rounded-2xl object-cover object-top md:h-64"
+          className="mt-3 aspect-[16/9] w-full rounded-2xl object-cover object-top"
         />
       )}
 
