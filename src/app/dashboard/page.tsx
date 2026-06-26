@@ -1902,7 +1902,14 @@ function GiacenzaProdotto({
     setSaving(true);
     setSalvato(false);
     const n = val.trim() === "" ? null : Math.max(0, Math.floor(Number(val)) || 0);
-    const { error } = await supabase.from("prodotti").update({ giacenza: n }).eq("id", prodottoId);
+    // salvo anche la giacenza INIZIALE (= scorta piena di riferimento): serve per
+    // i reminder a metà / un terzo / esaurito. Se la colonna non c'è ancora, ripiego.
+    const patch: Record<string, unknown> = { giacenza: n };
+    if (n != null) patch.giacenza_iniziale = n;
+    let { error } = await supabase.from("prodotti").update(patch).eq("id", prodottoId);
+    if (error && /giacenza_iniziale/i.test(error.message)) {
+      ({ error } = await supabase.from("prodotti").update({ giacenza: n }).eq("id", prodottoId));
+    }
     setSaving(false);
     if (error) {
       alert(

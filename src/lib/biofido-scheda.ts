@@ -121,6 +121,7 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
         ingredients?: MP[];
         in_shop?: boolean;
         giacenza?: number;
+        giacenza_iniziale?: number;
         foto2?: string;
         description?: string;
         category?: string;
@@ -137,6 +138,7 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
         prenotabile?: boolean | null;
         in_shop?: boolean | null;
         giacenza?: number | null;
+        giacenza_iniziale?: number | null;
         foto2?: string | null;
         descrizione?: string | null;
         categoria?: string | null;
@@ -169,6 +171,7 @@ export async function syncBioFido(owner: string, plan?: BioPlan): Promise<void> 
           ...(ingredients && ingredients.length ? { ingredients } : {}),
           ...(p.in_shop ? { in_shop: true } : {}),
           ...(p.giacenza != null ? { giacenza: p.giacenza } : {}),
+          ...(p.giacenza_iniziale != null ? { giacenza_iniziale: p.giacenza_iniziale } : {}),
           ...(p.foto2 ? { foto2: p.foto2 } : {}),
           ...(p.descrizione ? { description: p.descrizione } : {}),
           ...(p.categoria ? { category: p.categoria } : {}),
