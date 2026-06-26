@@ -2994,14 +2994,24 @@ function NuovoProdotto({
               <input className="field mt-1" value={prezzo} onChange={(e) => setPrezzo(e.target.value)} placeholder="€ 12,00" />
             </label>
             <label className="block">
-              <span className="label">Confezione</span>
-              <input className="field mt-1" value={confezione} onChange={(e) => setConfezione(e.target.value)} placeholder="Flacone, barattolo…" />
+              <span className="label">Contenitore</span>
+              <select className="field mt-1" value={confezione} onChange={(e) => setConfezione(e.target.value)}>
+                <option value="">—</option>
+                {["flacone", "barattolo", "sacchetto", "scatola", "bottiglia", "vasetto", "confezione"].map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
             </label>
             <label className="block">
-              <span className="label">Contenuto + unità</span>
+              <span className="label">Contenuto + unità di misura</span>
               <div className="mt-1 flex gap-2">
-                <input className="field" value={contenuto} onChange={(e) => setContenuto(e.target.value)} placeholder="10" inputMode="decimal" />
-                <input className="field !w-24" value={unita} onChange={(e) => setUnita(e.target.value)} placeholder="ml" />
+                <input type="number" min={0} step="any" className="field" value={contenuto} onChange={(e) => setContenuto(e.target.value)} placeholder="10" />
+                <select className="field !w-28" value={unita} onChange={(e) => setUnita(e.target.value)}>
+                  <option value="">unità</option>
+                  {["gr", "kg", "l", "dl", "ml", "cl", "pz"].map((x) => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
               </div>
             </label>
           </div>
