@@ -223,6 +223,10 @@ function VoceEditor({
             <span className="label">Descrizione (facoltativa)</span>
             <textarea className="field mt-1 h-20" value={v.descrizione ?? ""} onChange={(e) => set("descrizione", e.target.value)} />
           </label>
+          <label className="block sm:col-span-2">
+            <span className="label">Durata (facoltativa, per i servizi — es. &quot;2 ore&quot;)</span>
+            <input className="field mt-1" value={v.durata ?? ""} onChange={(e) => set("durata", e.target.value)} />
+          </label>
         </div>
 
         {/* immagine con ridimensionamento automatico */}

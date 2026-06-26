@@ -234,8 +234,9 @@ export function CalcolatoreImpronta({
             <AlberiCompensazione co2Kg={fp.totalCo2Kg} scuro />
 
             <p className="mt-4 text-xs text-[#dceec2]">
-              Il colore dipende dalla distanza media delle materie prime: verde
-              ≤ 200 km, giallo ≤ 700 km, rosso oltre o fuori UE.
+              Il colore nasce dalla <strong>composizione</strong>: ogni materia prima ha la
+              sua tonalità e il prodotto è un giudizio <strong>qualitativo pesato</strong>,
+              non una semplice somma di chilometri.
             </p>
             <Link
               href="/semaforo"
@@ -248,9 +249,13 @@ export function CalcolatoreImpronta({
             {!nascondiPubblica && (
               <>
                 <Link href="/registrati" className="btn-lime mt-5 inline-flex w-full justify-center">
-                  Pubblica questo prodotto su ECO-VISA
+                  Pubblica questo prodotto
                 </Link>
-                <p className="mt-2 text-center text-[11px] text-[#dceec2]">
+                <p className="mt-2 text-center text-[11px] font-semibold text-lime-200">
+                  Se sei iscritto a ECO-VISA e BioFido, una volta pubblicato questo semaforo
+                  apparirà su <strong>entrambi i portali</strong>: moltiplica per due la tua visibilità!
+                </p>
+                <p className="mt-1 text-center text-[11px] text-[#dceec2]">
                   Calcolare il semaforo è gratis e senza registrazione. Per pubblicare
                   prodotto e semaforo serve un account.
                 </p>

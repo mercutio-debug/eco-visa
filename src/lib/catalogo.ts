@@ -26,12 +26,14 @@ export type VoceCatalogo = {
   unita: string | null;
   descrizione: string | null;
   immagine: string | null;
+  /** durata dell'attività/servizio, es. "2 ore" (per i servizi prenotabili) */
+  durata?: string | null;
 };
 
 export async function loadCatalogo(owner: string): Promise<VoceCatalogo[]> {
   const { data } = await supabase
     .from("catalogo")
-    .select("id, numero, nome, tipo, prezzo, unita, descrizione, immagine")
+    .select("id, numero, nome, tipo, prezzo, unita, descrizione, immagine, durata")
     .eq("owner", owner)
     .order("numero");
   return (data as VoceCatalogo[]) ?? [];
@@ -47,6 +49,7 @@ export async function salvaVoce(owner: string, v: VoceCatalogo): Promise<void> {
     unita: v.unita || null,
     descrizione: v.descrizione || null,
     immagine: v.immagine || null,
+    durata: v.durata || null,
   };
   const q = v.id
     ? supabase.from("catalogo").update(payload).eq("id", v.id)
