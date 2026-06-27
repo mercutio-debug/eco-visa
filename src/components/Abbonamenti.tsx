@@ -62,18 +62,19 @@ const FEATURES: Record<Plan, string[]> = {
     "Semaforo ecologico verde/giallo/rosso",
   ],
   silver: [
-    "Fino a 10 prodotti",
+    "La scheda della tua azienda con URL personale, da condividere con chi vuoi",
+    "Fino a 10 prodotti con foto",
     "Badge ECO-VISA da incorporare sul tuo sito",
     "Scheda azienda completa (logo, storia, link)",
-    "Statistiche base",
-    "Migliore posizione nella directory",
+    "Un'attività extra prenotabile dalla tua scheda personalizzata",
+    "Statistiche base: quante visite riceve la tua scheda",
   ],
   gold: [
-    "Fino a 100 prodotti",
+    "Una scheda cliente che vale come un sito personale con URL dedicata: prodotti e servizi acquistabili da chiunque, un vero negozio online",
+    "Fino a 100 prodotti o servizi extra",
     "Widget avanzato + massima priorità in directory",
     "In evidenza tra gli spacci «Spesa km0»",
-    "Statistiche avanzate",
-    "Badge personalizzabile",
+    "Statistiche avanzate: andamento nel tempo e area geografica",
   ],
 };
 
