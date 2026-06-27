@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createServizioBooking, euroCents } from "@/lib/bookings";
 import { euroToCents } from "@/lib/prezzo";
@@ -44,6 +44,15 @@ export function RichiestaServizioModal({
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  // blocca lo scroll di sfondo finché il modale è aperto (no shift di pagina su mobile)
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   const totaleCents = prezzoCents * Math.max(1, persone);
 
