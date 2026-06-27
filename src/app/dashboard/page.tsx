@@ -549,7 +549,7 @@ export default function DashboardPage() {
       id: "cat",
       section: "Lavoro",
       icon: "catalogo",
-      label: "Catalogo & esperienze",
+      label: "Esperienze in azienda",
       content: <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="tutto" onChange={refreshAll} />,
     },
     {
@@ -778,7 +778,7 @@ function StartPanel({
           className="rounded-2xl border-2 border-badge-yellow bg-[#fdf7e6] p-5 text-left transition hover:-translate-y-0.5"
         >
           <div className="text-3xl">✨</div>
-          <div className="mt-1 font-display text-lg text-[#7a5b00]">Carica le ESPERIENZE in azienda</div>
+          <div className="mt-1 font-display text-lg text-[#7a5b00]">Carica le ESPERIENZE in azienda prenotabili</div>
           <div className="text-xs text-[#8a6f2e]">Visite, laboratori, degustazioni prenotabili.</div>
         </button>
       </div>
@@ -2121,7 +2121,7 @@ function PrenotabileToggle({
         onChange={(e) => toggle(e.target.checked)}
       />
       <span className="font-semibold text-green-800">
-        ✨ Servizio extra prenotabile dal cliente {saving ? "…" : ""}
+        ✨ Esperienza in azienda prenotabile dal cliente {saving ? "…" : ""}
       </span>
     </label>
   );
@@ -2604,7 +2604,7 @@ function PrenotazioniCard({ ownerId }: { ownerId: string }) {
         <p className="mt-3 text-sm text-green-900/60">Caricamento…</p>
       ) : items.length === 0 ? (
         <p className="mt-3 text-sm text-green-900/70">
-          Nessuna richiesta per ora. Pubblica un servizio extra prenotabile per riceverne.
+          Nessuna richiesta per ora. Pubblica un'esperienza in azienda prenotabile per riceverne.
         </p>
       ) : (
         <ul className="mt-4 space-y-3">

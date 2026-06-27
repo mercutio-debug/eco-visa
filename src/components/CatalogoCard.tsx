@@ -67,13 +67,13 @@ export function CatalogoCard({
     return (
       <section className="card mt-6 p-6">
         <h2 className="font-display text-2xl text-green-800">
-          Catalogo prodotti e servizi
+          Esperienze in azienda prenotabili
         </h2>
         <p className="mt-1 text-sm text-green-900/70">
-          Carica prodotti e servizi (visite guidate, laboratori didattici,
-          esperienze) con prezzo e foto: i clienti li vedono in anteprima e
-          possono contattarti per info o prenotazioni. È una funzione del piano{" "}
-          <strong>Gold</strong>.
+          Carica le tue esperienze in azienda (visite guidate, laboratori
+          didattici, degustazioni) con prezzo e foto: i clienti le vedono in
+          anteprima e possono contattarti per info o prenotazioni. È una funzione
+          del piano <strong>Gold</strong>.
         </p>
       </section>
     );
@@ -97,15 +97,15 @@ export function CatalogoCard({
       className={`card mt-6 p-6 ${vista === "form" ? "border-2 border-badge-yellow bg-[#fffbe9]" : ""}`}
     >
       <h2 className="font-display text-2xl text-green-800">
-        {vista === "lista" ? "Servizi e prodotti a catalogo" : "Inserisci servizio extra"}
+        {vista === "lista" ? "Esperienze in azienda" : "Inserisci un'esperienza in azienda"}
         {vista !== "lista" && (
           <span className="text-sm font-normal text-green-900/60"> (Gold)</span>
         )}
       </h2>
       <p className="mt-1 text-sm text-green-900/70">
         {vista === "lista"
-          ? "Le voci del tuo catalogo (servizi e prodotti extra)."
-          : "Visite guidate, laboratori, esperienze: con lingua, durata e 2 foto. Da prenotare in azienda."}
+          ? "Le esperienze in azienda che offri ai clienti."
+          : "Visite guidate, laboratori, degustazioni: con lingua, durata e 2 foto. Da prenotare in azienda."}
       </p>
 
       {/* FORM sempre aperto (vista "form"/"tutto") */}
@@ -171,7 +171,7 @@ export function CatalogoCard({
 
       {vista === "lista" && !loading && voci.length === 0 && (
         <p className="mt-3 text-sm text-green-900/60">
-          Nessun servizio extra ancora: aggiungilo dalla cornice «Inserisci servizio extra» in alto.
+          Nessuna esperienza in azienda ancora: aggiungila dalla cornice «Inserisci un'esperienza in azienda» in alto.
         </p>
       )}
 
@@ -386,7 +386,7 @@ function VoceEditor({
 
         <div className="mt-5 flex items-center gap-3">
           <button className={`btn-lime ${inline ? "w-full justify-center" : ""}`} onClick={salva} disabled={saving || uploading || !v.nome.trim()}>
-            {saving ? "Salvo…" : inline ? "Salva servizio extra" : "Salva"}
+            {saving ? "Salvo…" : inline ? "Salva l'esperienza" : "Salva"}
           </button>
           {!inline && (
             <button className="btn-ghost text-sm" onClick={onClose}>
