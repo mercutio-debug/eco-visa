@@ -550,7 +550,7 @@ export default function DashboardPage() {
       section: "Lavoro",
       icon: "catalogo",
       label: "Esperienze in azienda",
-      content: <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="tutto" onChange={refreshAll} />,
+      content: <CatalogoCard ownerId={user.id} canSell={pianoScelto !== "free"} vista="tutto" onChange={refreshAll} />,
     },
     {
       id: "dati",
@@ -1848,7 +1848,7 @@ function ProdottiCard({
                       <div className="text-[11px] text-green-900/60">CO₂ trasporto</div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      {gold && (
+                      {info.richProfile && (
                         <FotoProdottoBtn
                           prodottoId={p.id}
                           aziendaId={aziendaId}
@@ -1886,7 +1886,7 @@ function ProdottiCard({
                     </div>
                   )
                 )}
-                {gold && (
+                {info.richProfile && (
                   <DescrizioneProdotto
                     prodottoId={p.id}
                     descrizione={p.descrizione ?? null}
@@ -2887,8 +2887,8 @@ function NuovoProdotto({
       nome,
       categoria: categoria || null,
       stabilimento_citta: stab,
-      // foto solo per il piano Gold
-      immagine: gold ? immagine : null,
+      // foto del prodotto: da Silver in su (richProfile); Free = solo nome + semaforo
+      immagine: info.richProfile ? immagine : null,
       // servizio prenotabile solo per chi può vendere (Silver/Gold)
       prenotabile: isServizio,
     };
@@ -2898,21 +2898,24 @@ function NuovoProdotto({
       if (durata.trim()) payload.durata = durata.trim();
       if (gold && foto2) payload.foto2 = foto2;
       if (gold && prezzo.trim()) payload.prezzo = prezzo.trim();
-    } else if (gold) {
-      // PRODOTTO Gold: salvo TUTTO in un colpo (prezzo, descrizione, 2ª foto,
-      // confezione/contenuto, ordinabile dallo shop + giacenza).
-      if (prezzo.trim()) payload.prezzo = prezzo.trim();
-      if (descrizione.trim()) payload.descrizione = descrizione.trim().slice(0, MAX_DESC);
-      if (foto2) payload.foto2 = foto2;
-      if (confezione.trim()) payload.confezione = confezione.trim();
-      if (contenuto.trim()) payload.contenuto = Number(contenuto) || null;
-      if (unita.trim()) payload.unita = unita.trim();
-      if (inShop) {
-        payload.in_shop = true;
-        const g = giacenzaVal.trim() === "" ? null : Math.max(0, Math.floor(Number(giacenzaVal)) || 0);
-        if (g != null) {
-          payload.giacenza = g;
-          payload.giacenza_iniziale = g;
+    } else {
+      // PRODOTTO ordinario. La DESCRIZIONE (come la foto) è da Silver in su.
+      if (info.richProfile && descrizione.trim())
+        payload.descrizione = descrizione.trim().slice(0, MAX_DESC);
+      // Prezzo, 2ª foto, confezione/contenuto e tasto Ordina (shop) sono solo Gold.
+      if (gold) {
+        if (prezzo.trim()) payload.prezzo = prezzo.trim();
+        if (foto2) payload.foto2 = foto2;
+        if (confezione.trim()) payload.confezione = confezione.trim();
+        if (contenuto.trim()) payload.contenuto = Number(contenuto) || null;
+        if (unita.trim()) payload.unita = unita.trim();
+        if (inShop) {
+          payload.in_shop = true;
+          const g = giacenzaVal.trim() === "" ? null : Math.max(0, Math.floor(Number(giacenzaVal)) || 0);
+          if (g != null) {
+            payload.giacenza = g;
+            payload.giacenza_iniziale = g;
+          }
         }
       }
     }
@@ -3200,12 +3203,17 @@ function NuovoProdotto({
       )}
 
       {/* PRODOTTO Gold: prezzo, descrizione, 2ª foto, confezione, shop+giacenza — tutto in un salvataggio */}
-      {tipoVoce !== "servizio" && gold && (
+      {tipoVoce !== "servizio" && info.richProfile && (
         <div className="mt-4 space-y-3 rounded-xl border border-[#e3eed7] bg-white p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-green-800">
-            🛒 Vetrina e vendita
-            <span className="rounded-full bg-leaf px-2 py-0.5 text-[11px] font-bold">Gold</span>
+            📸 Vetrina del prodotto
+            {!gold && (
+              <span className="rounded-full bg-leaf px-2 py-0.5 text-[11px] font-bold text-green-700">
+                foto + descrizione
+              </span>
+            )}
           </div>
+          {gold && (
           <div className="space-y-3">
             <label className="block">
               <span className="label">Prezzo</span>
@@ -3233,6 +3241,7 @@ function NuovoProdotto({
               </div>
             </label>
           </div>
+          )}
           <label className="block">
             <span className="label">Descrizione del prodotto</span>
             <textarea
@@ -3276,6 +3285,7 @@ function NuovoProdotto({
               </label>
             </div>
           </div>
+          {gold && (
           <div>
             <span className="label">Foto 2 (etichetta)</span>
             <div className="mt-1 flex items-center gap-3">
@@ -3307,15 +3317,20 @@ function NuovoProdotto({
               </label>
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-green-900/85">
-            <input type="checkbox" className="h-5 w-5 accent-[var(--lime-500)]" checked={inShop} onChange={(e) => setInShop(e.target.checked)} />
-            🛒 Ordinabile dallo shop (vendita online)
-          </label>
-          {inShop && (
-            <label className="block">
-              <span className="label">Giacenza a magazzino (pezzi)</span>
-              <input className="field mt-1 !w-40" value={giacenzaVal} onChange={(e) => setGiacenzaVal(e.target.value)} placeholder="Es. 30" inputMode="numeric" />
-            </label>
+          )}
+          {gold && (
+            <>
+              <label className="flex items-center gap-2 text-sm text-green-900/85">
+                <input type="checkbox" className="h-5 w-5 accent-[var(--lime-500)]" checked={inShop} onChange={(e) => setInShop(e.target.checked)} />
+                🛒 Ordinabile dallo shop (vendita online)
+              </label>
+              {inShop && (
+                <label className="block">
+                  <span className="label">Giacenza a magazzino (pezzi)</span>
+                  <input className="field mt-1 !w-40" value={giacenzaVal} onChange={(e) => setGiacenzaVal(e.target.value)} placeholder="Es. 30" inputMode="numeric" />
+                </label>
+              )}
+            </>
           )}
         </div>
       )}

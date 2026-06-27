@@ -34,12 +34,12 @@ export const LINGUE_SERVIZIO: { code: string; label: string; flag: string }[] = 
  */
 export function CatalogoCard({
   ownerId,
-  gold,
+  canSell,
   vista = "tutto",
   onChange,
 }: {
   ownerId: string;
-  gold: boolean;
+  canSell: boolean;
   /** "form" = solo "Inserisci servizio extra"; "lista" = solo l'elenco */
   vista?: "form" | "lista" | "tutto";
   /** notifica al genitore (per aggiornare l'anteprima) dopo salva/elimina */
@@ -63,7 +63,7 @@ export function CatalogoCard({
   }
   useEffect(ricarica, [ownerId]);
 
-  if (!gold) {
+  if (!canSell) {
     return (
       <section className="card mt-6 p-6">
         <h2 className="font-display text-2xl text-green-800">
@@ -73,7 +73,7 @@ export function CatalogoCard({
           Carica le tue esperienze in azienda (visite guidate, laboratori
           didattici, degustazioni) con prezzo e foto: i clienti le vedono in
           anteprima e possono contattarti per info o prenotazioni. È una funzione
-          del piano <strong>Gold</strong>.
+          dei piani <strong>Silver</strong> e <strong>Gold</strong>.
         </p>
       </section>
     );

@@ -138,6 +138,9 @@ export async function loadAziendaPubblica(
   const plan = (((az as AziendaPubblica).plan ?? "free") as Plan);
   const info = PLAN_MAP[plan] ?? PLAN_MAP.free;
   const gold = plan === "gold";
+  // foto + descrizione del prodotto: Silver e Gold (Free = solo nome + semaforo).
+  // Prezzo, tasto Ordina e foto2 restano Gold.
+  const media = info.richProfile;
   const limite = info.maxProducts === Infinity ? prods.length : info.maxProducts;
 
   // Gate "Ci pensiamo noi": finché l'azienda non approva lo shop (shop_approvato
@@ -150,11 +153,11 @@ export async function loadAziendaPubblica(
     nome: p.nome,
     categoria: p.categoria,
     stabilimento_citta: p.stabilimento_citta ?? "",
-    immagine: gold ? p.immagine : null,
+    immagine: media ? p.immagine : null,
     prezzo: gold ? (p.prezzo ?? null) : null,
     prenotabile: info.canSell ? (p.prenotabile ?? false) : false,
     in_shop: gold ? (p.in_shop ?? false) : false,
-    descrizione: gold ? (p.descrizione ?? null) : null,
+    descrizione: media ? (p.descrizione ?? null) : null,
     foto2: gold ? (p.foto2 ?? null) : null,
     giacenza: gold ? (p.giacenza ?? null) : null,
     confezione: gold ? (p.confezione ?? null) : null,
@@ -164,13 +167,13 @@ export async function loadAziendaPubblica(
     ingredienti: ingredientiDi(ingRows, p.id),
   }));
 
-  // Servizi extra prenotabili (catalogo: visite, laboratori, esperienze):
-  // legati all'owner dell'azienda. Lettura pubblica (RLS catalogo: select true).
-  // Il catalogo è una funzione Gold → niente da mostrare sotto quel piano.
+  // Esperienze in azienda prenotabili (catalogo: visite, laboratori, degustazioni):
+  // legate all'owner. Vendibili da Silver e Gold (canSell). I prodotti ORDINABILI
+  // dal catalogo (tipo 'prodotto') restano invece Gold (vedi sotto).
   let servizi: ServizioPubblico[] = [];
   let vendita: ServizioPubblico[] = [];
   const owner = (az as AziendaPubblica).owner;
-  if (owner && gold) {
+  if (owner && info.canSell) {
     const { data: cat } = await supabase
       .from("catalogo")
       .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata, lingue, foto2")
@@ -190,26 +193,37 @@ export async function loadAziendaPubblica(
     }));
 
     // Prodotti in vendita (catalogo tipo 'prodotto'): ordinabili dal cliente.
-    const { data: catV } = await supabase
-      .from("catalogo")
-      .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata, lingue, foto2")
-      .eq("owner", owner)
-      .eq("tipo", "prodotto")
-      .order("numero");
-    vendita = ((catV as CatRow[]) ?? []).map((c) => ({
-      id: String(c.id),
-      nome: c.nome,
-      tipo: c.tipo,
-      prezzo: c.prezzo ?? null,
-      descrizione: c.descrizione ?? null,
-      immagine: c.immagine ?? null,
-      durata: c.durata ?? null,
-      lingue: c.lingue ?? null,
-      foto2: c.foto2 ?? null,
-    }));
+    // Il tasto Ordina è una funzione Gold → carico la vendita solo per i Gold.
+    if (gold) {
+      const { data: catV } = await supabase
+        .from("catalogo")
+        .select("id, nome, tipo, prezzo, descrizione, immagine, numero, durata, lingue, foto2")
+        .eq("owner", owner)
+        .eq("tipo", "prodotto")
+        .order("numero");
+      vendita = ((catV as CatRow[]) ?? []).map((c) => ({
+        id: String(c.id),
+        nome: c.nome,
+        tipo: c.tipo,
+        prezzo: c.prezzo ?? null,
+        descrizione: c.descrizione ?? null,
+        immagine: c.immagine ?? null,
+        durata: c.durata ?? null,
+        lingue: c.lingue ?? null,
+        foto2: c.foto2 ?? null,
+      }));
+    }
   }
 
-  return { azienda: az as AziendaPubblica, prodotti, servizi, vendita };
+  // Scheda azienda: Free = solo segnaposto (posizione + tipo + nome). Foto,
+  // descrizione e sito compaiono solo da Silver in su (richProfile = media).
+  const aziendaOut: AziendaPubblica = {
+    ...(az as AziendaPubblica),
+    immagine: media ? (az as AziendaPubblica).immagine : null,
+    descrizione: media ? (az as AziendaPubblica).descrizione : null,
+    sito_web: media ? (az as AziendaPubblica).sito_web : null,
+  };
+  return { azienda: aziendaOut, prodotti, servizi, vendita };
 }
 
 /** Slug url-safe da un nome (minuscolo, accenti rimossi, spazi → -). */
