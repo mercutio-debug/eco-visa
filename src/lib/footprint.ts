@@ -184,7 +184,7 @@ export type ProductFootprint = {
   totalCo2Kg: number;
   avgKm: number; // distanza media (solo informativa)
   score: number; // 0..100 (più alto = meglio)
-  level: Giudizio; // giudizio a 8 tonalità del semaforo grande
+  level: Giudizio; // giudizio a 9 tonalità del semaforo grande
   consigli: string[]; // suggerimenti contestuali (materie prime lontane)
 };
 
