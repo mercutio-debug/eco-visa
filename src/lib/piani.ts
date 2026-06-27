@@ -22,6 +22,8 @@ export type PlanInfo = {
 
   /** numero massimo di schede prodotto con impronta (Infinity = illimitate) */
   maxProducts: number;
+  /** numero massimo di esperienze/attività prenotabili (Infinity = illimitate) */
+  maxEvents: number;
   /** badge/widget ECO-VISA incorporabile sul sito dell'azienda */
   badgeEmbed: boolean;
   /** scheda azienda ricca (logo, storia, link) */
@@ -84,19 +86,19 @@ export function perditeDowngrade(from: Plan, to: Plan): string[] {
 export const PLAN_MAP: Record<Plan, PlanInfo> = {
   free: {
     id: "free", label: "Gratuito", monthlyPrice: 0, annualPrice: 0,
-    maxProducts: 1, badgeEmbed: false, richProfile: false,
+    maxProducts: 1, maxEvents: 0, badgeEmbed: false, richProfile: false,
     directoryBoost: 0, featuredKm0: false, statsLevel: "none",
     canSell: false, commissionRate: 0,
   },
   silver: {
     id: "silver", label: "Silver", monthlyPrice: 9, annualPrice: 90,
-    maxProducts: 10, badgeEmbed: true, richProfile: true,
+    maxProducts: 10, maxEvents: 1, badgeEmbed: true, richProfile: true,
     directoryBoost: 10, featuredKm0: false, statsLevel: "base",
     canSell: true, commissionRate: 0.15,
   },
   gold: {
     id: "gold", label: "Gold", monthlyPrice: 19, annualPrice: 190,
-    maxProducts: 100, badgeEmbed: true, richProfile: true,
+    maxProducts: 100, maxEvents: Infinity, badgeEmbed: true, richProfile: true,
     directoryBoost: 25, featuredKm0: true, statsLevel: "advanced",
     canSell: true, commissionRate: 0.08,
   },

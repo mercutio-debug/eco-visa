@@ -57,6 +57,158 @@ export async function createServizioBooking(input: {
   return { error: error?.message };
 }
 
+/* ------------------------------ esperienze (produttore) ----------------------- */
+
+export type Experience = {
+  id: string;
+  owner: string;
+  titolo: string;
+  descrizione?: string;
+  prezzoCents: number;
+  durataMin?: number;
+  maxPersone: number;
+  attiva: boolean;
+  /** giorni della settimana in cui si svolge (1=lun … 7=dom). Vuoto = qualsiasi giorno. */
+  giorniSettimana?: number[];
+  /** orario fisso "HH:MM" deciso dall'azienda. Vuoto = orario libero per il cliente. */
+  orario?: string;
+  /** lingue in cui si svolge l'attività (codici ISO, es. ["it","en"]); per i turisti */
+  lingue?: string[];
+  /** foto dell'esperienza */
+  immagine?: string;
+};
+
+type ExpRow = {
+  id: number | string;
+  owner: string;
+  titolo: string;
+  descrizione: string | null;
+  prezzo_cents: number;
+  durata_min: number | null;
+  max_persone: number;
+  attiva: boolean;
+  giorni_settimana: number[] | null;
+  orario: string | null;
+  lingue: string[] | null;
+  immagine: string | null;
+};
+
+const fromExpRow = (r: ExpRow): Experience => ({
+  id: String(r.id),
+  owner: r.owner,
+  titolo: r.titolo,
+  descrizione: r.descrizione ?? undefined,
+  prezzoCents: r.prezzo_cents,
+  durataMin: r.durata_min ?? undefined,
+  maxPersone: r.max_persone,
+  attiva: r.attiva,
+  giorniSettimana: r.giorni_settimana ?? undefined,
+  orario: r.orario ?? undefined,
+  lingue: r.lingue && r.lingue.length ? r.lingue : undefined,
+  immagine: r.immagine ?? undefined,
+});
+
+export async function listMyExperiences(owner: string): Promise<Experience[]> {
+  const { data } = await supabase
+    .from("esperienze")
+    .select("*")
+    .eq("owner", owner)
+    .order("created_at", { ascending: false });
+  return ((data as ExpRow[]) ?? []).map(fromExpRow);
+}
+
+export async function createExperience(
+  owner: string,
+  e: Omit<Experience, "id" | "owner">,
+): Promise<{ error?: string }> {
+  const payload: Record<string, unknown> = {
+    owner,
+    titolo: e.titolo,
+    descrizione: e.descrizione || null,
+    prezzo_cents: e.prezzoCents,
+    durata_min: e.durataMin ?? null,
+    max_persone: e.maxPersone,
+    attiva: e.attiva,
+    giorni_settimana: e.giorniSettimana && e.giorniSettimana.length ? e.giorniSettimana : null,
+    orario: e.orario || null,
+    lingue: e.lingue && e.lingue.length ? e.lingue : null,
+    immagine: e.immagine || null,
+  };
+  let { error } = await supabase.from("esperienze").insert(payload);
+  if (error && /giorni_settimana|orario|lingue|immagine/i.test(error.message)) {
+    delete payload.giorni_settimana;
+    delete payload.orario;
+    delete payload.lingue;
+    delete payload.immagine;
+    ({ error } = await supabase.from("esperienze").insert(payload));
+  }
+  return { error: error?.message };
+}
+
+export async function deleteExperience(id: string): Promise<void> {
+  await supabase.from("esperienze").delete().eq("id", id);
+}
+
+/** Esperienze attive dei produttori indicati, raggruppate per owner. */
+export async function experiencesByOwners(
+  owners: string[],
+): Promise<Record<string, Experience[]>> {
+  const uniq = [...new Set(owners.filter(Boolean))];
+  if (uniq.length === 0) return {};
+  const { data } = await supabase
+    .from("esperienze")
+    .select("*")
+    .in("owner", uniq)
+    .eq("attiva", true);
+  const map: Record<string, Experience[]> = {};
+  for (const r of (data as ExpRow[]) ?? []) {
+    const e = fromExpRow(r);
+    (map[e.owner] ??= []).push(e);
+  }
+  return map;
+}
+
+/** Crea una richiesta di prenotazione di un'ESPERIENZA (lato cliente). */
+export async function createBookingRequest(input: {
+  esperienza: Experience;
+  ownerPlan: Plan;
+  clienteNome: string;
+  clienteEmail: string;
+  clienteTel?: string;
+  dataRichiesta: string;
+  orario?: string;
+  persone: number;
+  note?: string;
+}): Promise<{ error?: string; totaleCents: number }> {
+  const totaleCents = input.esperienza.prezzoCents * input.persone;
+  const commCents = commissionCents(input.ownerPlan, totaleCents);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const payload: Record<string, unknown> = {
+    esperienza_id: input.esperienza.id,
+    owner: input.esperienza.owner,
+    cliente_user_id: session?.user.id ?? null,
+    cliente_nome: input.clienteNome,
+    cliente_email: input.clienteEmail,
+    cliente_tel: input.clienteTel || null,
+    data_richiesta: input.dataRichiesta,
+    orario_richiesto: input.orario || null,
+    persone: input.persone,
+    note: input.note || null,
+    totale_cents: totaleCents,
+    commissione_rate: PLAN_MAP[input.ownerPlan].commissionRate,
+    commissione_cents: commCents,
+    stato: "in_attesa",
+  };
+  let { error } = await supabase.from("prenotazioni").insert(payload);
+  if (error && /orario_richiesto/i.test(error.message)) {
+    delete payload.orario_richiesto;
+    ({ error } = await supabase.from("prenotazioni").insert(payload));
+  }
+  return { error: error?.message, totaleCents };
+}
+
 /* ---------------- gestione prenotazioni ricevute (produttore) ---------------- */
 
 export type BookingStatus = "in_attesa" | "confermata" | "rifiutata" | "annullata";

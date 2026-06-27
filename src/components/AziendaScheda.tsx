@@ -22,6 +22,8 @@ import { formatPrezzo } from "@/lib/prezzo";
 import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { createPortal } from "react-dom";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
+import { PrenotaModal } from "@/components/PrenotaModal";
+import { experiencesByOwners, type Experience } from "@/lib/bookings";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { SegnalaModal } from "@/components/SegnalaModal";
 import { ProdottoDettaglioModal } from "@/components/ProdottoDettaglioModal";
@@ -69,6 +71,9 @@ export function AziendaScheda({
   const [loading, setLoading] = useState(!initial);
   const [prenota, setPrenota] = useState<ProdottoPubblico | null>(null);
   const [prenotaServizio, setPrenotaServizio] = useState<ServizioPubblico | null>(null);
+  // esperienze (tabella condivisa `esperienze`) + apertura del modale di prenotazione
+  const [esperienze, setEsperienze] = useState<Experience[]>([]);
+  const [prenotaEsp, setPrenotaEsp] = useState(false);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
   const [servDettaglio, setServDettaglio] = useState<ServizioPubblico | null>(null);
@@ -156,6 +161,13 @@ export function AziendaScheda({
       setLoading(false);
     });
   }, [id]);
+
+  // esperienze prenotabili dell'azienda (tabella condivisa con BioFido)
+  useEffect(() => {
+    const owner = dati?.azienda?.owner;
+    if (!owner) return;
+    experiencesByOwners([owner]).then((m) => setEsperienze(m[owner] ?? []));
+  }, [dati?.azienda?.owner]);
 
   // conta una VISITA alla scheda pubblica (una sola volta per apertura)
   const vistaContata = useRef(false);
@@ -492,51 +504,57 @@ export function AziendaScheda({
         </>
       )}
 
-      {/* Servizi extra prenotabili (visite, laboratori, esperienze) — come su BioFido */}
-      {dati.servizi.length > 0 && (
+      {/* Esperienze in azienda prenotabili (tabella `esperienze`, condivisa con BioFido) */}
+      {esperienze.length > 0 && (
         <>
-          <h2 className="mt-10 font-display text-2xl text-green-800">Servizi extra prenotabili</h2>
+          <h2 className="mt-10 font-display text-2xl text-green-800">
+            Esperienze in azienda prenotabili
+          </h2>
           <p className="mt-1 text-sm text-green-900/70">
-            Esperienze e attività da prenotare direttamente con l&apos;azienda.
+            Visite, laboratori e degustazioni da prenotare direttamente con l&apos;azienda.
           </p>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-            {dati.servizi.map((s) => (
+            {esperienze.map((e) => (
               <li
-                key={s.id}
+                key={e.id}
                 className="rounded-2xl border-2 border-badge-yellow bg-[#fffbe9] p-4"
               >
                 <div className="flex items-start gap-3">
-                  {s.immagine && (
+                  {e.immagine && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.immagine} alt={s.nome} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
+                    <img src={e.immagine} alt={e.titolo} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="text-[10px] font-bold uppercase tracking-wide text-lime-600">
-                      {TIPO_SERVIZIO[s.tipo] ?? "Servizio"}
-                    </div>
-                    <div className="font-semibold text-green-800">{s.nome}</div>
-                    {s.descrizione && (
-                      <p className="mt-0.5 text-xs text-green-900/65">{s.descrizione}</p>
+                    <div className="font-semibold text-green-800">{e.titolo}</div>
+                    {e.descrizione && (
+                      <p className="mt-0.5 text-xs text-green-900/65">{e.descrizione}</p>
                     )}
+                    <div className="mt-0.5 text-[11px] text-green-900/55">
+                      {e.durataMin ? `~${e.durataMin} min · ` : ""}max {e.maxPersone} persone
+                      {e.giorniSettimana?.length
+                        ? ` · 🗓 ${e.giorniSettimana
+                            .map((g) => ["", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"][g])
+                            .join(", ")}`
+                        : ""}
+                      {e.orario ? ` · ${e.orario}` : ""}
+                    </div>
+                    {e.lingue?.length ? (
+                      <div className="mt-0.5 text-[11px] text-green-900/55">
+                        {e.lingue.map((l) => LINGUE_LABEL[l] ?? l).join(" · ")}
+                      </div>
+                    ) : null}
                   </div>
-                  {s.prezzo != null && (
-                    <div className="shrink-0 text-sm font-bold text-green-800">{euroNum(s.prezzo)}</div>
-                  )}
+                  <div className="shrink-0 text-sm font-bold text-green-800">
+                    {euroNum(e.prezzoCents / 100)}
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setServDettaglio(s)}
-                  className="btn-ghost mt-3 w-full justify-center text-sm"
-                >
-                  🔍 Dettagli e foto
-                </button>
                 {azienda.owner && (
                   <button
                     type="button"
-                    onClick={() => setPrenotaServizio(s)}
-                    className="btn-lime mt-2 w-full justify-center text-sm"
+                    onClick={() => setPrenotaEsp(true)}
+                    className="btn-lime mt-3 w-full justify-center text-sm"
                   >
-                    ✨ Prenota / richiedi
+                    ✨ Prenota
                   </button>
                 )}
               </li>
@@ -557,16 +575,12 @@ export function AziendaScheda({
         />
       )}
 
-      {prenotaServizio && azienda.owner && (
-        <RichiestaServizioModal
-          ownerId={azienda.owner}
+      {prenotaEsp && azienda.owner && esperienze.length > 0 && (
+        <PrenotaModal
+          esperienze={esperienze}
           ownerPlan={(azienda.plan as Plan) ?? "free"}
-          servizioNome={prenotaServizio.nome}
-          prezzo={prenotaServizio.prezzo != null ? euroNum(prenotaServizio.prezzo) : null}
-          voceId={prenotaServizio.id}
-          descrizione={prenotaServizio.descrizione}
           aziendaNome={azienda.nome}
-          onClose={() => setPrenotaServizio(null)}
+          onClose={() => setPrenotaEsp(false)}
         />
       )}
 

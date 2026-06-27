@@ -26,7 +26,7 @@ import { SchedaServizi } from "@/components/SchedaServizi";
 import { ServiziExtra } from "@/components/ServiziExtra";
 import { GoldPromoBanner } from "@/components/GoldPromoBanner";
 import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
-import { CatalogoCard } from "@/components/CatalogoCard";
+import { EsperienzeCard } from "@/components/EsperienzeCard";
 import { AnteprimaScheda } from "@/components/AnteprimaScheda";
 import { OrdiniShopRicevuti } from "@/components/OrdiniShopRicevuti";
 import { StatisticheCard } from "@/components/StatisticheCard";
@@ -553,7 +553,7 @@ export default function DashboardPage() {
       section: "Lavoro",
       icon: "catalogo",
       label: "Esperienze in azienda",
-      content: <CatalogoCard ownerId={user.id} canSell={pianoScelto !== "free"} vista="tutto" onChange={refreshAll} />,
+      content: <EsperienzeCard ownerId={user.id} plan={pianoScelto} />,
     },
     {
       id: "dati",
