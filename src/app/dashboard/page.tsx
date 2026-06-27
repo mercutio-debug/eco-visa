@@ -61,6 +61,10 @@ import { listContatti, setContattoGestito, type Contatto } from "@/lib/contatti"
 import { NotificheToggle } from "@/components/NotificheToggle";
 import { SmsNotificheToggle } from "@/components/SmsNotificheToggle";
 import { PLAN_MAP, isDowngrade, perditeDowngrade, type Plan } from "@/lib/piani";
+import { DashboardShell, BarraTendine, vaiAlPannello, type DashPanel } from "@/components/DashboardShell";
+import { LegendaPianiSlider } from "@/components/LegendaPianiSlider";
+import { contaInSospeso } from "@/lib/contatori";
+import { getMyExtras, getStatoOnboarding } from "@/lib/onboarding";
 
 type Azienda = {
   id: string;
@@ -125,6 +129,14 @@ export default function DashboardPage() {
   const [gateSemaforo, setGateSemaforo] = useState(false);
   // Acquisto in sospeso (pagamento avviato ma non completato): card "Completa".
   const [sospeso, setSospeso] = useState<AcquistoSospeso | null>(null);
+  // onboarding attivo + contatori per i badge della sidebar
+  const [onbAttivo, setOnbAttivo] = useState(false);
+  const [conte, setConte] = useState({ ordini: 0, prenotazioni: 0 });
+  useEffect(() => {
+    if (!user) return;
+    contaInSospeso().then(setConte).catch(() => {});
+    getMyExtras().then((ex) => setOnbAttivo(ex.includes("onboarding"))).catch(() => {});
+  }, [user]);
 
   // ---- caricamento dati ----
   const primoCaricamento = useRef(true);
@@ -397,137 +409,273 @@ export default function DashboardPage() {
     );
   }
 
-  // PAGINA PRODOTTI dedicata: tutta la gestione prodotti + servizi extra, a tutto
-  // schermo, per tenere ordinata la dashboard principale.
-  if (vistaProdotti) {
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-8">
-        <button onClick={() => setVistaProdotti(false)} className="btn-ghost text-sm">
-          ← Torna alla dashboard
-        </button>
-        <h1 className="title-pangea mt-3 text-3xl text-green-700 md:text-4xl">Prodotti & Servizi</h1>
-        <p className="mt-1 text-sm text-green-900/70">
-          Aggiungi e gestisci i tuoi prodotti (col semaforo) e i servizi extra prenotabili.
-        </p>
-        {azienda && (
-          <>
-            <div className="grid gap-6 md:grid-cols-2 md:items-start">
-              <ProdottiCard
-                aziendaId={azienda.id}
-                stabilimenti={stabilimenti}
-                prodotti={prodotti}
-                plan={activePlan}
-                onChange={refreshAll}
-                vista="form"
+  // Guscio dashboard stile Hostinger (gemello di BioFido): sidebar + pannelli al
+  // centro. Dopo il gating anagrafica, azienda e user esistono.
+  if (!user || !azienda) return null;
+
+  const esciBtn = (
+    <button
+      className="text-sm font-semibold text-traffic-red hover:underline"
+      onClick={async () => {
+        await supabase.auth.signOut();
+        router.push("/");
+      }}
+    >
+      ↩ Esci
+    </button>
+  );
+
+  const topBar = (
+    <BarraTendine
+      voci={[
+        {
+          id: "piani",
+          icona: "🚀",
+          label: "Con cosa vuoi partire",
+          tone: "verde",
+          content: (
+            <>
+              <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
+              <PagamentoFinale
+                ownerId={user.id}
+                scelto={pianoScelto}
+                attivo={activePlan}
+                bloccato={prodotti.length === 0}
+                onBloccato={() => setGateSemaforo(true)}
+                prefill={{
+                  ragione_sociale: azienda.nome ?? undefined,
+                  partita_iva: azienda.piva ?? undefined,
+                  codice_fiscale: azienda.codice_fiscale ?? undefined,
+                  indirizzo: azienda.indirizzo ?? undefined,
+                  cap: azienda.cap ?? undefined,
+                  citta: azienda.citta_sede ?? undefined,
+                  provincia: azienda.provincia ?? undefined,
+                }}
               />
-              {user && (
-                <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="form" onChange={refreshAll} />
-              )}
-            </div>
-            <h2 className="mt-10 font-display text-3xl text-green-700">I tuoi prodotti & servizi</h2>
-            <ProdottiCard
-              aziendaId={azienda.id}
-              stabilimenti={stabilimenti}
-              prodotti={prodotti}
-              plan={activePlan}
-              onChange={refreshAll}
-              vista="lista"
-            />
-            {user && (
-              <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="lista" onChange={refreshAll} />
-            )}
-          </>
-        )}
+            </>
+          ),
+        },
+        {
+          id: "extra",
+          icona: "🎁",
+          label: "Aggiungi servizi extra",
+          tone: "giallo",
+          content: <ServiziExtra showPrices plan={activePlan} onAcquista={acquistaServizio} />,
+        },
+      ]}
+      promo={<PromoOnboarding />}
+    />
+  );
+
+  const alert =
+    sospeso && activePlan !== sospeso.plan ? (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="font-display text-lg text-green-800">⏳ Hai un acquisto da completare</div>
+          <p className="text-sm text-green-900/75">
+            Piano {PLAN_MAP[sospeso.plan as Plan]?.label ?? sospeso.plan}
+            {sospeso.extras.length ? ` + ${sospeso.extras.length} servizio/i extra` : ""} — pagamento non concluso.
+          </p>
+        </div>
+        <div className="flex flex-none gap-2">
+          <button type="button" onClick={riprendiAcquisto} className="btn-lime justify-center text-sm">
+            Riprendi e paga
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              pulisciAcquistoSospeso();
+              setSospeso(null);
+            }}
+            className="btn-ghost justify-center text-sm"
+          >
+            Annulla
+          </button>
+        </div>
       </div>
-    );
-  }
+    ) : null;
+
+  const panels: DashPanel[] = [
+    {
+      id: "start",
+      section: "Lavoro",
+      icon: "start",
+      label: "Da dove parto",
+      content: (
+        <StartPanel
+          activePlan={activePlan}
+          onScegli={scegliPiano}
+          onAttivaOnboarding={() => acquistaServizio("onboarding")}
+          onbAttivo={onbAttivo}
+          prodotti={prodotti}
+        />
+      ),
+    },
+    {
+      id: "prod",
+      section: "Lavoro",
+      icon: "prodotti",
+      label: "Prodotti & semaforo",
+      content: (
+        <>
+          <section className="card border-2 border-lime-500 p-6">
+            <h2 className="font-display text-2xl text-green-700">🚦 Il tuo semaforo di sostenibilità</h2>
+            <p className="mt-1 text-sm text-green-900/75">
+              Compila la scheda del prodotto e ottieni subito il semaforo ecologico, poi salvalo
+              nella lista qui sotto.
+            </p>
+            <div className="mt-5">
+              <CalcolatoreImpronta
+                nascondiPubblica
+                vuoto
+                aziendaNome={azienda.nome ?? undefined}
+                onAggiungiProdotto={aggiungiProdottoDaSemaforo}
+              />
+            </div>
+          </section>
+          <ProdottiCard
+            aziendaId={azienda.id}
+            stabilimenti={stabilimenti}
+            prodotti={prodotti}
+            plan={activePlan}
+            onChange={refreshAll}
+            vista="tutto"
+          />
+        </>
+      ),
+    },
+    {
+      id: "cat",
+      section: "Lavoro",
+      icon: "catalogo",
+      label: "Catalogo & esperienze",
+      content: <CatalogoCard ownerId={user.id} gold={pianoScelto === "gold"} vista="tutto" onChange={refreshAll} />,
+    },
+    {
+      id: "dati",
+      section: "Lavoro",
+      icon: "dati",
+      label: "Dati & posizione",
+      content: (
+        <>
+          <AnagraficaCard
+            azienda={azienda}
+            initialNome={(user.user_metadata as { nome?: string })?.nome}
+            ownerId={user.id}
+            onSaved={loadAll}
+          />
+          <StabilimentiCard aziendaId={azienda.id} stabilimenti={stabilimenti} onChange={loadAll} />
+        </>
+      ),
+    },
+    {
+      id: "bio",
+      section: "Lavoro",
+      icon: "bio",
+      label: "Certificazione bio",
+      content: (
+        <SezioneBio
+          ownerId={user.id}
+          aziendaNome={azienda.nome ?? undefined}
+          aziendaCitta={azienda.citta_sede ?? undefined}
+          aziendaLat={azienda.lat ?? undefined}
+          aziendaLon={azienda.lon ?? undefined}
+        />
+      ),
+    },
+    {
+      id: "prev",
+      section: "Lavoro",
+      icon: "anteprima",
+      label: "Anteprima & link",
+      content: <AnteprimaScheda ownerId={user.id} plan={pianoScelto} refreshKey={previewKey} />,
+    },
+    {
+      id: "msg",
+      section: "Attività",
+      icon: "messaggi",
+      label: "Messaggi",
+      content: <MessaggiCard ownerId={user.id} />,
+    },
+    {
+      id: "pren",
+      section: "Attività",
+      icon: "prenotazioni",
+      label: "Prenotazioni",
+      badge: conte.prenotazioni || null,
+      content: <PrenotazioniCard ownerId={user.id} />,
+    },
+    {
+      id: "ord",
+      section: "Attività",
+      icon: "ordini",
+      label: "Ordini shop",
+      badge: conte.ordini || null,
+      content: <OrdiniShopRicevuti />,
+    },
+    {
+      id: "stat",
+      section: "Attività",
+      icon: "statistiche",
+      label: "Statistiche",
+      content: <StatisticheCard ownerId={user.id} plan={pianoScelto} />,
+    },
+    {
+      id: "pay",
+      section: "Attività",
+      icon: "incassi",
+      label: "Incassi & Stripe",
+      content: <PagamentiCard ownerId={user.id} plan={pianoScelto} />,
+    },
+    {
+      id: "extra",
+      section: "Servizi extra",
+      icon: "extra",
+      tone: "giallo",
+      label: "Servizi extra",
+      content: (
+        <section className="card p-5 md:p-6">
+          <h2 className="font-display text-2xl text-green-800">Servizi extra</h2>
+          <p className="mt-1 text-sm text-green-900/70">
+            Potenzia la tua azienda. Guarda la demo di ciascun servizio.
+          </p>
+          <div className="mt-4">
+            <ServiziExtra showPrices plan={activePlan} onAcquista={acquistaServizio} />
+          </div>
+          <div className="mt-6">
+            <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
+          </div>
+        </section>
+      ),
+    },
+    {
+      id: "onb",
+      section: "Servizi extra",
+      icon: "onboarding",
+      tone: "giallo",
+      label: "Ci pensiamo noi",
+      content: <OnboardingCard />,
+    },
+    {
+      id: "attivi",
+      section: "Servizi extra",
+      icon: "attivi",
+      tone: "giallo",
+      label: "Servizi attivi",
+      content: <ServiziAttivi />,
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-wide text-lime-500">
-            Area aziende
-          </div>
-          <h1 className="title-pangea text-3xl text-green-700 md:text-4xl">
-            La tua dashboard
-          </h1>
-        </div>
-        <button
-          className="btn-ghost text-sm"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            router.push("/");
-          }}
-        >
-          Esci
-        </button>
-      </div>
-
-      <DashboardPlanHeader
-        plan={activePlan}
-        crossUrl={URL_BIOFIDO}
-        crossLabel="🐾 Vai su BioFido"
-        crossSeBio
+    <>
+      <DashboardShell
+        title="La tua dashboard · Area aziende"
+        header={esciBtn}
+        topBar={topBar}
+        alert={alert}
+        panels={panels}
+        defaultPanel="start"
       />
-
-      {/* IL SEMAFORO È LA PRIMA COSA SU ECO-VISA: compila il prodotto e ottieni il giudizio */}
-      <section className="card mt-6 border-2 border-lime-500 p-6">
-        <h2 className="font-display text-2xl text-green-700 md:text-3xl">
-          🚦 Il tuo semaforo di sostenibilità
-        </h2>
-        <p className="mt-1 text-sm text-green-900/75">
-          Compila la scheda del tuo prodotto e ottieni subito il semaforo ecologico.{" "}
-          <strong>
-            Come utente Free puoi caricare e condividere sul tuo sito un solo prodotto
-          </strong>{" "}
-          — scegli un abbonamento qui sotto e potrai caricare più schede.
-        </p>
-        <div className="mt-5">
-          <CalcolatoreImpronta
-            nascondiPubblica
-            vuoto
-            aziendaNome={azienda?.nome ?? undefined}
-            onAggiungiProdotto={aggiungiProdottoDaSemaforo}
-          />
-        </div>
-        <p className="mt-4 rounded-xl bg-leaf/50 p-3 text-sm text-green-900/75">
-          👉 Per <strong>salvare il prodotto e generare il codice</strong> da copiare
-          e incollare sul tuo sito (che mostra questa cornice-semaforo, sempre
-          aggiornata), aggiungilo nella sezione <strong>«I tuoi prodotti»</strong> qui
-          sotto.
-        </p>
-      </section>
-
-      {sospeso && activePlan !== sospeso.plan && (
-        <div className="card mb-4 flex flex-col gap-3 border-2 border-badge-yellow bg-[#fffbe9] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="font-display text-lg text-green-800">⏳ Hai un acquisto da completare</div>
-            <p className="text-sm text-green-900/75">
-              Piano {PLAN_MAP[sospeso.plan as Plan]?.label ?? sospeso.plan}
-              {sospeso.extras.length ? ` + ${sospeso.extras.length} servizio/i extra` : ""} — pagamento non concluso.
-            </p>
-          </div>
-          <div className="flex flex-none gap-2">
-            <button type="button" onClick={riprendiAcquisto} className="btn-lime justify-center text-sm">
-              Riprendi e paga
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                pulisciAcquistoSospeso();
-                setSospeso(null);
-              }}
-              className="btn-ghost justify-center text-sm"
-            >
-              Annulla
-            </button>
-          </div>
-        </div>
-      )}
-
-      <PianoSelector scelto={pianoScelto} attivo={activePlan} onScegli={scegliPiano} />
-
       {popupPag && (
         <PurchasePopup
           plan={popupPag.plan}
@@ -542,7 +690,6 @@ export default function DashboardPage() {
           onClose={() => setPopupPag(null)}
         />
       )}
-
       {gateSemaforo && (
         <div
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-3"
@@ -557,16 +704,15 @@ export default function DashboardPage() {
             />
             <h3 className="mt-3 font-display text-2xl text-green-800">Un attimo!</h3>
             <p className="mt-3 text-green-900/85">
-              Prima di abbonarti, carica almeno un prodotto/semaforo di sostenibilità:
-              per pagare c&apos;è sempre tempo, prima fai vedere quanto tu e i tuoi
-              prodotti siete speciali!
+              Prima di abbonarti, carica almeno un prodotto/semaforo di sostenibilità: per pagare
+              c&apos;è sempre tempo, prima fai vedere quanto tu e i tuoi prodotti siete speciali!
             </p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={() => {
                   setGateSemaforo(false);
-                  document.getElementById("i-tuoi-prodotti")?.scrollIntoView({ behavior: "smooth" });
+                  vaiAlPannello("prod");
                 }}
                 className="btn-lime flex-1 justify-center"
               >
@@ -579,109 +725,140 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+    </>
+  );
+}
 
-      <GoldPromoBanner portale="ECO-VISA" plan={pianoScelto} />
-
-      <SchedaServizi piano={pianoScelto} attivo={activePlan} />
-
-      {/* Anagrafica dietro un link a comparsa: dashboard più pulita */}
-      <details className="card mt-6 p-0">
-        <summary className="cursor-pointer list-none px-6 py-4 font-display text-lg text-green-800">
-          📋 Anagrafica, dati fiscali e posizione sulla mappa — clicca per vedere/modificare
-        </summary>
-        <div className="px-2 pb-2">
-          <AnagraficaCard
-            azienda={azienda}
-            initialNome={(user?.user_metadata as { nome?: string })?.nome}
-            ownerId={user?.id ?? ""}
-            onSaved={loadAll}
-          />
-        </div>
-      </details>
-
-      {user && (
-        <SezioneBio
-          ownerId={user.id}
-          aziendaNome={azienda?.nome ?? undefined}
-          aziendaCitta={azienda?.citta_sede ?? undefined}
-          aziendaLat={azienda?.lat ?? undefined}
-          aziendaLon={azienda?.lon ?? undefined}
-        />
-      )}
-
-      {azienda && (
-        <>
-          <StabilimentiCard
-            aziendaId={azienda.id}
-            stabilimenti={stabilimenti}
-            onChange={loadAll}
-          />
-          {/* la gestione prodotti/servizi vive in una PAGINA dedicata, per tenere
-              ordinata la dashboard (così non si fa confusione) */}
-          <button
-            type="button"
-            onClick={() => setVistaProdotti(true)}
-            className="card mt-6 flex w-full items-center justify-between gap-4 p-6 text-left hover:bg-leaf/30"
-          >
-            <span>
-              <span className="font-display text-2xl text-green-800">📦 I tuoi prodotti e servizi</span>
-              <span className="mt-1 block text-sm text-green-900/70">
-                Aggiungi prodotti (col semaforo) e servizi extra, gestisci magazzino, foto e prezzi.
-                {prodotti.length > 0 ? ` · ${prodotti.length} prodotti caricati` : ""}
-              </span>
-            </span>
-            <span className="font-display text-3xl text-green-700">→</span>
-          </button>
-        </>
-      )}
-
-      {user && azienda && <AnteprimaScheda ownerId={user.id} plan={pianoScelto} refreshKey={previewKey} />}
-      {user && <StatisticheCard ownerId={user.id} plan={pianoScelto} />}
-
-      {user && <PagamentiCard ownerId={user.id} plan={pianoScelto} />}
-
-      {user && <OrdiniShopRicevuti />}
-      {user && <MessaggiCard ownerId={user.id} />}
-
-      {user && PLAN_MAP[pianoScelto].canSell && (
-        <div id="prenotazioni" className="scroll-mt-20">
-          <PrenotazioniCard ownerId={user.id} />
-        </div>
-      )}
-
-      {user && (
-        <PagamentoFinale
-          ownerId={user.id}
-          scelto={pianoScelto}
-          attivo={activePlan}
-          bloccato={prodotti.length === 0}
-          onBloccato={() => setGateSemaforo(true)}
-          prefill={{
-            ragione_sociale: azienda?.nome ?? undefined,
-            partita_iva: azienda?.piva ?? undefined,
-            codice_fiscale: azienda?.codice_fiscale ?? undefined,
-            indirizzo: azienda?.indirizzo ?? undefined,
-            cap: azienda?.cap ?? undefined,
-            citta: azienda?.citta_sede ?? undefined,
-            provincia: azienda?.provincia ?? undefined,
-          }}
-        />
-      )}
-
-      {/* Servizi extra: in fondo (già richiamati più volte sopra) */}
-      <section className="card mt-6 p-6">
-        <h2 className="font-display text-2xl text-green-800">Servizi extra</h2>
-        <p className="mt-1 text-sm text-green-900/70">
-          Potenzia la tua azienda. Guarda la demo di ciascun servizio.
-        </p>
-        <div className="mt-4">
-          <ServiziExtra showPrices plan={activePlan} onAcquista={acquistaServizio} />
-        </div>
-      </section>
-
-      {/* «Ci pensiamo noi»: subito sotto i servizi extra, compare solo se acquistato */}
-      <OnboardingCard />
+/* =============================== PANNELLI SHELL =============================== */
+function StartPanel({
+  activePlan,
+  onScegli,
+  onAttivaOnboarding,
+  onbAttivo,
+  prodotti,
+}: {
+  activePlan: Plan;
+  onScegli: (p: Plan, per: "monthly" | "annual") => void;
+  onAttivaOnboarding: () => void;
+  onbAttivo: boolean;
+  prodotti: Prodotto[];
+}) {
+  return (
+    <div className="space-y-4">
+      <DashboardPlanHeader plan={activePlan} crossUrl={URL_BIOFIDO} crossLabel="🐾 Vai su BioFido" crossSeBio />
+      <LegendaPianiSlider
+        activePlan={activePlan}
+        onScegli={(p) => onScegli(p, "annual")}
+        onAttivaOnboarding={onAttivaOnboarding}
+        onboardingAttivo={onbAttivo}
+      />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => vaiAlPannello("prod")}
+          className="rounded-2xl border-2 border-[#9fcd6f] bg-[#f4faec] p-5 text-left transition hover:-translate-y-0.5"
+        >
+          <div className="text-3xl">🚦</div>
+          <div className="mt-1 font-display text-lg text-[#235d12]">Carica i tuoi PRODOTTI</div>
+          <div className="text-xs text-[#5c7a3f]">Col semaforo di sostenibilità (materie prime + origine).</div>
+        </button>
+        <button
+          type="button"
+          onClick={() => vaiAlPannello("cat")}
+          className="rounded-2xl border-2 border-badge-yellow bg-[#fdf7e6] p-5 text-left transition hover:-translate-y-0.5"
+        >
+          <div className="text-3xl">✨</div>
+          <div className="mt-1 font-display text-lg text-[#7a5b00]">Carica i SERVIZI EXTRA</div>
+          <div className="text-xs text-[#8a6f2e]">Visite, laboratori, degustazioni prenotabili.</div>
+        </button>
+      </div>
+      <ProdottiCaricatiMini prodotti={prodotti} />
     </div>
+  );
+}
+
+function ProdottiCaricatiMini({ prodotti }: { prodotti: Prodotto[] }) {
+  return (
+    <section className="card p-5">
+      <h3 className="font-display text-lg text-green-800">Tutto ciò che hai già caricato</h3>
+      {prodotti.length === 0 ? (
+        <p className="mt-2 text-sm text-green-900/65">
+          Ancora niente: usa le due cornici qui sopra per aggiungere il tuo primo prodotto o servizio.
+        </p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {prodotti.map((p) => (
+            <div key={p.id} className="flex items-center gap-3 rounded-xl border border-[#e3eed7] bg-white px-4 py-2">
+              <span className="h-3 w-3 flex-none rounded-full bg-green-600" />
+              <span className="truncate font-semibold text-green-800">{p.nome}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <button onClick={() => vaiAlPannello("prod")} className="btn-ghost mt-3 text-sm">
+        Gestisci prodotti e servizi →
+      </button>
+    </section>
+  );
+}
+
+function PromoOnboarding() {
+  return (
+    <button
+      type="button"
+      onClick={() => vaiAlPannello("onb")}
+      className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border-2 border-badge-yellow bg-[#fffbe9] px-3 py-2 text-left transition hover:bg-[#fff6da]"
+    >
+      <span className="text-2xl">🪄</span>
+      <span className="min-w-0">
+        <span className="block font-display text-sm text-[#7a5b00]">Non ho tempo per un sito</span>
+        <span className="block truncate text-xs text-[#8a6f2e]">Ci pensiamo noi · guarda la demo</span>
+      </span>
+    </button>
+  );
+}
+
+function ServiziAttivi() {
+  const [extras, setExtras] = useState<string[] | null>(null);
+  const [statoOnb, setStatoOnb] = useState<string | null>(null);
+  useEffect(() => {
+    getMyExtras().then(setExtras).catch(() => setExtras([]));
+    getStatoOnboarding()
+      .then((s) => setStatoOnb((s as { stato?: string } | null)?.stato ?? null))
+      .catch(() => {});
+  }, []);
+  const LABEL: Record<string, string> = {
+    onboarding: "Ci pensiamo noi (onboarding negozio)",
+    report: "Report di sostenibilità",
+    badge: "Badge ECO-VISA",
+  };
+  return (
+    <section className="card p-5 md:p-6">
+      <h2 className="font-display text-2xl text-green-800">Servizi attivi</h2>
+      <p className="mt-1 text-sm text-green-900/70">Cosa hai già attivato sul tuo account.</p>
+      {extras === null ? (
+        <p className="mt-4 text-sm text-green-900/60">Caricamento…</p>
+      ) : extras.length === 0 ? (
+        <p className="mt-4 rounded-xl bg-leaf/40 p-4 text-sm text-green-900/70">
+          Non hai ancora attivato servizi extra. Li trovi nella sezione «Servizi extra».
+        </p>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {extras.map((k) => (
+            <div key={k} className="flex items-center gap-3 rounded-xl border border-[#cfe3b4] bg-leaf/30 p-3">
+              <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">
+                ✓
+              </span>
+              <div className="flex-1">
+                <div className="font-semibold text-green-800">{LABEL[k] ?? k}</div>
+                {k === "onboarding" && statoOnb && <div className="text-xs text-green-900/60">Stato: {statoOnb}</div>}
+              </div>
+              <span className="text-xs font-semibold text-green-700">Attivo</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
