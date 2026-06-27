@@ -63,6 +63,7 @@ import { SmsNotificheToggle } from "@/components/SmsNotificheToggle";
 import { PLAN_MAP, isDowngrade, perditeDowngrade, type Plan } from "@/lib/piani";
 import { DashboardShell, BarraTendine, vaiAlPannello, type DashPanel } from "@/components/DashboardShell";
 import { LegendaPianiSlider } from "@/components/LegendaPianiSlider";
+import { PromoTimer } from "@/components/PromoTimer";
 import { contaInSospeso } from "@/lib/contatori";
 import { getMyExtras, getStatoOnboarding } from "@/lib/onboarding";
 
@@ -733,6 +734,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+      <PromoTimer plan={activePlan} />
     </>
   );
 }
