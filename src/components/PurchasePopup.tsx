@@ -19,7 +19,7 @@ const CONSENSI_ABBONAMENTO: { id: string; testo: string; link?: { label: string;
   { id: "termini", testo: "Ho letto e accetto i {LINK}.", link: { label: "Termini di vendita", href: LEGALE.terminiVendita } },
   { id: "privacy", testo: "Ho letto l'{LINK} e accetto il trattamento dei dati per l'abbonamento e la fatturazione (Ligusto Srl).", link: { label: "Informativa privacy", href: LEGALE.privacy } },
   { id: "responsabilita", testo: "Dichiaro di rappresentare un'azienda reale e mi assumo la responsabilità dei contenuti che pubblico (testi, immagini, dati): non caricherò materiale illecito o ingannevole." },
-  { id: "semaforo", testo: "Capisco che il semaforo di sostenibilità è il cuore di ECO-VISA: per pubblicare in vetrina, almeno 2/3 dei miei prodotti devono avere il semaforo (materie prime con la loro origine). Sotto questa soglia il sistema limita la pubblicazione dei prodotti senza semaforo." },
+  { id: "semaforo", testo: "Capisco che il semaforo di sostenibilità è il cuore di ECO-VISA: ogni prodotto che pubblico in vetrina deve avere il semaforo, cioè le materie prime con la loro origine. I prodotti senza semaforo non vengono pubblicati su ECO-VISA." },
 ];
 
 /** Servizi attivabili per piano (onboarding solo Gold). */
