@@ -46,6 +46,8 @@ import { PurchasePopup } from "@/components/PurchasePopup";
 import { DashboardPlanHeader } from "@/components/DashboardPlanHeader";
 import { OnboardingCard } from "@/components/OnboardingCard";
 import { URL_BIOFIDO } from "@/lib/portale";
+import { CrossPortalBanner } from "@/components/CrossPortalBanner";
+import { aziendaSlug } from "@/lib/azienda-pubblica";
 import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
 import {
   listMyBookings,
@@ -509,6 +511,7 @@ export default function DashboardPage() {
           onAttivaOnboarding={() => acquistaServizio("onboarding")}
           onbAttivo={onbAttivo}
           prodotti={prodotti}
+          aziendaNome={azienda?.nome ?? undefined}
         />
       ),
     },
@@ -746,16 +749,25 @@ function StartPanel({
   onAttivaOnboarding,
   onbAttivo,
   prodotti,
+  aziendaNome,
 }: {
   activePlan: Plan;
   onScegli: (p: Plan, per: "monthly" | "annual") => void;
   onAttivaOnboarding: () => void;
   onbAttivo: boolean;
   prodotti: Prodotto[];
+  aziendaNome?: string;
 }) {
   return (
     <div className="space-y-4">
       <DashboardPlanHeader plan={activePlan} crossUrl={URL_BIOFIDO} crossLabel="🐾 Vai su BioFido" crossSeBio />
+      {aziendaNome && (
+        <CrossPortalBanner
+          attiva
+          url={`${URL_BIOFIDO}azienda/${aziendaSlug(aziendaNome)}/`}
+          altroPortale="BioFido"
+        />
+      )}
       <LegendaPianiSlider
         activePlan={activePlan}
         onScegli={(p) => onScegli(p, "annual")}
