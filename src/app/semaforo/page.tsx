@@ -31,7 +31,7 @@ export default function SemaforoPage() {
         </h2>
         <p className="mt-2 text-green-900/80">
           In base a <strong>distanza</strong> e <strong>geografia</strong> dello stabilimento,
-          ogni ingrediente prende una delle 8 tonalità:
+          ogni ingrediente prende una delle 9 tonalità (3 verdi · 3 gialli · 3 rossi):
         </p>
         <ul className="mt-4 space-y-2 text-sm">
           <li className="flex items-center gap-3">
@@ -44,19 +44,23 @@ export default function SemaforoPage() {
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="verde_chiaro" />
-            <span>Verde chiaro — entro {SOGLIE_TIER_KM.verde_chiaro} km (copre l&apos;Italia e i vicini)</span>
+            <span>Verde chiaro — entro {SOGLIE_TIER_KM.verde_chiaro} km</span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="giallo_chiaro" />
-            <span>Giallo chiaro — oltre {SOGLIE_TIER_KM.verde_chiaro} km, ma <strong>in Italia</strong></span>
+            <span>Giallo chiaro — {SOGLIE_TIER_KM.verde_chiaro}–{SOGLIE_TIER_KM.giallo_chiaro} km</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <SemaforoIngrediente tier="giallo" />
+            <span>Giallo — {SOGLIE_TIER_KM.giallo_chiaro}–{SOGLIE_TIER_KM.giallo} km</span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="giallo_scuro" />
-            <span>Giallo scuro — oltre {SOGLIE_TIER_KM.verde_chiaro} km e <strong>fuori dall&apos;Italia</strong></span>
+            <span>Giallo scuro — {SOGLIE_TIER_KM.giallo}–{SOGLIE_TIER_KM.giallo_scuro} km</span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="rosso_chiaro" />
-            <span>Rosso chiaro — oltre {SOGLIE_TIER_KM.giallo} km, ma in <strong>Europa</strong></span>
+            <span>Rosso chiaro — oltre {SOGLIE_TIER_KM.giallo_scuro} km, ma in <strong>Europa</strong></span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="rosso_scuro" />
@@ -64,7 +68,7 @@ export default function SemaforoPage() {
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="rosso_scurissimo" />
-            <span>Rosso scurissimo — materie prime dall&apos;<strong>Asia</strong></span>
+            <span>Rosso scurissimo — materie prime da <strong>Asia o Oceania</strong></span>
           </li>
         </ul>
       </section>
@@ -84,7 +88,7 @@ export default function SemaforoPage() {
           <li>Un prodotto resta <strong>verde</strong> anche con qualche ingrediente giallo, purché non superino la metà.</li>
           <li>Il <strong>giallo scuro</strong> pesa più del giallo chiaro; il rosso pesa molto.</li>
           <li>
-            <strong>Freno duro:</strong> anche un solo ingrediente <em>rosso scurissimo</em> (Asia)
+            <strong>Freno duro:</strong> anche un solo ingrediente <em>rosso scurissimo</em> (Asia o Oceania)
             impedisce il verde — il prodotto non supera mai il giallo scuro.
           </li>
           <li>Quando c&apos;è una materia prima lontana, mostriamo un <strong>consiglio</strong> con alternative più vicine.</li>

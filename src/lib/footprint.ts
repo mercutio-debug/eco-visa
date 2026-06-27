@@ -29,10 +29,11 @@ function viaCamion(lat: number, lon: number): boolean {
 }
 
 /** Macro-regione di provenienza, per il giudizio geografico del semaforo. */
-export type Regione = "italia" | "europa" | "america_africa" | "asia";
+export type Regione = "italia" | "europa" | "america_africa" | "asia" | "oceania";
 
 export function regioneDi(g: GeoPoint): Regione {
   if (g.country === "Italia") return "italia";
+  if (g.lat < -10 && g.lon >= 110) return "oceania"; // Australia, Nuova Zelanda, Pacifico
   if (g.lon > 45) return "asia"; // Medio Oriente e Asia
   if (g.lon < -25) return "america_africa"; // Americhe
   if (g.lat < 34) return "america_africa"; // Africa
@@ -43,44 +44,48 @@ export function regioneDi(g: GeoPoint): Regione {
 export type EcoLevel = "verde" | "giallo" | "rosso";
 
 /* ============================================================
-   SCALA A 8 TONALITÀ (per ingrediente E per prodotto)
+   SCALA A 9 TONALITÀ (3 verdi · 3 gialli · 3 rossi)
    Tier del singolo ingrediente in base a DISTANZA + GEOGRAFIA:
      super_green     ≤ 70 km    (km0)
-     verde           ≤ 200 km
-     verde_chiaro    ≤ 1000 km  (copre l'Italia e i vicini)
-     giallo_chiaro   1000–2000 km, in Italia
-     giallo_scuro    1000–2000 km, fuori Italia
+     verde           ≤ 400 km
+     verde_chiaro    ≤ 1000 km
+     giallo_chiaro   1000–1300 km
+     giallo          1300–1600 km
+     giallo_scuro    1600–2000 km
      rosso_chiaro    > 2000 km, in Europa
      rosso_scuro     > 2000 km, America/Africa
-     rosso_scurissimo  Asia (rosso sangue scurissimo)
+     rosso_scurissimo  Asia / Oceania (filiera lunghissima)
    ============================================================ */
 export type TierIng =
   | "super_green"
   | "verde"
   | "verde_chiaro"
   | "giallo_chiaro"
+  | "giallo"
   | "giallo_scuro"
   | "rosso_chiaro"
   | "rosso_scuro"
   | "rosso_scurissimo";
 
-/** Il PRODOTTO è giudicato sulla stessa scala a 8 tonalità. */
+/** Il PRODOTTO è giudicato sulla stessa scala a 9 tonalità. */
 export type Giudizio = TierIng;
 
 export function tierIngrediente(km: number, reg: Regione): TierIng {
   if (km <= 70) return "super_green";
-  if (km <= 200) return "verde";
+  if (km <= 400) return "verde";
   if (km <= 1000) return "verde_chiaro";
-  if (km <= 2000) return reg === "italia" ? "giallo_chiaro" : "giallo_scuro";
-  if (reg === "asia") return "rosso_scurissimo";
+  if (km <= 1300) return "giallo_chiaro";
+  if (km <= 1600) return "giallo";
+  if (km <= 2000) return "giallo_scuro";
+  if (reg === "asia" || reg === "oceania") return "rosso_scurissimo";
   if (reg === "america_africa") return "rosso_scuro";
   return "rosso_chiaro";
 }
 
-/** Le 3 tonalità verdi → "verde"; le 2 gialle → "giallo"; le 3 rosse → "rosso". */
+/** Le 3 tonalità verdi → "verde"; le 3 gialle → "giallo"; le 3 rosse → "rosso". */
 export function categoriaDiTier(t: TierIng): EcoLevel {
   if (t === "super_green" || t === "verde" || t === "verde_chiaro") return "verde";
-  if (t === "giallo_chiaro" || t === "giallo_scuro") return "giallo";
+  if (t === "giallo_chiaro" || t === "giallo" || t === "giallo_scuro") return "giallo";
   return "rosso";
 }
 
@@ -95,8 +100,9 @@ const QUALITA: Record<TierIng, number> = {
   super_green: 100,
   verde: 92,
   verde_chiaro: 82,
-  giallo_chiaro: 62,
-  giallo_scuro: 48,
+  giallo_chiaro: 65,
+  giallo: 55,
+  giallo_scuro: 45,
   rosso_chiaro: 34,
   rosso_scuro: 24,
   rosso_scurissimo: 8,
@@ -105,9 +111,10 @@ const QUALITA: Record<TierIng, number> = {
 function bandaDaPunteggio(score: number): Giudizio {
   if (score >= 95) return "super_green";
   if (score >= 86) return "verde";
-  if (score >= 70) return "verde_chiaro";
-  if (score >= 56) return "giallo_chiaro";
-  if (score >= 42) return "giallo_scuro";
+  if (score >= 72) return "verde_chiaro";
+  if (score >= 60) return "giallo_chiaro";
+  if (score >= 50) return "giallo";
+  if (score >= 40) return "giallo_scuro";
   if (score >= 30) return "rosso_chiaro";
   if (score >= 16) return "rosso_scuro";
   return "rosso_scurissimo";
@@ -253,9 +260,11 @@ export function computeIngredient(
 /** Soglie dei tier per-ingrediente (km), esposte per la pagina di trasparenza. */
 export const SOGLIE_TIER_KM = {
   super_green: 70,
-  verde: 200,
+  verde: 400,
   verde_chiaro: 1000,
-  giallo: 2000,
+  giallo_chiaro: 1300,
+  giallo: 1600,
+  giallo_scuro: 2000,
 } as const;
 
 /** calcola l'impronta completa di un prodotto */

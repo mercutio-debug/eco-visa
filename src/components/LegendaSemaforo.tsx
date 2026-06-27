@@ -16,23 +16,28 @@ const VOCI: { level: Giudizio; titolo: string; criterio: string }[] = [
   {
     level: "verde",
     titolo: "Verde",
-    criterio: "Materie prime molto vicine, entro ~200 km. Filiera corta del territorio.",
+    criterio: "Materie prime vicine, entro 400 km. Filiera corta del territorio.",
   },
   {
     level: "verde_chiaro",
     titolo: "Verde chiaro",
     criterio:
-      "Ingredienti entro l'Italia (≤ 1000 km). Per essere verde NON serve avere tutto verde: vanno bene anche dei gialli, purché non superino la metà.",
+      "Ingredienti entro i 1000 km. Per essere verde NON serve avere tutto verde: vanno bene anche dei gialli, purché non superino la metà.",
   },
   {
     level: "giallo_chiaro",
     titolo: "Giallo chiaro",
-    criterio: "Diverse materie prime oltre i 1000 km, ma ancora entro i confini italiani.",
+    criterio: "Materie prime tra i 1000 e i 1300 km.",
+  },
+  {
+    level: "giallo",
+    titolo: "Giallo",
+    criterio: "Materie prime tra i 1300 e i 1600 km.",
   },
   {
     level: "giallo_scuro",
     titolo: "Giallo scuro",
-    criterio: "Materie prime oltre i 1000 km e fuori dall'Italia (Europa vicina). Pesa più del giallo chiaro.",
+    criterio: "Materie prime tra i 1600 e i 2000 km. Pesa più del giallo chiaro.",
   },
   {
     level: "rosso_chiaro",
@@ -48,7 +53,7 @@ const VOCI: { level: Giudizio; titolo: string; criterio: string }[] = [
     level: "rosso_scurissimo",
     titolo: "Rosso scurissimo",
     criterio:
-      "Materie prime dall'Asia: la filiera più lunga. Anche un solo ingrediente così impedisce il verde (al massimo giallo scuro).",
+      "Materie prime da Asia o Oceania: la filiera più lunga. Anche un solo ingrediente così impedisce il verde (al massimo giallo scuro).",
   },
 ];
 

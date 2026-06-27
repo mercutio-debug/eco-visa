@@ -1,7 +1,7 @@
 import type { Giudizio, TierIng, EcoLevel } from "@/lib/footprint";
 import { categoriaDiTier } from "@/lib/footprint";
 
-/* Semaforo grande: scala a 8 tonalità. La lampada accesa (verde/giallo/rosso)
+/* Semaforo grande: scala a 9 tonalità. La lampada accesa (verde/giallo/rosso)
    prende il COLORE della tonalità specifica (es. giallo scuro, rosso scurissimo). */
 type Meta = { label: string; color: string; lampada: EcoLevel; desc: string };
 
@@ -28,13 +28,19 @@ const META: Record<Giudizio, Meta> = {
     label: "Giallo chiaro — migliorabile",
     color: "#f6c416",
     lampada: "giallo",
-    desc: "Diverse materie prime oltre i 1000 km, ma entro l'Italia.",
+    desc: "Materie prime tra i 1000 e i 1300 km.",
+  },
+  giallo: {
+    label: "Giallo",
+    color: "#e7af0b",
+    lampada: "giallo",
+    desc: "Materie prime tra i 1300 e i 1600 km.",
   },
   giallo_scuro: {
     label: "Giallo scuro",
     color: "#d99a00",
     lampada: "giallo",
-    desc: "Materie prime oltre i 1000 km e fuori dall'Italia.",
+    desc: "Materie prime tra i 1600 e i 2000 km.",
   },
   rosso_chiaro: {
     label: "Rosso chiaro — alto impatto",
@@ -52,7 +58,7 @@ const META: Record<Giudizio, Meta> = {
     label: "Rosso scurissimo — filiera lunghissima",
     color: "#9c0604",
     lampada: "rosso",
-    desc: "Materie prime dall'Asia: la filiera più lunga.",
+    desc: "Materie prime dall'Asia o dall'Oceania: la filiera più lunga.",
   },
 };
 
@@ -147,12 +153,13 @@ export function Semaforo({
 }
 
 /* Mini-semaforo orizzontale di una singola materia prima: la lampada accesa
-   prende il colore della tonalità (8 sfumature). */
+   prende il colore della tonalità (9 sfumature). */
 const COLORE_TIER: Record<TierIng, string> = {
   super_green: "#2e9e0e",
   verde: "#45a82f",
   verde_chiaro: "#7cb342",
   giallo_chiaro: "#f6c416",
+  giallo: "#e7af0b",
   giallo_scuro: "#d99a00",
   rosso_chiaro: "#ef5350",
   rosso_scuro: "#c62828",
