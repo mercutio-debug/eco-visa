@@ -179,7 +179,7 @@ export async function createBookingRequest(input: {
   orario?: string;
   persone: number;
   note?: string;
-}): Promise<{ error?: string; totaleCents: number }> {
+}): Promise<{ error?: string; totaleCents: number; id?: string }> {
   const totaleCents = input.esperienza.prezzoCents * input.persone;
   const commCents = commissionCents(input.ownerPlan, totaleCents);
   const {
@@ -201,12 +201,14 @@ export async function createBookingRequest(input: {
     commissione_cents: commCents,
     stato: "in_attesa",
   };
-  let { error } = await supabase.from("prenotazioni").insert(payload);
+  // .select("id") senza .single(): per un ospite (non loggato) la RLS può bloccare la
+  // rilettura della riga → array vuoto, ma l'insert è comunque andato a buon fine.
+  let { data, error } = await supabase.from("prenotazioni").insert(payload).select("id");
   if (error && /orario_richiesto/i.test(error.message)) {
     delete payload.orario_richiesto;
-    ({ error } = await supabase.from("prenotazioni").insert(payload));
+    ({ data, error } = await supabase.from("prenotazioni").insert(payload).select("id"));
   }
-  return { error: error?.message, totaleCents };
+  return { error: error?.message, totaleCents, id: (data as { id?: string }[] | null)?.[0]?.id };
 }
 
 /* ---------------- gestione prenotazioni ricevute (produttore) ---------------- */
@@ -232,7 +234,7 @@ export type Booking = {
   totaleCents: number;
   commissioneCents: number;
   stato: BookingStatus;
-  paymentStatus: "non_pagata" | "pagata" | "rimborsata";
+  paymentStatus: "non_pagata" | "autorizzata" | "pagata" | "rimborsata";
   createdAt?: string;
 };
 
@@ -248,7 +250,7 @@ type BookRow = {
   totale_cents: number;
   commissione_cents: number;
   stato: BookingStatus;
-  payment_status?: "non_pagata" | "pagata" | "rimborsata" | null;
+  payment_status?: "non_pagata" | "autorizzata" | "pagata" | "rimborsata" | null;
   created_at?: string;
 };
 

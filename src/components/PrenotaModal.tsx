@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createBookingRequest, euroCents, type Experience } from "@/lib/bookings";
 import type { Plan } from "@/lib/piani";
+import { payBooking } from "@/lib/connect";
+import { billingEnabled } from "@/lib/billing";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Modulo "Prenota un'esperienza" (gemello di BioFido), disaccoppiato dal tipo
@@ -82,7 +85,7 @@ export function PrenotaModal({
       return;
     }
 
-    const { error } = await createBookingRequest({
+    const { error, id } = await createBookingRequest({
       esperienza: exp,
       ownerPlan,
       clienteNome: nome,
@@ -93,9 +96,31 @@ export function PrenotaModal({
       persone,
       note,
     });
+    if (error) {
+      setSaving(false);
+      setErr(error);
+      return;
+    }
+    // se il cliente è loggato e i pagamenti sono attivi, va SUBITO ad autorizzare il
+    // pagamento (fondi bloccati). L'azienda poi approva (cattura) o rifiuta (annulla).
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (id && billingEnabled && session) {
+      try {
+        await payBooking(id); // redirect a Stripe
+        return; // stiamo reindirizzando
+      } catch (e) {
+        setSaving(false);
+        setErr(
+          (e as Error).message +
+            " La richiesta è salvata: puoi completare il pagamento da «Le mie prenotazioni».",
+        );
+        return;
+      }
+    }
     setSaving(false);
-    if (error) setErr(error);
-    else setDone(true);
+    setDone(true);
   }
 
   if (typeof document === "undefined") return null;

@@ -48,7 +48,7 @@ import { OnboardingCard } from "@/components/OnboardingCard";
 import { URL_BIOFIDO } from "@/lib/portale";
 import { CrossPortalBanner } from "@/components/CrossPortalBanner";
 import { aziendaSlug } from "@/lib/azienda-pubblica";
-import { startOnboarding, refreshConnectStatus } from "@/lib/connect";
+import { startOnboarding, refreshConnectStatus, captureBooking, cancelBooking } from "@/lib/connect";
 import {
   listMyBookings,
   setBookingStatus,
@@ -2597,10 +2597,21 @@ function PrenotazioniCard({ ownerId }: { ownerId: string }) {
     load();
   }, [load]);
 
-  async function act(id: string, stato: BookingStatus) {
-    await setBookingStatus(id, stato);
+  async function act(b: Booking, stato: BookingStatus) {
+    try {
+      if (stato === "confermata") {
+        if (b.paymentStatus === "autorizzata") await captureBooking(b.id);
+        else await setBookingStatus(b.id, "confermata");
+      } else {
+        if (b.paymentStatus === "autorizzata") await cancelBooking(b.id);
+        else await setBookingStatus(b.id, "rifiutata");
+      }
+    } catch (e) {
+      alert((e as Error).message);
+      return;
+    }
     await sendMessage(
-      id,
+      b.id,
       "azienda",
       stato === "confermata"
         ? "La tua prenotazione è stata confermata ✅. A presto!"
@@ -2648,17 +2659,22 @@ function PrenotazioniCard({ ownerId }: { ownerId: string }) {
                     Pagata ✅
                   </span>
                 )}
+                {b.paymentStatus === "autorizzata" && (
+                  <span className="rounded-full bg-badge-yellow px-2 py-0.5 text-[11px] font-bold text-[#7a5a00]">
+                    💳 Pagata · fondi bloccati
+                  </span>
+                )}
                 {b.stato === "in_attesa" && (
                   <>
                     <button
                       className="rounded-full bg-traffic-green px-3 py-1 text-xs font-bold text-white"
-                      onClick={() => act(b.id, "confermata")}
+                      onClick={() => act(b, "confermata")}
                     >
-                      Conferma
+                      {b.paymentStatus === "autorizzata" ? "Approva e incassa" : "Conferma"}
                     </button>
                     <button
                       className="rounded-full border border-traffic-red px-3 py-1 text-xs font-bold text-traffic-red"
-                      onClick={() => act(b.id, "rifiutata")}
+                      onClick={() => act(b, "rifiutata")}
                     >
                       Rifiuta
                     </button>
