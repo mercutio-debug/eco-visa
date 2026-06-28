@@ -112,6 +112,34 @@ export function AziendaScheda({
     }
   }
 
+  // 🗓️ Prenota un'esperienza con gate login OBBLIGATORIO: ospiti → messaggio +
+  // iscrizione cliente, salvando il ritorno con ?prenota=1 così al rientro il
+  // modale si riapre da solo e si può completare il pagamento.
+  const apriPrenota = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      if (typeof window !== "undefined") {
+        try {
+          const sep = window.location.search ? "&" : "?";
+          sessionStorage.setItem(
+            "postLoginRedirect",
+            window.location.pathname + window.location.search + sep + "prenota=1",
+          );
+        } catch {
+          /* ignore */
+        }
+        alert(
+          "Per prenotare un'esperienza in azienda devi accedere o creare un account cliente (è gratis). Dopo l'accesso riprendi da dove eri.",
+        );
+        window.location.href = "/registrati?tipo=cliente";
+      }
+      return;
+    }
+    setPrenotaEsp(true);
+  };
+
   // 🛒 Aggiungi al carrello con gate login: ospiti → messaggio + pagina accedi;
   // loggati → prodotto nel carrello (il checkout completo arriva con la Fase B).
   const aggiungiCarrello = async (p: ProdottoPubblico) => {
@@ -168,6 +196,17 @@ export function AziendaScheda({
     if (!owner) return;
     experiencesByOwners([owner]).then((m) => setEsperienze(m[owner] ?? []));
   }, [dati?.azienda?.owner]);
+
+  // ripresa automatica: se torno dal login con ?prenota=1 e sono loggato, riapro
+  // il modale di prenotazione (così completo il pagamento da dove ero rimasto).
+  useEffect(() => {
+    if (typeof window === "undefined" || esperienze.length === 0) return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("prenota") !== "1") return;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setPrenotaEsp(true);
+    });
+  }, [esperienze.length]);
 
   // conta una VISITA alla scheda pubblica (una sola volta per apertura)
   const vistaContata = useRef(false);
@@ -551,7 +590,7 @@ export function AziendaScheda({
                 {azienda.owner && (
                   <button
                     type="button"
-                    onClick={() => setPrenotaEsp(true)}
+                    onClick={apriPrenota}
                     className="btn-lime mt-3 w-full justify-center text-sm"
                   >
                     ✨ Prenota
