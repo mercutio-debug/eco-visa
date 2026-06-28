@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createBookingRequest, euroCents, type Experience } from "@/lib/bookings";
 import type { Plan } from "@/lib/piani";
-import { payBooking } from "@/lib/connect";
+import { payBooking, ownerPuoIncassare } from "@/lib/connect";
 import { billingEnabled } from "@/lib/billing";
 import { supabase } from "@/lib/supabase";
 import { loadAnagraficaCliente, anagraficaClienteCompleta } from "@/lib/clienti";
@@ -48,6 +48,16 @@ export function PrenotaModal({
   useEffect(() => {
     loadAnagraficaCliente().then((a) => setAnagOk(anagraficaClienteCompleta(a)));
   }, []);
+  // l'azienda può incassare? se i pagamenti sono attivi ma l'azienda non ha
+  // completato Stripe Connect, blocco la prenotazione (niente richieste non pagabili).
+  const [ownerOk, setOwnerOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!billingEnabled || demo) {
+      setOwnerOk(true);
+      return;
+    }
+    ownerPuoIncassare(exp?.owner).then(setOwnerOk);
+  }, [demo, exp?.owner]);
 
   // agenda dell'esperienza: giorni ammessi (1=lun…7=dom) e orario fisso, se impostati
   const GIORNI_LAB = ["", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
@@ -71,6 +81,10 @@ export function PrenotaModal({
   const totaleCents = exp ? exp.prezzoCents * persone : 0;
 
   async function submit() {
+    if (ownerOk === false) {
+      setErr("Questa azienda non accetta ancora prenotazioni online.");
+      return;
+    }
     if (anagOk === false) {
       setErr("Completa prima i tuoi dati (anagrafica) per poter prenotare.");
       return;
@@ -298,7 +312,13 @@ export function PrenotaModal({
 
             {err && <p className="mt-3 text-sm font-semibold text-traffic-red">{err}</p>}
 
-            {anagOk === false ? (
+            {ownerOk === false ? (
+              <div className="mt-4 rounded-xl border-2 border-stone-300 bg-stone-50 p-3 text-sm text-stone-700">
+                🔒 <strong>Questa azienda non accetta ancora prenotazioni online.</strong> Non ha
+                completato l&apos;attivazione dei pagamenti. Riprova più avanti o contattala
+                direttamente.
+              </div>
+            ) : anagOk === false ? (
               <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                 ⚠️ Per prenotare devi prima <strong>completare i tuoi dati</strong> (nome, codice
                 fiscale, indirizzo): servono all&apos;azienda per la fattura.{" "}
@@ -318,7 +338,7 @@ export function PrenotaModal({
                 <button
                   className="btn-lime mt-3 w-full justify-center"
                   onClick={submit}
-                  disabled={saving || anagOk === null}
+                  disabled={saving || anagOk === null || ownerOk === null}
                 >
                   {saving ? "Attendi…" : "Prenota e paga (bloccato fino all'approvazione)"}
                 </button>
