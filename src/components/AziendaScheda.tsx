@@ -23,6 +23,7 @@ import { PLAN_MAP, type Plan } from "@/lib/piani";
 import { createPortal } from "react-dom";
 import { RichiestaServizioModal } from "@/components/RichiestaServizioModal";
 import { PrenotaModal } from "@/components/PrenotaModal";
+import { EsperienzaDettaglio } from "@/components/EsperienzaDettaglio";
 import { experiencesByOwners, type Experience } from "@/lib/bookings";
 import { ContattaAziendaModal } from "@/components/ContattaAziendaModal";
 import { SegnalaModal } from "@/components/SegnalaModal";
@@ -74,6 +75,7 @@ export function AziendaScheda({
   // esperienze (tabella condivisa `esperienze`) + apertura del modale di prenotazione
   const [esperienze, setEsperienze] = useState<Experience[]>([]);
   const [prenotaEsp, setPrenotaEsp] = useState(false);
+  const [espAperta, setEspAperta] = useState<Experience | null>(null);
   const [segnala, setSegnala] = useState<ServizioPubblico | null>(null);
   const [dettaglio, setDettaglio] = useState<ProdottoPubblico | null>(null);
   const [servDettaglio, setServDettaglio] = useState<ServizioPubblico | null>(null);
@@ -558,16 +560,17 @@ export function AziendaScheda({
                 key={e.id}
                 className="rounded-2xl border-2 border-badge-yellow bg-[#fffbe9] p-4"
               >
-                <div className="flex items-start gap-3">
+                <div
+                  className="flex cursor-pointer items-start gap-3"
+                  onClick={() => setEspAperta(e)}
+                  title="Clicca per i dettagli dell'esperienza"
+                >
                   {e.immagine && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={e.immagine} alt={e.titolo} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-green-800">{e.titolo}</div>
-                    {e.descrizione && (
-                      <p className="mt-0.5 text-xs text-green-900/65">{e.descrizione}</p>
-                    )}
                     <div className="mt-0.5 text-[11px] text-green-900/55">
                       {e.durataMin ? `~${e.durataMin} min · ` : ""}max {e.maxPersone} persone
                       {e.giorniSettimana?.length
@@ -577,11 +580,9 @@ export function AziendaScheda({
                         : ""}
                       {e.orario ? ` · ${e.orario}` : ""}
                     </div>
-                    {e.lingue?.length ? (
-                      <div className="mt-0.5 text-[11px] text-green-900/55">
-                        {e.lingue.map((l) => LINGUE_LABEL[l] ?? l).join(" · ")}
-                      </div>
-                    ) : null}
+                    <div className="text-[10px] font-semibold text-green-700">
+                      clicca per dettagli, foto grande e lingue ▾
+                    </div>
                   </div>
                   <div className="shrink-0 text-sm font-bold text-green-800">
                     {euroNum(e.prezzoCents / 100)}
@@ -620,6 +621,21 @@ export function AziendaScheda({
           ownerPlan={(azienda.plan as Plan) ?? "free"}
           aziendaNome={azienda.nome}
           onClose={() => setPrenotaEsp(false)}
+        />
+      )}
+
+      {espAperta && (
+        <EsperienzaDettaglio
+          e={espAperta}
+          onClose={() => setEspAperta(null)}
+          onPrenota={
+            azienda.owner
+              ? () => {
+                  setEspAperta(null);
+                  apriPrenota();
+                }
+              : undefined
+          }
         />
       )}
 
