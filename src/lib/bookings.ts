@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { loadAnagraficaCliente, indirizzoClienteUnaRiga } from "./clienti";
 import { PLAN_MAP, type Plan } from "./piani";
 
 /**
@@ -212,13 +213,17 @@ export async function createBookingRequest(input: {
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  // snapshot dell'anagrafica cliente sulla prenotazione (l'azienda riceve la scheda)
+  const anag = await loadAnagraficaCliente();
   const payload: Record<string, unknown> = {
     esperienza_id: input.esperienza.id,
     owner: input.esperienza.owner,
     cliente_user_id: session?.user.id ?? null,
-    cliente_nome: input.clienteNome,
+    cliente_nome: anag.nome || input.clienteNome,
     cliente_email: input.clienteEmail,
-    cliente_tel: input.clienteTel || null,
+    cliente_tel: anag.telefono || input.clienteTel || null,
+    cliente_cf: anag.codiceFiscale || null,
+    cliente_indirizzo: indirizzoClienteUnaRiga(anag) || null,
     data_richiesta: input.dataRichiesta,
     orario_richiesto: input.orario || null,
     persone: input.persone,
@@ -231,8 +236,10 @@ export async function createBookingRequest(input: {
   // .select("id") senza .single(): per un ospite (non loggato) la RLS può bloccare la
   // rilettura della riga → array vuoto, ma l'insert è comunque andato a buon fine.
   let { data, error } = await supabase.from("prenotazioni").insert(payload).select("id");
-  if (error && /orario_richiesto/i.test(error.message)) {
+  if (error && /orario_richiesto|cliente_cf|cliente_indirizzo/i.test(error.message)) {
     delete payload.orario_richiesto;
+    delete payload.cliente_cf;
+    delete payload.cliente_indirizzo;
     ({ data, error } = await supabase.from("prenotazioni").insert(payload).select("id"));
   }
   return { error: error?.message, totaleCents, id: (data as { id?: string }[] | null)?.[0]?.id };
@@ -255,6 +262,8 @@ export type Booking = {
   clienteNome: string;
   clienteEmail: string;
   clienteTel?: string;
+  clienteCf?: string;
+  clienteIndirizzo?: string;
   dataRichiesta: string;
   persone: number;
   note?: string;
@@ -271,6 +280,8 @@ type BookRow = {
   cliente_nome: string;
   cliente_email: string;
   cliente_tel: string | null;
+  cliente_cf?: string | null;
+  cliente_indirizzo?: string | null;
   data_richiesta: string;
   persone: number;
   note: string | null;
@@ -287,6 +298,8 @@ const fromBookRow = (r: BookRow): Booking => ({
   clienteNome: r.cliente_nome,
   clienteEmail: r.cliente_email,
   clienteTel: r.cliente_tel ?? undefined,
+  clienteCf: r.cliente_cf ?? undefined,
+  clienteIndirizzo: r.cliente_indirizzo ?? undefined,
   dataRichiesta: r.data_richiesta,
   persone: r.persone,
   note: r.note ?? undefined,
