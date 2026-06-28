@@ -384,6 +384,7 @@ export default function DashboardPage() {
             initialNome={(user?.user_metadata as { nome?: string })?.nome}
             ownerId={user?.id ?? ""}
             onSaved={loadAll}
+            plan={activePlan}
           />
         </div>
 
@@ -569,6 +570,7 @@ export default function DashboardPage() {
             initialNome={(user.user_metadata as { nome?: string })?.nome}
             ownerId={user.id}
             onSaved={loadAll}
+            plan={activePlan}
           />
           <StabilimentiCard aziendaId={azienda.id} stabilimenti={stabilimenti} onChange={loadAll} />
         </>
@@ -1069,12 +1071,16 @@ function AnagraficaCard({
   initialNome,
   ownerId,
   onSaved,
+  plan,
 }: {
   azienda: Azienda | null;
   initialNome?: string;
   ownerId: string;
   onSaved: () => void;
+  plan: Plan;
 }) {
+  // foto + descrizione + sito azienda: da Silver in su (Free = solo segnaposto)
+  const richProfile = PLAN_MAP[plan].richProfile;
   const [nome, setNome] = useState(azienda?.nome ?? initialNome ?? "");
   const [piva, setPiva] = useState(azienda?.piva ?? "");
   const [cf, setCf] = useState(azienda?.codice_fiscale ?? "");
@@ -1293,9 +1299,10 @@ function AnagraficaCard({
       provincia: provincia || null,
       lat: coord?.lat ?? null,
       lon: coord?.lon ?? null,
-      sito_web: sito || null,
-      descrizione: descrizione.trim() || null,
-      immagine: immagine || null,
+      // foto + descrizione + sito solo da Silver in su (Free = solo segnaposto)
+      sito_web: richProfile ? sito || null : null,
+      descrizione: richProfile ? descrizione.trim() || null : null,
+      immagine: richProfile ? immagine || null : null,
     };
     const esegui = (p: Record<string, unknown>) =>
       azienda
@@ -1458,10 +1465,12 @@ function AnagraficaCard({
             />
           </div>
         </label>
-        <label className="block">
-          <span className="label">Sito web</span>
-          <input className="field mt-1" value={sito} onChange={(e) => setSito(e.target.value)} />
-        </label>
+        {richProfile && (
+          <label className="block">
+            <span className="label">Sito web</span>
+            <input className="field mt-1" value={sito} onChange={(e) => setSito(e.target.value)} />
+          </label>
+        )}
 
         {/* Indirizzo preciso: serve a posizionare il segnaposto sulla mappa
             (di BioFido e della ricerca) sul punto esatto, non sul centro del comune. */}
@@ -1555,23 +1564,26 @@ function AnagraficaCard({
             onChange={(la, lo) => setCoord({ lat: la, lon: lo })}
           />
         </div>
-        <label className="block md:col-span-2">
-          <span className="label">Descrizione azienda</span>
-          <textarea
-            className="field mt-1"
-            rows={3}
-            maxLength={MAX_DESCRIZIONE}
-            value={descrizione}
-            onChange={(e) => setDescrizione(e.target.value.slice(0, MAX_DESCRIZIONE))}
-            placeholder="Racconta la tua azienda: storia, valori, cosa produci… (max 500 caratteri)"
-          />
-          <div className="mt-1 text-right text-[11px] text-green-900/50">
-            {descrizione.length}/{MAX_DESCRIZIONE}
-          </div>
-        </label>
+        {richProfile && (
+          <label className="block md:col-span-2">
+            <span className="label">Descrizione azienda</span>
+            <textarea
+              className="field mt-1"
+              rows={3}
+              maxLength={MAX_DESCRIZIONE}
+              value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value.slice(0, MAX_DESCRIZIONE))}
+              placeholder="Racconta la tua azienda: storia, valori, cosa produci… (max 500 caratteri)"
+            />
+            <div className="mt-1 text-right text-[11px] text-green-900/50">
+              {descrizione.length}/{MAX_DESCRIZIONE}
+            </div>
+          </label>
+        )}
 
         {/* Immagine dell'azienda (copertina): compare nella scheda pubblica e,
-            per i Gold, in cima al widget sulla mappa di BioFido. */}
+            per i Gold, in cima al widget sulla mappa di BioFido. Da Silver in su. */}
+        {richProfile ? (
         <div className="block md:col-span-2">
           <span className="label">Immagine dell&apos;azienda (copertina)</span>
           <div className="mt-1 flex items-center gap-3">
@@ -1619,6 +1631,13 @@ function AnagraficaCard({
             Ridimensionata in automatico. Ricordati di premere «Aggiorna dati» per salvarla.
           </p>
         </div>
+        ) : (
+          <p className="rounded-xl bg-leaf/50 p-3 text-xs text-green-900/70 md:col-span-2">
+            Con <strong>Free</strong> la tua azienda compare come segnaposto sulla mappa
+            (posizione, tipo e nome). <strong>Foto, descrizione e sito web</strong> si sbloccano
+            dal piano <strong>Silver</strong>.
+          </p>
+        )}
       </div>
 
       {/* DATI PER LA FATTURA: non obbligatori ora, richiesti all'acquisto */}
