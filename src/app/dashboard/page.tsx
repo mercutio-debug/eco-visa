@@ -83,6 +83,8 @@ type Azienda = {
   sito_web: string | null;
   descrizione?: string | null;
   immagine?: string | null;
+  /** 'biofido' = scheda nata su BioFido e rispecchiata qui (si gestisce su BioFido) */
+  origine?: string | null;
 };
 
 /** Lunghezza massima della descrizione azienda. */
@@ -1273,6 +1275,12 @@ function AnagraficaCard({
   }
 
   async function save() {
+    // scheda nata su BioFido (rispecchiata qui): si modifica SOLO su BioFido,
+    // altrimenti le modifiche verrebbero sovrascritte al primo salvataggio lì.
+    if (azienda?.origine === "biofido") {
+      setMsg("Questa scheda è gestita su BioFido: modificala da lì.");
+      return;
+    }
     setSaving(true);
     setMsg(null);
     const payload: Record<string, unknown> = {
@@ -1367,6 +1375,29 @@ function AnagraficaCard({
         I dati della tua azienda. La sede non incide sul calcolo CO₂ (conta lo
         stabilimento di produzione).
       </p>
+      {azienda?.origine === "biofido" && (
+        <div className="mt-4 rounded-2xl border-2 border-[#cfe0b0] bg-leaf/50 p-4">
+          <div className="flex items-center gap-2 font-display text-base text-green-800">
+            <span className="rounded-md bg-green-700 px-2 py-0.5 text-sm font-bold tracking-wide text-white">
+              BioFido
+            </span>
+            Questa scheda è gestita su BioFido
+          </div>
+          <p className="mt-1 text-sm text-green-900/75">
+            La tua azienda è nata su <strong>BioFido</strong>, il portale gemello: qui è in{" "}
+            <strong>sola lettura</strong>. Per modificare i dati vai su BioFido — gli
+            aggiornamenti compaiono in automatico anche su ECO-VISA.
+          </p>
+          <a
+            href={URL_BIOFIDO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-lime mt-3 inline-flex"
+          >
+            🐾 Vai a modificare su BioFido →
+          </a>
+        </div>
+      )}
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="block">
           <span className="label">Nome azienda *</span>
@@ -1683,12 +1714,17 @@ function AnagraficaCard({
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
-        <button className="btn-lime" onClick={save} disabled={saving || !nome}>
-          {saving ? "Salvataggio…" : azienda ? "Aggiorna dati" : "Salva azienda"}
-        </button>
-        {msg && <span className="text-sm font-semibold text-green-700">{msg}</span>}
-      </div>
+      {azienda?.origine !== "biofido" && (
+        <div className="mt-4 flex items-center gap-3">
+          <button className="btn-lime" onClick={save} disabled={saving || !nome}>
+            {saving ? "Salvataggio…" : azienda ? "Aggiorna dati" : "Salva azienda"}
+          </button>
+          {msg && <span className="text-sm font-semibold text-green-700">{msg}</span>}
+        </div>
+      )}
+      {azienda?.origine === "biofido" && msg && (
+        <p className="mt-4 text-sm font-semibold text-green-700">{msg}</p>
+      )}
     </section>
   );
 }
