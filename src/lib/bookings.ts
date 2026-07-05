@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { loadAnagraficaCliente, indirizzoClienteUnaRiga } from "./clienti";
+import { aziendaSospesa } from "./connect";
 import { PLAN_MAP, type Plan } from "./piani";
 
 /**
@@ -209,6 +210,12 @@ export async function createBookingRequest(input: {
   note?: string;
 }): Promise<{ error?: string; totaleCents: number; id?: string }> {
   const totaleCents = input.esperienza.prezzoCents * input.persone;
+  if (await aziendaSospesa(input.esperienza.owner)) {
+    return {
+      error: "Questa azienda è momentaneamente sospesa e non può accettare prenotazioni.",
+      totaleCents,
+    };
+  }
   const commCents = commissionCents(input.ownerPlan, totaleCents);
   const {
     data: { session },
