@@ -39,6 +39,9 @@ export default function AccediPage() {
   const [recMail, setRecMail] = useState("");
   const [recMsg, setRecMsg] = useState<string | null>(null);
   const [recBusy, setRecBusy] = useState(false);
+  // captcha DEDICATO al recupero (il token è monouso: separato da quello del login)
+  const [recCaptcha, setRecCaptcha] = useState<string | null>(null);
+  const [recCaptchaKey, setRecCaptchaKey] = useState(0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,11 +87,19 @@ export default function AccediPage() {
     e.preventDefault();
     setRecMsg(null);
     if (!recMail.trim()) return;
+    if (turnstileAttivo && !recCaptcha) {
+      setRecMsg("Conferma di non essere un robot.");
+      return;
+    }
     setRecBusy(true);
     const { error: err } = await supabase.auth.resetPasswordForEmail(recMail, {
       redirectTo: `${window.location.origin}${BASE}/reset/`,
+      captchaToken: recCaptcha ?? undefined,
     });
     setRecBusy(false);
+    // il token Turnstile è monouso: lo azzero così un nuovo invio ne genera uno fresco
+    setRecCaptcha(null);
+    setRecCaptchaKey((k) => k + 1);
     // Per sicurezza Supabase NON rivela se l'email è registrata (anti-enumerazione):
     // mostriamo sempre lo stesso messaggio.
     setRecMsg(
@@ -177,16 +188,20 @@ export default function AccediPage() {
             Inserisci la mail con cui ti sei iscritto: ti invieremo un&apos;email con un
             link per accedere e impostare una nuova password.
           </p>
-          <form onSubmit={inviaRecupero} className="flex gap-2">
+          <form onSubmit={inviaRecupero} className="space-y-3">
             <input
               type="email"
-              className="field flex-1"
+              className="field w-full"
               value={recMail}
               onChange={(e) => setRecMail(e.target.value)}
               placeholder="latua@email.it"
               required
             />
-            <button className="btn-lime whitespace-nowrap" disabled={recBusy}>
+            <Turnstile key={`rec-${recCaptchaKey}`} onToken={setRecCaptcha} />
+            <button
+              className="btn-lime w-full"
+              disabled={recBusy || (turnstileAttivo && !recCaptcha)}
+            >
               {recBusy ? "Invio…" : "Invia"}
             </button>
           </form>
