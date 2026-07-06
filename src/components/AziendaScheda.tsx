@@ -133,9 +133,10 @@ export function AziendaScheda({
           /* ignore */
         }
         alert(
-          "Per prenotare un'esperienza in azienda devi accedere o creare un account cliente (è gratis). Dopo l'accesso riprendi da dove eri.",
+          "Per prenotare un'esperienza in azienda accedi (o crea un account cliente, è gratis). Dopo l'accesso riprendi da dove eri.",
         );
-        window.location.href = "/registrati?tipo=cliente";
+        // login-first: chi ha già l'account entra subito; i nuovi trovano lì il link «Iscriviti come cliente»
+        window.location.href = "/accedi";
       }
       return;
     }
@@ -161,8 +162,9 @@ export function AziendaScheda({
         }
         // chi ordina è quasi sempre un CLIENTE → mando all'iscrizione cliente
         // (da lì può comunque accedere o passare all'area aziende).
-        alert("Per ordinare questo prodotto accedi o crea un account cliente (è gratis).");
-        window.location.href = "/registrati?tipo=cliente";
+        alert("Per ordinare questo prodotto accedi (o crea un account cliente, è gratis).");
+        // login-first: se hai già l'account entri subito, evitando ri-registrazioni per sbaglio
+        window.location.href = "/accedi";
       }
       return;
     }
