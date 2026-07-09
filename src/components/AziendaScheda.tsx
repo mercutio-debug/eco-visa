@@ -135,8 +135,8 @@ export function AziendaScheda({
         alert(
           "Per prenotare un'esperienza in azienda accedi (o crea un account cliente, è gratis). Dopo l'accesso riprendi da dove eri.",
         );
-        // login-first: chi ha già l'account entra subito; i nuovi trovano lì il link «Iscriviti come cliente»
-        window.location.href = "/accedi";
+        // login-first: chi ha già l'account entra subito; i nuovi trovano in cima l'invito «Iscriviti come cliente»
+        window.location.href = "/accedi?tipo=cliente";
       }
       return;
     }
@@ -164,7 +164,7 @@ export function AziendaScheda({
         // (da lì può comunque accedere o passare all'area aziende).
         alert("Per ordinare questo prodotto accedi (o crea un account cliente, è gratis).");
         // login-first: se hai già l'account entri subito, evitando ri-registrazioni per sbaglio
-        window.location.href = "/accedi";
+        window.location.href = "/accedi?tipo=cliente";
       }
       return;
     }
