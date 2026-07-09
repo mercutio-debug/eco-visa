@@ -13,7 +13,18 @@ type Prod = {
   nome: string;
   categoria: string | null;
   stabilimento_citta: string;
+  updated_at?: string | null;
 };
+
+/** "GG/MM/AAAA" — data di ultimo aggiornamento del semaforo (dati del prodotto). */
+function dataAggiornamento(iso?: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
 type Ingr = { nome: string; origine: string };
 type Voce = { p: Prod; ingr: Ingr[] };
 
@@ -53,6 +64,12 @@ function PassaportoPreview({ azienda, voce }: { azienda: string; voce: Voce }) {
             </div>
           </div>
         </div>
+        {dataAggiornamento(p.updated_at) && (
+          <p className="mt-2 text-[10px] text-green-900/45">
+            Semaforo aggiornato il {dataAggiornamento(p.updated_at)} · dati dichiarati
+            dall&apos;azienda
+          </p>
+        )}
       </div>
     </div>
   );
@@ -165,7 +182,7 @@ export function AnteprimaScheda({
     }
     const { data: pr } = await supabase
       .from("prodotti")
-      .select("id, nome, categoria, stabilimento_citta")
+      .select("*")
       .eq("azienda_id", a.id)
       .order("created_at");
     const prods = (pr as Prod[]) ?? [];

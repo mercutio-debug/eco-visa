@@ -14,8 +14,23 @@ type Prod = {
   nome: string;
   categoria: string | null;
   stabilimento_citta: string;
+  updated_at?: string | null;
 };
 type Ingr = { nome: string; origine: string };
+
+/** "GG/MM/AAAA" — data di ultimo aggiornamento del semaforo (dati del prodotto). */
+function dataAggiornamento(iso?: string | null): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export default function EmbedPage() {
   const [status, setStatus] = useState<"loading" | "ok" | "notfound" | "noplan">("loading");
@@ -162,6 +177,12 @@ export default function EmbedPage() {
                 </li>
               ))}
             </ul>
+          )}
+          {dataAggiornamento(prod.updated_at) && (
+            <p className="mt-3 text-[10px] text-green-900/45">
+              Semaforo aggiornato il {dataAggiornamento(prod.updated_at)} · dati dichiarati
+              dall&apos;azienda
+            </p>
           )}
         </div>
 
