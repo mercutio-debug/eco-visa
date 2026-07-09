@@ -1,7 +1,7 @@
-:HL["/_next/static/chunks/211z07afat1y6.css","style"]
+:HL["/_next/static/chunks/07zcz0hlgqsoz.css","style"]
 :HL["/_next/static/media/0595f7052377a1a2-s.p.2lpos000q_nzo.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/6c98c9fb873995d2-s.p.22ggkaf3lyu8c.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/9e9f04e3c37952ab-s.p.0pan85mumqyf3.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/a083361d37caf3d1-s.p.0s4utfvp8prsy.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/_next/static/media/c6e2684784a55443-s.p.2p4adm_386h58.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"prodotti","param":null,"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"cantuccini-la-nuova-fornaia-bio","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"-njoaABwV-YKkgyO1U8R6"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"prodotti","param":null,"prefetchHints":0,"slots":{"children":{"name":"slug","param":{"type":"d","key":"cantuccini-la-nuova-fornaia-bio","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"KRR1427Dt3p5TzQvISlRr"}
