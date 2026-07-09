@@ -132,7 +132,7 @@ export default function DashboardPage() {
   // popup-carrello del pagamento (reminder all'azienda quando sceglie un piano)
   const [popupPag, setPopupPag] = useState<{ plan: Plan; period: "monthly" | "annual" } | null>(null);
   // Gate ECO-VISA: non ci si abbona se non si è pubblicato almeno un prodotto col
-  // semaforo di sostenibilità (è il cuore del servizio). Mostra l'invito gentile.
+  // semaforo della filiera (è il cuore del servizio). Mostra l'invito gentile.
   const [gateSemaforo, setGateSemaforo] = useState(false);
   // Acquisto in sospeso (pagamento avviato ma non completato): card "Completa".
   const [sospeso, setSospeso] = useState<AcquistoSospeso | null>(null);
@@ -528,9 +528,9 @@ export default function DashboardPage() {
       content: (
         <>
           <section className="card border-2 border-lime-500 p-6">
-            <h2 className="font-display text-2xl text-green-700">🚦 Il tuo semaforo di sostenibilità</h2>
+            <h2 className="font-display text-2xl text-green-700">🚦 Il tuo semaforo della filiera</h2>
             <p className="mt-1 text-sm text-green-900/75">
-              Compila la scheda del prodotto e ottieni subito il semaforo ecologico, poi salvalo
+              Compila la scheda del prodotto e ottieni subito il semaforo della filiera, poi salvalo
               nella lista qui sotto.
             </p>
             <div className="mt-5">
@@ -717,12 +717,12 @@ export default function DashboardPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/uomo-semaforo.png`}
-              alt="Carica un prodotto e ottieni il semaforo di sostenibilità"
+              alt="Carica un prodotto e ottieni il semaforo della filiera"
               className="mx-auto w-full max-w-xs"
             />
             <h3 className="mt-3 font-display text-2xl text-green-800">Un attimo!</h3>
             <p className="mt-3 text-green-900/85">
-              Prima di abbonarti, carica almeno un prodotto/semaforo di sostenibilità: per pagare
+              Prima di abbonarti, carica almeno un prodotto/semaforo della filiera: per pagare
               c&apos;è sempre tempo, prima fai vedere quanto tu e i tuoi prodotti siete speciali!
             </p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
@@ -788,7 +788,7 @@ function StartPanel({
         >
           <div className="text-3xl">🚦</div>
           <div className="mt-1 font-display text-lg text-[#235d12]">Carica i tuoi PRODOTTI</div>
-          <div className="text-xs text-[#5c7a3f]">Col semaforo di sostenibilità (materie prime + origine).</div>
+          <div className="text-xs text-[#5c7a3f]">Col semaforo della filiera (materie prime + origine).</div>
         </button>
         <button
           type="button"
@@ -871,7 +871,7 @@ function ServiziAttivi() {
   }, []);
   const LABEL: Record<string, string> = {
     onboarding: "Ci pensiamo noi (onboarding negozio)",
-    report: "Report di sostenibilità",
+    report: "Report della filiera",
     badge: "Badge ECO-VISA",
   };
   return (
@@ -1868,12 +1868,12 @@ function ProdottiCard({
       </h2>
       {vista === "form" && (
         <p className="mt-0.5 text-sm font-semibold text-green-700">
-          🚦 e calcola il tuo semaforo di sostenibilità
+          🚦 e calcola il tuo semaforo della filiera
         </p>
       )}
       {vista !== "lista" && (
         <p className="mt-2 rounded-xl bg-leaf/60 p-3 text-sm text-green-900/85">
-          🚦 <strong>ECO-VISA si basa sul semaforo di sostenibilità</strong>: carica i tuoi
+          🚦 <strong>ECO-VISA si basa sul semaforo della filiera</strong>: carica i tuoi
           prodotti mostrando a tutti il loro valore. Per pubblicare la tua bacheca (Silver o
           Gold) serve <strong>almeno un prodotto con il semaforo</strong>.
         </p>
@@ -2836,7 +2836,7 @@ function PagamentiCard({ ownerId, plan }: { ownerId: string; plan: Plan }) {
 function EmbedSnippet({ id }: { id: string }) {
   const [copied, setCopied] = useState(false);
   // URL assoluto per il codice da copiare (va sul sito dell'azienda)
-  const code = `<iframe src="https://ecovisa.it/embed/?id=${id}" width="100%" height="430" style="border:0;max-width:480px" title="Passaporto ecologico ECO-VISA"></iframe>`;
+  const code = `<iframe src="https://ecovisa.it/embed/?id=${id}" width="100%" height="430" style="border:0;max-width:480px" title="Passaporto della filiera ECO-VISA"></iframe>`;
   // URL relativo (con eventuale basePath) per l'anteprima dal vivo qui in dashboard
   const previewSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/embed/?id=${id}`;
   return (
@@ -2852,7 +2852,7 @@ function EmbedSnippet({ id }: { id: string }) {
           width="100%"
           height={430}
           style={{ border: 0, maxWidth: 480 }}
-          title="Anteprima passaporto ecologico"
+          title="Anteprima passaporto della filiera"
         />
       </div>
 

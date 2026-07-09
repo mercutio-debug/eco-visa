@@ -4,7 +4,7 @@ import { ServiziExtra } from "@/components/ServiziExtra";
 export const metadata: Metadata = {
   title: "Servizi extra · ECO-VISA",
   description:
-    "Potenzia la tua azienda su ECO-VISA: «Ci pensiamo noi» (ti mettiamo online noi), report di sostenibilità brandizzato e badge fisico verificato.",
+    "Potenzia la tua azienda su ECO-VISA: «Ci pensiamo noi» (ti mettiamo online noi), report della filiera brandizzato e badge fisico verificato.",
   alternates: { canonical: "https://ecovisa.it/servizi-extra/" },
 };
 
@@ -14,7 +14,7 @@ export default function ServiziExtraPage() {
       <h1 className="title-pangea text-4xl text-green-700">Servizi extra</h1>
       <p className="mt-2 max-w-2xl text-green-900/70">
         Oltre all&apos;abbonamento, alcuni servizi pensati per farti risparmiare tempo e
-        dare valore alla tua sostenibilità. Guarda la demo di ciascuno.
+        dare valore alla tua filiera corta. Guarda la demo di ciascuno.
       </p>
       <div className="mt-8">
         <ServiziExtra showPrices />

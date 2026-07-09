@@ -28,14 +28,14 @@ export async function generateMetadata({
   if (!a) return { title: "Azienda — ECO-VISA" };
   const luogo = a.citta ? ` a ${a.citta}` : "";
   return {
-    title: `${a.nome}${a.citta ? ` · ${a.citta}` : ""} — impronta ecologica dei prodotti | ECO-VISA`,
+    title: `${a.nome}${a.citta ? ` · ${a.citta}` : ""} — impronta di trasporto dei prodotti | ECO-VISA`,
     description:
-      `${a.nome}${luogo}: prodotti locali con impronta ecologica di trasporto misurata. ` +
+      `${a.nome}${luogo}: prodotti locali con impronta di trasporto di trasporto misurata. ` +
       `Scopri la filiera, l'impronta di CO₂ e contatta direttamente l'azienda su ECO-VISA.`,
     alternates: { canonical: `https://ecovisa.it/azienda/${slug}/` },
     openGraph: {
       title: `${a.nome}${a.citta ? ` · ${a.citta}` : ""} — ECO-VISA`,
-      description: `Prodotti locali e impronta ecologica di ${a.nome}${luogo}.`,
+      description: `Prodotti locali e impronta di trasporto di ${a.nome}${luogo}.`,
       url: `https://ecovisa.it/azienda/${slug}/`,
       type: "profile",
       // anteprima link: copertina dell'azienda se presente, altrimenti l'immagine

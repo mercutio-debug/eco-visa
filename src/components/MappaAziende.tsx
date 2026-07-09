@@ -52,7 +52,7 @@ export function MappaAziende() {
       }[]) ?? []).filter((a) => a.citta_sede);
 
       // FILOSOFIA ECO-VISA: in pubblico compaiono SOLO le aziende che hanno
-      // caricato almeno un prodotto (col semaforo di sostenibilità). Il semaforo
+      // caricato almeno un prodotto (col semaforo della filiera). Il semaforo
       // è alla base del portale: chi non ha ancora prodotti resta fuori dalla
       // mappa finché non ne pubblica uno.
       const { data: pr } = await supabase.from("prodotti").select("azienda_id");

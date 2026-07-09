@@ -28,17 +28,17 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
           <div>
             <span className="inline-block rounded-full bg-leaf px-3 py-1 text-xs font-bold uppercase tracking-wide text-green-800">
-              Impronta ecologica delle materie prime
+              Impronta di trasporto delle materie prime
             </span>
             <h1 className="title-pangea mt-4 text-5xl md:text-7xl">
-              Quanto è<br />
-              <span className="text-green-800">sostenibile</span><br />
-              ciò che metti in tavola?
+              Quanti chilometri<br />
+              <span className="text-green-800">ha percorso</span><br />
+              ciò che hai acquistato?
             </h1>
             <p className="mt-5 max-w-md text-lg text-green-900/80">
               ECO-VISA calcola i chilometri e la CO₂ del trasporto di ogni
               materia prima — dal luogo d'origine al tuo stabilimento — e assegna
-              un semaforo ecologico ai tuoi prodotti. Più una materia prima
+              un semaforo della filiera ai tuoi prodotti. Più una materia prima
               arriva da lontano, peggiore è il punteggio.
             </p>
 
@@ -132,7 +132,7 @@ export default function Home() {
                 livello. In un mercato che ragiona solo sul prezzo più basso,
                 ECO-VISA ti fa{" "}
                 <span className="text-green-700">mostrare il tuo valore vero</span>:
-                la qualità e la sostenibilità di ciò che produci. Qui non vince chi
+                la qualità e la filiera corta di ciò che produci. Qui non vince chi
                 taglia i costi a discapito della qualità, della sicurezza e
                 dell&apos;ambiente, ma{" "}
                 <span className="text-green-700">
@@ -182,7 +182,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-5 md:grid-cols-2">
           <div className="panel-dark rounded-2xl p-8">
-            <h3 className="font-display text-3xl">Trova alternative più ecologiche</h3>
+            <h3 className="font-display text-3xl">Trova alternative a filiera più corta</h3>
             <p className="mt-2 max-w-md text-[#e9f6d8]">
               Per ogni prodotto, ECO-VISA suggerisce alternative simili con un
               punteggio migliore — e, in base alla tua posizione, ti mostra gli
@@ -232,7 +232,7 @@ export default function Home() {
           Le aziende su ECO-VISA
         </h2>
         <p className="mt-2 max-w-2xl text-green-900/80">
-          ECO-VISA si basa sul semaforo di sostenibilità: in mappa compaiono le aziende
+          ECO-VISA si basa sul semaforo della filiera: in mappa compaiono le aziende
           che hanno caricato <strong className="text-green-700">almeno un prodotto col
           semaforo</strong>.
         </p>

@@ -9,8 +9,8 @@ export default function ProdottiPage() {
       <h1 className="title-pangea text-5xl text-green-700">Schede prodotto</h1>
       <p className="mt-3 max-w-2xl text-green-900/80">
         Ogni prodotto ha una scheda pubblica, consultabile da tutti: elenco
-        ingredienti, dati del produttore e un semaforo che indica quanto è
-        ecologicamente sostenibile.
+        ingredienti, dati del produttore e un semaforo che indica quanti
+        chilometri hanno percorso le materie prime.
       </p>
 
       {/* In alto i prodotti reali delle aziende iscritte */}

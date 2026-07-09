@@ -7,13 +7,13 @@ type Meta = { label: string; color: string; lampada: EcoLevel; desc: string };
 
 const META: Record<Giudizio, Meta> = {
   super_green: {
-    label: "Super Green",
+    label: "KM0",
     color: "#2e9e0e",
     lampada: "verde",
-    desc: "Tutte le materie prime sono a km0. Eccellente!",
+    desc: "Tutte le materie prime a km0 (entro 70 km dallo stabilimento).",
   },
   verde: {
-    label: "Verde — sostenibile",
+    label: "Verde — filiera corta",
     color: "#45a82f",
     lampada: "verde",
     desc: "Materie prime per lo più molto vicine.",
@@ -80,7 +80,7 @@ export function Semaforo({
     <div className="flex items-center gap-3">
       <div
         className="flex flex-col items-center gap-2 rounded-2xl bg-[#222] p-2"
-        aria-label={`Semaforo ecologico: ${m.label}`}
+        aria-label={`Semaforo della filiera: ${m.label}`}
       >
         {order.map((l) => {
           const on = l === m.lampada;
@@ -109,7 +109,7 @@ export function Semaforo({
             </div>
             {level === "super_green" && (
               <span className="rounded-full bg-[#2e9e0e] px-2 py-0.5 text-[11px] font-bold text-white">
-                🌱 SUPER GREEN · km0
+                🌱 KM0 · entro 70 km
               </span>
             )}
           </div>

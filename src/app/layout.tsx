@@ -18,9 +18,9 @@ const barlow = Barlow({
   display: "swap",
 });
 
-const TITLE = "ECO-VISA — l'impronta ecologica delle materie prime";
+const TITLE = "ECO-VISA — l'impronta di trasporto delle materie prime";
 const DESCRIPTION =
-  "ECO-VISA misura l'impronta ecologica dei prodotti calcolando i chilometri e la CO₂ del trasporto delle materie prime, dal luogo di origine allo stabilimento di produzione.";
+  "ECO-VISA misura l'impronta di trasporto dei prodotti calcolando i chilometri e la CO₂ del trasporto delle materie prime, dal luogo di origine allo stabilimento di produzione.";
 
 // Il mirror su GitHub Pages (build con GITHUB_PAGES=true) è un DOPPIONE di
 // ecovisa.it: lo marchiamo noindex così Google indicizza solo il dominio vero.
@@ -32,12 +32,12 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: "ECO-VISA",
   keywords: [
-    "impronta ecologica",
+    "impronta di trasporto",
     "CO2 trasporto materie prime",
     "filiera corta",
     "chilometro zero",
     "prodotti bio",
-    "sostenibilità aziende agricole",
+    "filiera corta aziende agricole",
   ],
   openGraph: {
     type: "website",

@@ -86,14 +86,14 @@ export default function PromoPage() {
           ECO<span style={{ color: "#8cc63f" }}>-VISA</span>
         </div>
         <p style={{ marginTop: 18, fontSize: "clamp(18px,2.6vw,30px)", maxWidth: 720, color: "#dcf2b8" }}>
-          Quanto è sostenibile ciò che mettiamo in tavola?
+          Quanti chilometri ha percorso ciò che hai acquistato?
         </p>
       </div>
 
       {/* 2 — conto ecologico / semaforo */}
       <div className={`scene ${on(1)}`}>
         <span style={{ fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontSize: "clamp(12px,1.8vw,17px)", color: "#8cc63f" }}>
-          Il conto ecologico
+          Il conto dei chilometri
         </span>
         <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: "5vw", flexWrap: "wrap", justifyContent: "center" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 14, borderRadius: 22, background: "#0e2604" }}>
@@ -107,10 +107,10 @@ export default function PromoPage() {
         </div>
       </div>
 
-      {/* 3 — passaporto ecologico */}
+      {/* 3 — passaporto della filiera */}
       <div className={`scene ${on(2)}`}>
         <div className="disp" style={{ fontSize: "clamp(30px,6vw,72px)", color: "#fff" }}>
-          Il passaporto<br />ecologico
+          Il passaporto<br />della filiera
         </div>
         <p style={{ marginTop: 16, fontSize: "clamp(17px,2.5vw,28px)", maxWidth: 720, color: "#dcf2b8" }}>
           Ogni prodotto ottiene la sua scheda con il semaforo, da mostrare sul proprio sito.
@@ -164,7 +164,7 @@ export default function PromoPage() {
           La nostra missione
         </span>
         <div className="disp" style={{ marginTop: 10, fontSize: "clamp(26px,5vw,60px)", color: "#fff", maxWidth: 900 }}>
-          Rendere visibile la sostenibilità<br />e premiare la filiera corta
+          Rendere visibili i chilometri<br />e premiare la filiera corta
         </div>
         <p style={{ marginTop: 22, fontSize: "clamp(20px,3vw,34px)", fontWeight: 700, color: "#8cc63f" }}>ecovisa.it</p>
       </div>

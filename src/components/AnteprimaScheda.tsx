@@ -28,7 +28,7 @@ function PassaportoPreview({ azienda, voce }: { azienda: string; voce: Voce }) {
     <div className="overflow-hidden rounded-2xl border border-[#e3eed7] bg-white shadow-sm">
       <div className="flex items-center justify-between bg-green-800 px-4 py-2">
         <span className="text-[11px] font-bold uppercase tracking-wide text-lime-300">
-          Passaporto ecologico
+          Passaporto della filiera
         </span>
         <span className="font-display text-sm text-white">ECO-VISA</span>
       </div>
@@ -203,7 +203,7 @@ export function AnteprimaScheda({
         </button>
       </div>
       <p className="mt-1 text-sm text-green-900/70">
-        È <strong>esattamente</strong> il passaporto ecologico che i clienti vedono in
+        È <strong>esattamente</strong> il passaporto della filiera che i clienti vedono in
         vetrina e sul tuo sito (embed). Salva un prodotto, poi premi «Aggiorna».
       </p>
 
@@ -212,7 +212,7 @@ export function AnteprimaScheda({
           <div className="text-sm font-bold text-green-800">🔗 La tua pagina pubblica</div>
           <p className="mt-0.5 text-xs text-green-900/70">
             Condividila su social, sito, email e carta intestata: è il tuo mini-sito
-            su ECO-VISA, con tutti i tuoi prodotti e l&apos;impronta ecologica.
+            su ECO-VISA, con tutti i tuoi prodotti e l&apos;impronta di trasporto.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input
@@ -241,7 +241,7 @@ export function AnteprimaScheda({
       ) : voci.length === 0 ? (
         <p className="mt-4 rounded-xl bg-leaf/40 p-4 text-sm text-green-900/70">
           Aggiungi un prodotto con le sue materie prime: qui vedrai il suo passaporto
-          ecologico come appare ai clienti.
+          della filiera come appare ai clienti.
         </p>
       ) : (
         <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_minmax(280px,360px)]">

@@ -4,7 +4,7 @@ import { tutteLeZone, tutteLeRegioni } from "@/lib/zone";
 export const metadata = {
   title: "Spesa a km zero per città: spacci, produttori bio e prodotti locali | ECO-VISA",
   description:
-    "Scegli la tua città e scopri spacci aziendali, produttori biologici e prodotti locali con impronta ecologica misurata. Compra vicino a te, riduci la CO₂ di trasporto.",
+    "Scegli la tua città e scopri spacci aziendali, produttori biologici e prodotti locali con impronta di trasporto misurata. Compra vicino a te, riduci la CO₂ di trasporto.",
   alternates: { canonical: "https://ecovisa.it/spesa-km0/" },
 };
 

@@ -154,7 +154,7 @@ export function HomeSearch() {
           )}
         </div>
         <p className="mt-2 text-center text-sm font-semibold text-green-900/70">
-          Cerca il prodotto e scopri quanto è ecologico
+          Cerca il prodotto e scopri quanti chilometri ha percorso
           {searching && <span className="ml-2 text-green-900/40">…</span>}
         </p>
       </div>

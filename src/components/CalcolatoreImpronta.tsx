@@ -206,7 +206,7 @@ export function CalcolatoreImpronta({
         <div className="lg:sticky lg:top-24 lg:self-start">
           <div className="panel-dark rounded-2xl p-6">
             <div className="text-xs font-bold uppercase tracking-wide text-lime-300">
-              Semaforo ecologico
+              Semaforo della filiera
             </div>
             <h3 className="font-display text-2xl">{product || "Prodotto"}</h3>
             <p className="text-sm text-[#e6f4d3]">

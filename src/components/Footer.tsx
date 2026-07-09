@@ -9,8 +9,8 @@ export function Footer() {
         <div className="md:col-span-2">
           <EcoVisaLogo />
           <p className="mt-3 max-w-sm text-sm text-green-900/80">
-            ECO-VISA misura quanto le materie prime di un prodotto sono
-            sostenibili, calcolando i chilometri e la CO₂ del trasporto dal
+            ECO-VISA misura quanti chilometri hanno percorso le materie prime
+            di un prodotto, calcolando la distanza e la CO₂ del trasporto dal
             luogo di origine allo stabilimento di produzione.
           </p>
         </div>
@@ -27,7 +27,7 @@ export function Footer() {
         <div>
           <h4 className="label mb-2">Progetto</h4>
           <ul className="space-y-1 text-sm text-green-900/80">
-            <li>Impronta ecologica</li>
+            <li>Impronta di trasporto</li>
             <li>Spesa km0</li>
             <li>Filiera corta</li>
           </ul>

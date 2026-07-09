@@ -59,7 +59,7 @@ const FEATURES: Record<Plan, string[]> = {
   free: [
     "1 scheda prodotto con impronta",
     "Presenza nella directory pubblica",
-    "Semaforo ecologico verde/giallo/rosso",
+    "Semaforo della filiera verde/giallo/rosso",
   ],
   silver: [
     "La scheda della tua azienda con URL personale, da condividere con chi vuoi",
@@ -71,7 +71,7 @@ const FEATURES: Record<Plan, string[]> = {
   ],
   gold: [
     "Una scheda-sito con URL dedicata: un vero negozio online, prodotti e servizi acquistabili da chiunque",
-    "Semaforo di sostenibilità su ogni prodotto",
+    "Semaforo della filiera su ogni prodotto",
     "Fino a 100 prodotti, con foto + 2ª foto etichetta",
     "Descrizione, sito web e contatti: scheda ricca",
     "Magazzino intelligente: stock anti-overselling",

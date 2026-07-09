@@ -5,7 +5,7 @@ import { SOGLIE_TIER_KM, TRUCK_G_PER_KM, SHIP_G_PER_KM } from "@/lib/footprint";
 export const metadata = {
   title: "Come funziona il semaforo — ECO-VISA",
   description:
-    "Il criterio del semaforo ecologico ECO-VISA: ogni materia prima ha una tonalità in base a distanza e geografia; il semaforo grande è un punteggio pesato.",
+    "Il criterio del semaforo della filiera ECO-VISA: ogni materia prima ha una tonalità in base a distanza e geografia; il semaforo grande è un punteggio pesato.",
 };
 
 export default function SemaforoPage() {
@@ -36,7 +36,7 @@ export default function SemaforoPage() {
         <ul className="mt-4 space-y-2 text-sm">
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="super_green" />
-            <span><strong>Super Green · km0</strong> — entro {SOGLIE_TIER_KM.super_green} km</span>
+            <span><strong>KM0</strong> — entro {SOGLIE_TIER_KM.super_green} km</span>
           </li>
           <li className="flex items-center gap-3">
             <SemaforoIngrediente tier="verde" />

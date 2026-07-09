@@ -9,7 +9,7 @@ import type { Giudizio } from "@/lib/footprint";
 const VOCI: { level: Giudizio; titolo: string; criterio: string }[] = [
   {
     level: "super_green",
-    titolo: "Super green",
+    titolo: "KM0",
     criterio:
       "Tutte le materie prime a km0 (entro 70 km dallo stabilimento). Es. un olio con olive dello stesso comune.",
   },

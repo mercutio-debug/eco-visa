@@ -81,7 +81,7 @@ export default function EmbedPage() {
   if (status === "loading") {
     return (
       <div className="p-4 font-sans text-sm text-green-900/60">
-        Carico il passaporto ecologico…
+        Carico il passaporto della filiera…
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function EmbedPage() {
   if (status === "notfound" || !prod) {
     return (
       <div className="p-4 font-sans text-sm text-traffic-red">
-        Passaporto ecologico non trovato.
+        Passaporto della filiera non trovato.
       </div>
     );
   }
@@ -120,7 +120,7 @@ export default function EmbedPage() {
       >
         <div className="flex items-center justify-between bg-green-800 px-4 py-2">
           <span className="text-xs font-bold uppercase tracking-wide text-lime-300">
-            Passaporto ecologico
+            Passaporto della filiera
           </span>
           <span className="font-display text-sm text-white">ECO-VISA</span>
         </div>

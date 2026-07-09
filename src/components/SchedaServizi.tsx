@@ -17,7 +17,7 @@ type Servizio = { icona: string; nome: string; descr: string; min: Plan };
 
 const SERVIZI: Servizio[] = [
   { icona: "📍", nome: "Scheda pubblica del prodotto", descr: "Visibile a tutti, con ingredienti e provenienza.", min: "free" },
-  { icona: "🚦", nome: "Semaforo ecologico", descr: "Il giudizio verde/giallo/rosso dell'impronta di trasporto.", min: "free" },
+  { icona: "🚦", nome: "Semaforo della filiera", descr: "Il giudizio verde/giallo/rosso dell'impronta di trasporto.", min: "free" },
   { icona: "📦", nome: "1° prodotto", descr: "Carica il tuo primo prodotto con il semaforo.", min: "free" },
   { icona: "📷", nome: "Foto del prodotto", descr: "Immagine caricata e alleggerita in automatico.", min: "silver" },
   { icona: "🗂️", nome: "Fino a 10 prodotti", descr: "Pubblica più schede prodotto.", min: "silver" },
@@ -145,7 +145,7 @@ export function SchedaServizi({ piano }: { piano: Plan; attivo?: Plan }) {
             </p>
             <ul className="mt-2 space-y-1 text-sm text-green-900/85">
               <li>✓ Scheda pubblica del prodotto</li>
-              <li>✓ Semaforo ecologico</li>
+              <li>✓ Semaforo della filiera</li>
               <li>✓ 1 prodotto</li>
             </ul>
           </div>

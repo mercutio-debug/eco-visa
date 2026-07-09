@@ -24,7 +24,7 @@ export async function generateMetadata({
     description:
       `Spesa a chilometro zero in ${r.nome}: ${r.zone.length} città (${citta}), ` +
       `${r.nStores} spacci, ${r.nBio} produttori biologici e ${r.nProdotti} prodotti ` +
-      `con impronta ecologica misurata. Compra vicino a te e riduci la CO₂ di trasporto.`,
+      `con impronta di trasporto misurata. Compra vicino a te e riduci la CO₂ di trasporto.`,
     alternates: { canonical: `https://ecovisa.it/spesa-km0/regione/${r.slug}/` },
   };
 }
@@ -72,7 +72,7 @@ export default async function RegionePage({
       <p className="mt-3 max-w-2xl text-green-900/80">
         Spacci aziendali, produttori biologici e prodotti del territorio in{" "}
         <strong>{r.nome}</strong>: scegli la tua città e compra direttamente da chi
-        produce, scoprendo l&apos;impronta ecologica di trasporto di ogni prodotto.
+        produce, scoprendo l&apos;impronta di trasporto di trasporto di ogni prodotto.
       </p>
 
       <p className="mt-4 text-sm font-bold text-green-900/70">
@@ -126,7 +126,7 @@ export default async function RegionePage({
           Sei un&apos;azienda in {r.nome}?
         </h2>
         <p className="mt-1 text-green-900/80">
-          Mostra l&apos;impronta ecologica dei tuoi prodotti e fatti trovare da chi
+          Mostra l&apos;impronta di trasporto dei tuoi prodotti e fatti trovare da chi
           cerca prodotti locali nella tua zona. La scheda base è gratuita.
         </p>
         <Link href="/registrati" className="btn-lime mt-4 inline-block">
