@@ -212,7 +212,7 @@ export function AnteprimaScheda({
           <div className="text-sm font-bold text-green-800">🔗 La tua pagina pubblica</div>
           <p className="mt-0.5 text-xs text-green-900/70">
             Condividila su social, sito, email e carta intestata: è il tuo mini-sito
-            su ECO-VISA, con tutti i tuoi prodotti e l&apos;impronta di trasporto.
+            su ECO-VISA, con tutti i tuoi prodotti e l&apos;impronta del trasporto.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <input

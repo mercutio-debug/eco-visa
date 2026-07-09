@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-2xl text-green-800">2. Finalità e basi giuridiche</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Erogazione del servizio (account, pubblicazione delle schede prodotto e calcolo dell'impronta di trasporto) — <em>esecuzione del contratto</em>.</li>
+            <li>Erogazione del servizio (account, pubblicazione delle schede prodotto e calcolo dell'impronta del trasporto) — <em>esecuzione del contratto</em>.</li>
             <li>Fatturazione degli abbonamenti e adempimenti fiscali — <em>obbligo di legge</em>.</li>
             <li>Sicurezza e prevenzione degli abusi (es. protezione anti-bot) — <em>legittimo interesse</em>.</li>
             <li>Comunicazioni di servizio relative al tuo account.</li>

@@ -28,7 +28,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
           <div>
             <span className="inline-block rounded-full bg-leaf px-3 py-1 text-xs font-bold uppercase tracking-wide text-green-800">
-              Impronta di trasporto delle materie prime
+              Impronta del trasporto delle materie prime
             </span>
             <h1 className="title-pangea mt-4 text-5xl md:text-7xl">
               Quanti chilometri<br />

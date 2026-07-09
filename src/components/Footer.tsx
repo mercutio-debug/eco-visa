@@ -27,7 +27,7 @@ export function Footer() {
         <div>
           <h4 className="label mb-2">Progetto</h4>
           <ul className="space-y-1 text-sm text-green-900/80">
-            <li>Impronta di trasporto</li>
+            <li>Impronta del trasporto</li>
             <li>Spesa km0</li>
             <li>Filiera corta</li>
           </ul>

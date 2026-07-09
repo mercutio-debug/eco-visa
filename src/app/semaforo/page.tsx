@@ -17,11 +17,17 @@ export default function SemaforoPage() {
       <p className="mt-3 text-sm text-green-900/60">Ultimo aggiornamento: giugno 2026</p>
 
       <p className="mt-6 text-lg text-green-900/85">
-        Il semaforo misura l&apos;<strong>impronta di trasporto delle materie
+        Il semaforo misura l&apos;<strong>impronta del trasporto delle materie
         prime</strong>: quanto vengono da lontano. Non è una somma matematica (che
         penalizzerebbe i prodotti con tanti ingredienti), ma un{" "}
         <strong>punteggio pesato</strong>: ogni materia prima ha la sua tonalità, e
         il semaforo grande pesa l&apos;insieme — con un freno per le filiere più lunghe.
+      </p>
+
+      <p className="mt-4 rounded-xl bg-leaf/50 px-4 py-3 text-green-900/85">
+        🚦 <strong>Cosa misura il semaforo:</strong> valuta <strong>solo la distanza
+        delle materie prime</strong> (quanto è corta la filiera). Non è un giudizio
+        ambientale complessivo del prodotto.
       </p>
 
       {/* Colore di ogni materia prima */}
@@ -124,6 +130,13 @@ export default function SemaforoPage() {
           Pubblica i tuoi prodotti su ECO-VISA
         </Link>
       </div>
+
+      <p className="mt-8 border-t border-[#e3eed7] pt-4 text-xs text-green-900/55">
+        I dati sono inseriti e dichiarati dalle aziende, uniche responsabili della loro
+        veridicità e del loro aggiornamento. ECO-VISA e BioFido sono una vetrina che promuove
+        la cultura della filiera corta: la verifica dei dati è a totale carico delle aziende
+        iscritte.
+      </p>
     </div>
   );
 }

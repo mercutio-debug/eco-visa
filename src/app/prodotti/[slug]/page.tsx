@@ -168,7 +168,7 @@ export default async function ProductPage({
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={4}>Totale impronta di trasporto</td>
+                <td colSpan={4}>Totale impronta del trasporto</td>
                 <td className="text-right">{fp.totalKm.toLocaleString("it-IT")} km</td>
                 <td className="text-right">
                   {fp.totalCo2Kg.toLocaleString("it-IT")} kg

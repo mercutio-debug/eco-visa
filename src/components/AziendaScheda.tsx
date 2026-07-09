@@ -445,7 +445,7 @@ export function AziendaScheda({
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-[#e8f1dc] pt-3">
                   <span className="text-sm font-semibold text-green-900/70">
-                    Impronta di trasporto
+                    Impronta del trasporto
                   </span>
                   <div className="text-right">
                     <div className="font-display text-2xl text-green-800">

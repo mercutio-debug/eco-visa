@@ -24,7 +24,7 @@ export async function generateMetadata({
     title: `Spesa a km zero a ${z.citta}: spacci, produttori bio e prodotti locali | ECO-VISA`,
     description:
       `A ${z.citta}: ${z.stores.length} punti vendita diretti, ${z.bio.length} produttori biologici e ` +
-      `${z.prodotti.length} prodotti con impronta di trasporto misurata${cat ? ` (${cat})` : ""}. ` +
+      `${z.prodotti.length} prodotti con impronta del trasporto misurata${cat ? ` (${cat})` : ""}. ` +
       `Compra vicino a te e scopri quanta CO₂ di trasporto risparmi.`,
     alternates: { canonical: `https://ecovisa.it/spesa-km0/${z.slug}/` },
   };
@@ -84,7 +84,7 @@ export default async function ZonaPage({
       <p className="mt-3 max-w-2xl text-green-900/80">
         Spacci aziendali, produttori biologici e prodotti del territorio di{" "}
         <strong>{z.citta}</strong>: compra direttamente da chi produce e scopri
-        l&apos;impronta di trasporto di trasporto di ogni prodotto.
+        l&apos;impronta del trasporto di trasporto di ogni prodotto.
       </p>
 
       {z.categorie.length > 0 && (
@@ -200,7 +200,7 @@ export default async function ZonaPage({
           Sei un&apos;azienda di {z.citta}?
         </h2>
         <p className="mt-1 text-green-900/80">
-          Mostra l&apos;impronta di trasporto dei tuoi prodotti e fatti trovare da chi
+          Mostra l&apos;impronta del trasporto dei tuoi prodotti e fatti trovare da chi
           cerca prodotti locali a {z.citta}. La scheda base è gratuita.
         </p>
         <Link href="/registrati" className="btn-lime mt-4 inline-block">
