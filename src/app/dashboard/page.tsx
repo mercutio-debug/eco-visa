@@ -95,7 +95,7 @@ type Azienda = {
 /** Lunghezza massima della descrizione azienda. */
 const MAX_DESCRIZIONE = 500;
 type Stabilimento = { id: string; nome: string | null; citta: string };
-type Ingrediente = { id?: string; nome: string; origine: string };
+type Ingrediente = { id?: string; nome: string; origine: string; lat?: number | null; lon?: number | null };
 type Prodotto = {
   id: string;
   nome: string;
@@ -114,6 +114,39 @@ type Prodotto = {
   unita?: string | null;
   ingredienti: Ingrediente[];
 };
+
+/**
+ * Salva gli ingredienti di un prodotto memorizzando anche lat/lon dell'origine
+ * (geocodifica via OSM). Così l'impronta del semaforo si calcola dalle coordinate
+ * SALVATE e non dipende più dalla cache del browser di chi guarda la scheda
+ * (fonte del bug «0 km»). Fallback: se le colonne lat/lon non esistono ancora sul
+ * DB, reinserisce senza coordinate.
+ */
+async function salvaIngredienti(
+  prodottoId: string,
+  ingredienti: { nome: string; origine: string }[],
+): Promise<void> {
+  if (!ingredienti.length) return;
+  const rows = await Promise.all(
+    ingredienti.map(async (i) => {
+      const g = await prefetchGeocode(i.origine);
+      return {
+        prodotto_id: prodottoId,
+        nome: i.nome,
+        origine: i.origine,
+        lat: g?.lat ?? null,
+        lon: g?.lon ?? null,
+      };
+    }),
+  );
+  const { error } = await supabase.from("ingredienti").insert(rows);
+  if (error && /\b(lat|lon)\b/i.test(error.message)) {
+    // colonne coordinate non ancora presenti sul DB → salvo senza (retro-compat)
+    await supabase
+      .from("ingredienti")
+      .insert(rows.map((r) => ({ prodotto_id: r.prodotto_id, nome: r.nome, origine: r.origine })));
+  }
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -344,11 +377,7 @@ export default function DashboardPage() {
       .select("id")
       .single();
     if (error || !prod) return { error: error?.message ?? "Errore nel salvataggio del prodotto." };
-    if (data.ingredienti.length) {
-      await supabase.from("ingredienti").insert(
-        data.ingredienti.map((i) => ({ prodotto_id: prod.id, nome: i.nome, origine: i.origine })),
-      );
-    }
+    await salvaIngredienti(prod.id, data.ingredienti);
     await loadAll();
     return {};
   }
@@ -1920,7 +1949,7 @@ function ProdottiCard({
           {prodotti.map((p) => {
             const fp = computeFootprint(
               p.stabilimento_citta,
-              p.ingredienti.map((i) => ({ name: i.nome, origin: i.origine }))
+              p.ingredienti.map((i) => ({ name: i.nome, origin: i.origine, lat: i.lat ?? null, lon: i.lon ?? null }))
             );
             return (
               <li key={p.id} className="rounded-2xl border border-[#e3eed7] bg-white p-4">
@@ -3078,15 +3107,8 @@ function NuovoProdotto({
       alert("Errore nel salvare il prodotto: " + (error?.message ?? ""));
       return;
     }
-    // ingredienti (semaforo) solo per i prodotti
-    if (validIngr.length) {
-      const rows = validIngr.map((i) => ({
-        prodotto_id: data.id,
-        nome: i.nome,
-        origine: i.origine,
-      }));
-      await supabase.from("ingredienti").insert(rows);
-    }
+    // ingredienti (semaforo) solo per i prodotti — con lat/lon salvate
+    await salvaIngredienti(data.id, validIngr);
     setSaving(false);
     setNome("");
     setCategoria("");

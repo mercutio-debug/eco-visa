@@ -25,7 +25,7 @@ function dataAggiornamento(iso?: string | null): string {
     return "";
   }
 }
-type Ingr = { nome: string; origine: string };
+type Ingr = { nome: string; origine: string; lat?: number | null; lon?: number | null };
 type Voce = { p: Prod; ingr: Ingr[] };
 
 /** Un prodotto come appare nel passaporto pubblico / embed (semaforo + CO₂). */
@@ -33,7 +33,7 @@ function PassaportoPreview({ azienda, voce }: { azienda: string; voce: Voce }) {
   const { p, ingr } = voce;
   const fp = computeFootprint(
     p.stabilimento_citta,
-    ingr.map((i) => ({ name: i.nome, origin: i.origine })),
+    ingr.map((i) => ({ name: i.nome, origin: i.origine, lat: i.lat ?? null, lon: i.lon ?? null })),
   );
   return (
     <div className="overflow-hidden rounded-2xl border border-[#e3eed7] bg-white shadow-sm">
@@ -191,7 +191,7 @@ export function AnteprimaScheda({
     for (const p of prods) {
       const { data: ing } = await supabase
         .from("ingredienti")
-        .select("nome, origine")
+        .select("*")
         .eq("prodotto_id", p.id);
       const ingr = (ing as Ingr[]) ?? [];
       built.push({ p, ingr });

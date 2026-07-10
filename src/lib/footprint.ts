@@ -155,6 +155,11 @@ export function consigliIngredienti(ings: { name: string; tier: TierIng }[]): st
 export type IngredientInput = {
   name: string;
   origin: string; // località di produzione della materia prima
+  /** coordinate salvate dell'origine: se presenti si usano DIRETTAMENTE, senza
+   *  ri-geocodificare il testo (il geocode sincrono dipende dalla cache del
+   *  browser e fallisce per i visitatori → impronta a 0). Come su BioFido. */
+  lat?: number | null;
+  lon?: number | null;
 };
 
 export type Leg = {
@@ -193,7 +198,27 @@ export function computeIngredient(
   ing: IngredientInput,
   plant: GeoPoint
 ): IngredientResult {
-  const o = geocode(ing.origin);
+  // Coordinate salvate → si usano direttamente (robuste, indipendenti dal
+  // browser). Altrimenti si ripiega sul geocode testuale (dizionario/cache).
+  const hasCoords =
+    typeof ing.lat === "number" &&
+    typeof ing.lon === "number" &&
+    Number.isFinite(ing.lat) &&
+    Number.isFinite(ing.lon);
+  const o: GeoPoint | null = hasCoords
+    ? {
+        name: ing.origin || "",
+        lat: ing.lat as number,
+        lon: ing.lon as number,
+        country: "",
+        // approssimazione EU dai confini (per il badge): serve solo al display
+        eu:
+          (ing.lat as number) >= 34 &&
+          (ing.lat as number) <= 72 &&
+          (ing.lon as number) >= -25 &&
+          (ing.lon as number) <= 45,
+      }
+    : geocode(ing.origin);
   if (!o) {
     return {
       name: ing.name,

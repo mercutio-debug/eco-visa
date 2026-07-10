@@ -16,7 +16,7 @@ type Prod = {
   stabilimento_citta: string;
   updated_at?: string | null;
 };
-type Ingr = { nome: string; origine: string };
+type Ingr = { nome: string; origine: string; lat?: number | null; lon?: number | null };
 
 /** "GG/MM/AAAA" — data di ultimo aggiornamento del semaforo (dati del prodotto). */
 function dataAggiornamento(iso?: string | null): string {
@@ -60,7 +60,7 @@ export default function EmbedPage() {
       }
       const { data: ing } = await supabase
         .from("ingredienti")
-        .select("nome, origine")
+        .select("*")
         .eq("prodotto_id", id);
       const { data: az } = await supabase
         .from("aziende_pubbliche")
@@ -117,7 +117,7 @@ export default function EmbedPage() {
 
   const fp = computeFootprint(
     prod.stabilimento_citta,
-    ingr.map((i) => ({ name: i.nome, origin: i.origine }))
+    ingr.map((i) => ({ name: i.nome, origin: i.origine, lat: i.lat ?? null, lon: i.lon ?? null }))
   );
 
   // Cliccando la striscia si apre la scheda completa dell'azienda su ECO-VISA,

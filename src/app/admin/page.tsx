@@ -24,7 +24,7 @@ type Prod = {
   categoria: string | null;
   stabilimento_citta: string;
 };
-type Ingr = { id: string; prodotto_id: string; nome: string; origine: string };
+type Ingr = { id: string; prodotto_id: string; nome: string; origine: string; lat?: number | null; lon?: number | null };
 
 export default function AdminPage() {
   const router = useRouter();
@@ -153,7 +153,7 @@ export default function AdminPage() {
                   {aProd.map((p) => {
                     const pIngr = ingr
                       .filter((x) => x.prodotto_id === p.id)
-                      .map((x) => ({ name: x.nome, origin: x.origine }));
+                      .map((x) => ({ name: x.nome, origin: x.origine, lat: x.lat ?? null, lon: x.lon ?? null }));
                     const fp = computeFootprint(p.stabilimento_citta, pIngr);
                     return (
                       <li

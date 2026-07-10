@@ -22,8 +22,9 @@ type Prod = {
   immagine: string | null;
   azienda_id: string;
 };
-type Ing = { prodotto_id: string; nome: string; origine: string };
-type Voce = { p: Prod; ingredienti: { name: string; origin: string }[]; azienda: string };
+type Ing = { prodotto_id: string; nome: string; origine: string; lat?: number | null; lon?: number | null };
+type IngInput = { name: string; origin: string; lat?: number | null; lon?: number | null };
+type Voce = { p: Prod; ingredienti: IngInput[]; azienda: string };
 
 export function VetrinaAziende() {
   const [items, setItems] = useState<Voce[]>([]);
@@ -45,7 +46,7 @@ export function VetrinaAziende() {
       const ids = lista.map((p) => p.id);
       const { data: ings } = await supabase
         .from("ingredienti")
-        .select("prodotto_id, nome, origine")
+        .select("*")
         .in("prodotto_id", ids);
       const aziendaIds = [...new Set(lista.map((p) => p.azienda_id))];
       const { data: az } = await supabase
@@ -56,10 +57,10 @@ export function VetrinaAziende() {
       const azById = new Map(
         ((az ?? []) as { id: string; nome: string; plan?: string | null }[]).map((a) => [a.id, a]),
       );
-      const byProd = new Map<string, { name: string; origin: string }[]>();
+      const byProd = new Map<string, IngInput[]>();
       ((ings as Ing[]) ?? []).forEach((i) => {
         const a = byProd.get(i.prodotto_id) ?? [];
-        a.push({ name: i.nome, origin: i.origine });
+        a.push({ name: i.nome, origin: i.origine, lat: i.lat ?? null, lon: i.lon ?? null });
         byProd.set(i.prodotto_id, a);
       });
 

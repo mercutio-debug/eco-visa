@@ -91,13 +91,19 @@ type ProdRow = {
   durata?: string | null;
   azienda_id: string;
 };
-type IngRow = { prodotto_id: string; nome: string; origine: string };
+type IngRow = {
+  prodotto_id: string;
+  nome: string;
+  origine: string;
+  lat?: number | null;
+  lon?: number | null;
+};
 
 /** mappa le righe ingredienti (snake_case) nel formato del calcolatore impronta */
 function ingredientiDi(rows: IngRow[], prodottoId: string): IngredientInput[] {
   return rows
     .filter((r) => r.prodotto_id === prodottoId)
-    .map((r) => ({ name: r.nome, origin: r.origine }));
+    .map((r) => ({ name: r.nome, origin: r.origine, lat: r.lat ?? null, lon: r.lon ?? null }));
 }
 
 /** Azienda + i suoi prodotti (con ingredienti) per la pagina pubblica. */
@@ -123,7 +129,7 @@ export async function loadAziendaPubblica(
   if (prods.length) {
     const { data: ing } = await supabase
       .from("ingredienti")
-      .select("prodotto_id,nome,origine")
+      .select("*")
       .in(
         "prodotto_id",
         prods.map((p) => p.id),
@@ -292,7 +298,7 @@ export async function loadProdottiIscritti(): Promise<ProdottoConAzienda[]> {
 
   const { data: ing } = await supabase
     .from("ingredienti")
-    .select("prodotto_id,nome,origine")
+    .select("*")
     .in(
       "prodotto_id",
       prods.map((p) => p.id),
