@@ -30,6 +30,8 @@ import { EsperienzeCard } from "@/components/EsperienzeCard";
 import { AnteprimaScheda } from "@/components/AnteprimaScheda";
 import { OrdiniShopRicevuti } from "@/components/OrdiniShopRicevuti";
 import { SpedizioneConfigCard } from "@/components/SpedizioneConfigCard";
+import { MagazzinoCard, type VoceMagazzino } from "@/components/MagazzinoCard";
+import { livelloMagazzino, peggiorLivello, COLORE_MAGAZZINO } from "@/lib/magazzino";
 import { StatisticheCard } from "@/components/StatisticheCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
@@ -106,6 +108,7 @@ type Prodotto = {
   descrizione?: string | null;
   foto2?: string | null;
   giacenza?: number | null;
+  giacenza_iniziale?: number | null;
   confezione?: string | null;
   contenuto?: number | null;
   unita?: string | null;
@@ -504,6 +507,13 @@ export default function DashboardPage() {
       </div>
     ) : null;
 
+  // magazzino: prodotti dello shop con giacenza gestita (+ pallino peggiore)
+  const magVoci: VoceMagazzino[] = prodotti
+    .filter((p) => p.in_shop && p.giacenza != null)
+    .map((p) => ({ nome: p.nome, giacenza: p.giacenza, iniziale: p.giacenza_iniziale }));
+  const magLiv = peggiorLivello(magVoci.map((v) => livelloMagazzino(v.giacenza, v.iniziale)));
+  const magDot = magLiv ? COLORE_MAGAZZINO[magLiv] : null;
+
   const panels: DashPanel[] = [
     {
       id: "start",
@@ -626,6 +636,14 @@ export default function DashboardPage() {
       label: "Ordini shop",
       badge: conte.ordini || null,
       content: <OrdiniShopRicevuti />,
+    },
+    {
+      id: "mag",
+      section: "Attività",
+      icon: "magazzino",
+      label: "Magazzino",
+      dot: magDot,
+      content: <MagazzinoCard voci={magVoci} />,
     },
     {
       id: "stat",
