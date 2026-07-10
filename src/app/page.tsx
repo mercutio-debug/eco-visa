@@ -58,7 +58,7 @@ export default function Home() {
                 <img
                   src="/tasto-come-funziona-semaforo.png"
                   alt="Come funziona il semaforo"
-                  className="h-11 w-auto"
+                  className="h-auto w-[320px] max-w-full"
                 />
               </Link>
               <Link href="/calcola" className="btn-lime">
