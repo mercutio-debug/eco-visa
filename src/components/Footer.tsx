@@ -27,9 +27,9 @@ export function Footer() {
         <div>
           <h4 className="label mb-2">Progetto</h4>
           <ul className="space-y-1 text-sm text-green-900/80">
-            <li>Impronta del trasporto</li>
-            <li>Spesa km0</li>
-            <li>Filiera corta</li>
+            <li><Link href="/semaforo" className="hover:text-lime-500">Impronta del trasporto</Link></li>
+            <li><Link href="/spesa-km0" className="hover:text-lime-500">Spesa km0</Link></li>
+            <li><Link href="/prodotti" className="hover:text-lime-500">Filiera corta</Link></li>
           </ul>
         </div>
       </div>
