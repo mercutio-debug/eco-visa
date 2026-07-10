@@ -29,6 +29,7 @@ import { CalcolatoreImpronta } from "@/components/CalcolatoreImpronta";
 import { EsperienzeCard } from "@/components/EsperienzeCard";
 import { AnteprimaScheda } from "@/components/AnteprimaScheda";
 import { OrdiniShopRicevuti } from "@/components/OrdiniShopRicevuti";
+import { SpedizioneConfigCard } from "@/components/SpedizioneConfigCard";
 import { StatisticheCard } from "@/components/StatisticheCard";
 import { caricaImmagineCatalogo } from "@/lib/catalogo";
 import { lookupPiva } from "@/lib/fatturazione";
@@ -621,7 +622,12 @@ export default function DashboardPage() {
       icon: "ordini",
       label: "Ordini shop",
       badge: conte.ordini || null,
-      content: <OrdiniShopRicevuti />,
+      content: (
+        <>
+          <SpedizioneConfigCard />
+          <OrdiniShopRicevuti />
+        </>
+      ),
     },
     {
       id: "stat",
