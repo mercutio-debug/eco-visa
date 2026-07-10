@@ -543,6 +543,9 @@ export default function DashboardPage() {
               />
             </div>
           </section>
+          {/* Spedizione: subito dopo il semaforo, prima di aggiungere i prodotti,
+              così l'azienda imposta le spese di consegna mentre carica il catalogo. */}
+          <SpedizioneConfigCard />
           <ProdottiCard
             aziendaId={azienda.id}
             stabilimenti={stabilimenti}
@@ -622,12 +625,7 @@ export default function DashboardPage() {
       icon: "ordini",
       label: "Ordini shop",
       badge: conte.ordini || null,
-      content: (
-        <>
-          <SpedizioneConfigCard />
-          <OrdiniShopRicevuti />
-        </>
-      ),
+      content: <OrdiniShopRicevuti />,
     },
     {
       id: "stat",
@@ -678,7 +676,15 @@ export default function DashboardPage() {
       icon: "spedizioni",
       tone: "giallo",
       label: "Spedizioni",
-      content: <ServizioInAttivazione titolo="Spedizioni" testo="Presto potrai prenotare e gestire le spedizioni dei tuoi ordini direttamente da qui, via corriere integrato. Stiamo collegando il servizio." />,
+      content: (
+        <>
+          <SpedizioneConfigCard />
+          <ServizioInAttivazione
+            titolo="Corriere integrato"
+            testo="Le tariffe di spedizione qui sopra le incassi tu e servono a coprire il corriere. Presto potrai anche prenotare il ritiro e stampare le etichette di spedizione direttamente da qui (corriere integrato). Stiamo collegando il servizio."
+          />
+        </>
+      ),
     },
     {
       id: "attivi",
@@ -793,8 +799,8 @@ function StartPanel({
           className="rounded-2xl border-2 border-[#9fcd6f] bg-[#f4faec] p-5 text-left transition hover:-translate-y-0.5"
         >
           <div className="text-3xl">🚦</div>
-          <div className="mt-1 font-display text-lg text-[#235d12]">Carica i tuoi PRODOTTI</div>
-          <div className="text-xs text-[#5c7a3f]">Col semaforo della filiera (materie prime + origine).</div>
+          <div className="mt-1 font-display text-lg text-[#235d12]">Carica prodotti e spese di spedizione</div>
+          <div className="text-xs text-[#5c7a3f]">Semaforo della filiera + tariffe di consegna.</div>
         </button>
         <button
           type="button"
