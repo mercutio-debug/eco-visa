@@ -10,6 +10,7 @@ import {
   deleteExperience,
   euroCents,
   type Experience,
+  type Fascia,
 } from "@/lib/bookings";
 import { euroToCents } from "@/lib/prezzo";
 import { ImportoInput } from "@/components/ImportoInput";
@@ -32,6 +33,14 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
   // agenda: giorni della settimana in cui si svolge (1=lun…7=dom) + orario fisso
   const [giorni, setGiorni] = useState<number[]>([]);
   const [orario, setOrario] = useState("");
+  // fasce orarie prenotabili (max 3) + capienza per fascia
+  const [fasce, setFasce] = useState<Fascia[]>([]);
+  const [capienza, setCapienza] = useState("");
+  const addFascia = () =>
+    setFasce((prev) => (prev.length >= 3 ? prev : [...prev, { inizio: "", fine: "" }]));
+  const setFascia = (i: number, patch: Partial<Fascia>) =>
+    setFasce((prev) => prev.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
+  const rmFascia = (i: number) => setFasce((prev) => prev.filter((_, idx) => idx !== i));
   // foto + lingue dell'esperienza (italiano sempre incluso)
   const [immagine, setImmagine] = useState("");
   const [lingue, setLingue] = useState<string[]>(["it"]);
@@ -73,6 +82,8 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
     setMaxP("10");
     setGiorni([]);
     setOrario("");
+    setFasce([]);
+    setCapienza("");
     setImmagine("");
     setLingue(["it"]);
     setMsg(null);
@@ -88,6 +99,8 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
     setMaxP(String(e.maxPersone));
     setGiorni(e.giorniSettimana ?? []);
     setOrario(e.orario ?? "");
+    setFasce(e.fasceOrarie ?? []);
+    setCapienza(e.capienzaSlot != null ? String(e.capienzaSlot) : "");
     setImmagine(e.immagine ?? "");
     setLingue(e.lingue && e.lingue.length ? e.lingue : ["it"]);
     setMsg(null);
@@ -101,6 +114,7 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
       setMsg("Inserisci almeno titolo e prezzo.");
       return;
     }
+    const fasceValide = fasce.filter((f) => f.inizio && f.fine);
     setSaving(true);
     setMsg(null);
     const dati = {
@@ -112,6 +126,8 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
       attiva: true,
       giorniSettimana: giorni.length ? giorni : undefined,
       orario: orario || undefined,
+      fasceOrarie: fasceValide.length ? fasceValide : undefined,
+      capienzaSlot: capienza ? Math.max(1, Number(capienza) || 1) : undefined,
       lingue: lingue.length ? lingue : undefined,
       immagine: immagine || undefined,
     };
@@ -381,6 +397,66 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
                     modifica nel messaggio).
                   </span>
                 </label>
+
+                {/* FASCE ORARIE prenotabili (max 3) + capienza per fascia */}
+                <div className="md:col-span-2 rounded-xl border border-[#e3eed7] bg-leaf/20 p-3">
+                  <span className="label">
+                    Fasce orarie prenotabili <span className="font-normal text-green-900/50">(facoltative, max 3)</span>
+                  </span>
+                  <div className="mt-2 space-y-2">
+                    {fasce.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          className="field flex-1"
+                          value={f.inizio}
+                          onChange={(e) => setFascia(i, { inizio: e.target.value })}
+                        />
+                        <span className="text-green-900/50">–</span>
+                        <input
+                          type="time"
+                          className="field flex-1"
+                          value={f.fine}
+                          onChange={(e) => setFascia(i, { fine: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => rmFascia(i)}
+                          aria-label="Rimuovi fascia"
+                          className="flex h-9 w-9 flex-none items-center justify-center rounded-lg text-xl text-traffic-red hover:bg-white"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {fasce.length < 3 && (
+                    <button
+                      type="button"
+                      onClick={addFascia}
+                      className="mt-2 text-sm font-bold text-green-700 hover:text-lime-600"
+                    >
+                      + Aggiungi fascia
+                    </button>
+                  )}
+                  <label className="mt-3 block">
+                    <span className="label">
+                      Capienza per fascia <span className="font-normal text-green-900/50">(posti per data + fascia)</span>
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      className="field mt-1 w-40"
+                      value={capienza}
+                      onChange={(e) => setCapienza(e.target.value)}
+                      placeholder={`es. ${maxP || "10"}`}
+                    />
+                    <span className="mt-1 block text-[11px] text-green-900/55">
+                      Quando una fascia è al completo per una certa data, il cliente non può più
+                      prenotarla. Vuoto = usa il massimo persone qui sopra.
+                    </span>
+                  </label>
+                </div>
               </div>
               <div className="mt-4 flex items-center gap-3">
                 <button className="btn-lime" onClick={salva} disabled={saving || !titolo.trim()}>

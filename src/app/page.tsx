@@ -128,15 +128,15 @@ export default function Home() {
                 Per chi fa qualità
               </div>
               <p className="mt-2 text-xl font-semibold leading-snug text-green-900 md:text-2xl">
-                Hai investito una vita per fornire qualità e prodotti di altissimo
-                livello. In un mercato che ragiona solo sul prezzo più basso,
-                ECO-VISA ti fa{" "}
-                <span className="text-green-700">mostrare il tuo valore vero</span>:
+                Hai investito una vita per offrire prodotti di altissima qualità.
+                In un mercato che ragiona quasi solo sul prezzo più basso, ECO-VISA
+                ribalta la prospettiva: ti fa{" "}
+                <span className="text-green-700">mostrare il tuo valore vero</span> —
                 la qualità e la filiera corta di ciò che produci. Qui non vince chi
-                taglia i costi a discapito della qualità, della sicurezza e
-                dell&apos;ambiente, ma{" "}
+                taglia i costi a scapito della qualità e della sicurezza, ma{" "}
                 <span className="text-green-700">
-                  chi offre il miglior prodotto possibile
+                  chi offre il prodotto che ha percorso meno strada per arrivare sino
+                  a casa tua
                 </span>
                 .
               </p>
