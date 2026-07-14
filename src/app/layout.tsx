@@ -3,6 +3,7 @@ import { Anton, Barlow } from "next/font/google";
 import "./globals.css";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartDrawer } from "@/components/CartDrawer";
+import { AssistenteWidget } from "@/components/AssistenteWidget";
 
 const anton = Anton({
   weight: "400",
@@ -91,6 +92,7 @@ export default function RootLayout({
         />
         <SiteChrome>{children}</SiteChrome>
         <CartDrawer portale="ECO-VISA" />
+        <AssistenteWidget portale="ECO-VISA" />
       </body>
     </html>
   );
