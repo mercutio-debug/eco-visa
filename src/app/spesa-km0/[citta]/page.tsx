@@ -61,14 +61,14 @@ export default async function ZonaPage({
       />
 
       <nav className="text-sm text-green-900/60">
-        <Link href="/spesa-km0" className="font-bold text-green-700 hover:text-lime-500">
+        <Link href="/spesa-km0/" className="font-bold text-green-700 hover:text-lime-500">
           Spesa a km zero
         </Link>{" "}
         {regione && (
           <>
             /{" "}
             <Link
-              href={`/spesa-km0/regione/${regione.slug}`}
+              href={`/spesa-km0/regione/${regione.slug}/`}
               className="font-bold text-green-700 hover:text-lime-500"
             >
               {regione.nome}
@@ -137,7 +137,7 @@ export default async function ZonaPage({
               </div>
             ))}
           </div>
-          <Link href="/biofido" className="btn-lime mt-4 inline-block">
+          <Link href="/biofido/" className="btn-lime mt-4 inline-block">
             Vedi tutti i produttori bio sulla mappa
           </Link>
         </section>
@@ -179,7 +179,7 @@ export default async function ZonaPage({
               return p.slug ? (
                 <Link
                   key={p.slug}
-                  href={`/prodotti/${p.slug}`}
+                  href={`/prodotti/${p.slug}/`}
                   className="card p-5 transition hover:-translate-y-1"
                 >
                   {inner}
@@ -203,7 +203,7 @@ export default async function ZonaPage({
           Mostra l&apos;impronta del trasporto dei tuoi prodotti e fatti trovare da chi
           cerca prodotti locali a {z.citta}. La scheda base è gratuita.
         </p>
-        <Link href="/registrati" className="btn-lime mt-4 inline-block">
+        <Link href="/registrati/" className="btn-lime mt-4 inline-block">
           Iscrivi la tua azienda
         </Link>
       </div>
@@ -216,7 +216,7 @@ export default async function ZonaPage({
             {altre.map((x) => (
               <Link
                 key={x.slug}
-                href={`/spesa-km0/${x.slug}`}
+                href={`/spesa-km0/${x.slug}/`}
                 className="font-bold text-green-700 hover:text-lime-500"
               >
                 {x.citta}

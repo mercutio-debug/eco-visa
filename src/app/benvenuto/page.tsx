@@ -15,7 +15,7 @@ export default function BenvenutoPage() {
         La tua mail è stata validata, <strong>benvenuto a bordo!</strong> Torna sul
         portale e inserisci le tue credenziali per accedere.
       </p>
-      <Link href="/accedi" className="btn-lime mt-6 inline-block">
+      <Link href="/accedi/" className="btn-lime mt-6 inline-block">
         Vai all&apos;accesso →
       </Link>
     </div>

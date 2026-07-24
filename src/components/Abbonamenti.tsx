@@ -303,7 +303,7 @@ export function PianiAbbonamento({
                   </button>
                 ) : (
                   <Link
-                    href="/registrati"
+                    href="/registrati/"
                     className={isGold ? "btn-lime w-full justify-center" : "btn-ghost w-full justify-center"}
                   >
                     {isFree ? "Inizia gratis" : `Scegli ${p.label}`}
@@ -405,7 +405,7 @@ export function SociFondatori() {
               il tuo lavoro: cresciamo insieme.
             </p>
           </div>
-          <Link href="/registrati" className="btn-lime whitespace-nowrap">
+          <Link href="/registrati/" className="btn-lime whitespace-nowrap">
             Diventa socio fondatore
           </Link>
         </div>

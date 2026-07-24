@@ -46,11 +46,11 @@ export default function Home() {
             <HomeSearch />
 
             <div className="mt-7 flex flex-col items-start gap-3">
-              <Link href="/prodotti" className="btn-ghost">
+              <Link href="/prodotti/" className="btn-ghost">
                 Esplora le schede prodotto
               </Link>
               <Link
-                href="/semaforo"
+                href="/semaforo/"
                 className="inline-block transition hover:-translate-y-0.5"
                 aria-label="Come funziona il semaforo"
               >
@@ -61,7 +61,7 @@ export default function Home() {
                   className="-ml-[17px] h-auto w-[320px] max-w-full"
                 />
               </Link>
-              <Link href="/calcola" className="btn-lime">
+              <Link href="/calcola/" className="btn-lime">
                 Calcola l'impronta del tuo prodotto
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default function Home() {
               </div>
             </div>
             <Link
-              href={`/prodotti/${demo.slug}`}
+              href={`/prodotti/${demo.slug}/`}
               className="mt-5 inline-flex text-sm font-bold text-green-700 hover:text-lime-500"
             >
               Vedi la scheda completa →
@@ -140,7 +140,7 @@ export default function Home() {
                 .
               </p>
             </div>
-            <Link href="/abbonamenti" className="btn-lime whitespace-nowrap">
+            <Link href="/abbonamenti/" className="btn-lime whitespace-nowrap">
               Scopri gli abbonamenti
             </Link>
           </div>
@@ -188,7 +188,7 @@ export default function Home() {
               <strong> spacci aziendali e i negozi diretti entro 70 km </strong>
               (Spesa km0).
             </p>
-            <Link href="/prodotti" className="btn-lime mt-5">
+            <Link href="/prodotti/" className="btn-lime mt-5">
               Scopri come
             </Link>
           </div>
@@ -198,7 +198,7 @@ export default function Home() {
             </h3>
             {/* l'intera cornice è il link a BioFido (più intuitivo di un tasto sotto) */}
             <Link
-              href="/biofido"
+              href="/biofido/"
               aria-label="Apri BioFido"
               className="mt-4 flex flex-col items-center gap-2 rounded-2xl border-2 border-[var(--lime-500)] bg-leaf/40 p-6 transition hover:-translate-y-0.5 hover:bg-leaf"
             >

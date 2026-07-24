@@ -106,7 +106,7 @@ export function ProductTools({
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <Link
-                            href={`/prodotti/${a.slug}`}
+                            href={`/prodotti/${a.slug}/`}
                             className="font-display text-xl text-green-800 hover:text-lime-500"
                           >
                             {a.name}

@@ -242,7 +242,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace("/accedi");
+      router.replace("/accedi/");
       return;
     }
     // La dashboard è l'AREA AZIENDE: un cliente non deve finirci. Lo rimando a casa.

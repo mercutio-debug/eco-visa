@@ -27,7 +27,7 @@ export default async function SpesaKm0Index() {
             {regioni.map((r) => (
               <Link
                 key={r.slug}
-                href={`/spesa-km0/regione/${r.slug}`}
+                href={`/spesa-km0/regione/${r.slug}/`}
                 className="rounded-full border border-[#d6e6c4] bg-leaf px-4 py-1.5 text-sm font-bold text-green-800 transition hover:border-lime-500"
               >
                 {r.nome}{" "}
@@ -43,7 +43,7 @@ export default async function SpesaKm0Index() {
         {zone.map((z) => (
           <Link
             key={z.slug}
-            href={`/spesa-km0/${z.slug}`}
+            href={`/spesa-km0/${z.slug}/`}
             className="card p-5 transition hover:-translate-y-1"
           >
             <h2 className="font-display text-2xl text-green-800">{z.citta}</h2>

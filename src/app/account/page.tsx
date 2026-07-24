@@ -51,7 +51,7 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/accedi");
+    if (!loading && !user) router.replace("/accedi/");
   }, [loading, user, router]);
 
   async function cambiaEmail(e: React.FormEvent) {
@@ -247,7 +247,7 @@ export default function AccountPage() {
           La posizione della tua azienda (città, indirizzo e pin sulla mappa) si gestisce
           dall&apos;anagrafica nella tua dashboard.
         </p>
-        <Link href="/dashboard" className="btn-ghost mt-3 inline-flex text-sm">
+        <Link href="/dashboard/" className="btn-ghost mt-3 inline-flex text-sm">
           📍 Vai all&apos;anagrafica e alla posizione →
         </Link>
       </section>

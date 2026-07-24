@@ -32,9 +32,9 @@ export default function AccediPage() {
       if (!u) return;
       const isAdmin = u.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
       const tipo = (u.user_metadata as { tipo?: string } | undefined)?.tipo;
-      if (isAdmin) router.replace("/admin");
+      if (isAdmin) router.replace("/admin/");
       else if (tipo === "cliente") router.replace("/");
-      else router.replace("/dashboard");
+      else router.replace("/dashboard/");
     });
   }, [router]);
   const [email, setEmail] = useState("");
@@ -133,9 +133,9 @@ export default function AccediPage() {
       /* ignore */
     }
     if (dest) router.push(dest);
-    else if (isAdmin) router.push("/admin");
+    else if (isAdmin) router.push("/admin/");
     else if (tipo === "cliente") router.push("/"); // i clienti NON vanno nell'area aziende
-    else router.push("/dashboard");
+    else router.push("/dashboard/");
   }
 
   async function inviaRecupero(e: React.FormEvent) {
@@ -181,7 +181,7 @@ export default function AccediPage() {
             Per <strong>ordinare</strong> o <strong>prenotare</strong> ti serve un account
             cliente — è gratis e bastano pochi secondi. Se ce l&apos;hai già, accedi qui sotto.
           </p>
-          <Link href="/registrati?tipo=cliente" className="btn-lime mt-3 inline-block">
+          <Link href="/registrati/?tipo=cliente" className="btn-lime mt-3 inline-block">
             Iscriviti come cliente →
           </Link>
         </div>
@@ -237,11 +237,11 @@ export default function AccediPage() {
 
         <p className="text-center text-sm text-green-900/70">
           Non hai un account?{" "}
-          <Link href="/registrati?tipo=cliente" className="font-bold text-green-700 hover:text-lime-500">
+          <Link href="/registrati/?tipo=cliente" className="font-bold text-green-700 hover:text-lime-500">
             Iscriviti come cliente
           </Link>{" "}
           ·{" "}
-          <Link href="/registrati" className="font-bold text-green-700 hover:text-lime-500">
+          <Link href="/registrati/" className="font-bold text-green-700 hover:text-lime-500">
             come attività
           </Link>
         </p>

@@ -54,7 +54,7 @@ export default async function ProductPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <Link href="/prodotti" className="text-sm font-bold text-green-700 hover:text-lime-500">
+      <Link href="/prodotti/" className="text-sm font-bold text-green-700 hover:text-lime-500">
         ← Tutti i prodotti
       </Link>
 
@@ -117,7 +117,7 @@ export default async function ProductPage({
           giudizio <strong>qualitativo della composizione</strong> — ogni materia prima
           ha il suo colore (qui sotto), e l&apos;insieme determina il risultato.
         </span>
-        <Link href="/semaforo" className="font-bold text-green-700 underline">
+        <Link href="/semaforo/" className="font-bold text-green-700 underline">
           Come funziona il semaforo →
         </Link>
       </div>
@@ -189,7 +189,7 @@ export default async function ProductPage({
           Con <strong>BioFido</strong> trovi i produttori biologici intorno a te,
           per categoria merceologica e raggio scelto.
         </p>
-        <Link href="/biofido" className="btn-lime mt-4">
+        <Link href="/biofido/" className="btn-lime mt-4">
           Apri BioFido
         </Link>
       </div>

@@ -66,7 +66,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace("/accedi");
+      router.replace("/accedi/");
       return;
     }
     if (!isAdmin) {

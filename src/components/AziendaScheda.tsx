@@ -264,7 +264,7 @@ export function AziendaScheda({
     return (
       <div className="mt-10">
         <p className="text-green-900/70">Azienda non trovata.</p>
-        <Link href="/prodotti" className="mt-3 inline-block font-bold text-green-700 hover:text-lime-500">
+        <Link href="/prodotti/" className="mt-3 inline-block font-bold text-green-700 hover:text-lime-500">
           ← Tutte le schede prodotto
         </Link>
       </div>
@@ -279,7 +279,7 @@ export function AziendaScheda({
 
   return (
     <>
-      <Link href="/prodotti" className="text-sm font-bold text-green-700 hover:text-lime-500">
+      <Link href="/prodotti/" className="text-sm font-bold text-green-700 hover:text-lime-500">
         ← Tutte le schede prodotto
       </Link>
 
@@ -438,7 +438,7 @@ export function AziendaScheda({
                   <p className="mt-1 text-[11px] text-green-900/60">
                     Giudizio <strong>qualitativo della composizione</strong> (ogni materia
                     prima ha il suo colore, qui sotto), non una somma di CO₂.{" "}
-                    <Link href="/semaforo" className="font-semibold text-green-700 underline">
+                    <Link href="/semaforo/" className="font-semibold text-green-700 underline">
                       Come funziona →
                     </Link>
                   </p>

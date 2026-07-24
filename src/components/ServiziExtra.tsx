@@ -125,7 +125,7 @@ export function ServiziExtra({
                 {label}
               </button>
             ) : (
-              <Link href="/abbonamenti" className="btn-lime mt-2 justify-center text-sm">
+              <Link href="/abbonamenti/" className="btn-lime mt-2 justify-center text-sm">
                 {label}
               </Link>
             );

@@ -202,7 +202,7 @@ export default function RegistratiPage() {
         </button>
         <p className="text-center text-sm text-green-900/70">
           Hai già un account?{" "}
-          <Link href="/accedi" className="font-bold text-green-700 hover:text-lime-500">
+          <Link href="/accedi/" className="font-bold text-green-700 hover:text-lime-500">
             Accedi
           </Link>
         </p>

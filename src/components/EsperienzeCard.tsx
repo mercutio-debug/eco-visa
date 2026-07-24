@@ -160,7 +160,7 @@ export function EsperienzeCard({ ownerId, plan }: { ownerId: string; plan: Plan 
         <div className="mt-4 rounded-xl bg-leaf p-4 text-sm text-green-900/80">
           Le esperienze prenotabili sono disponibili dai piani{" "}
           <strong>Silver</strong> e <strong>Gold</strong>.{" "}
-          <Link href="/abbonamenti" className="font-bold text-green-700 hover:text-lime-500">
+          <Link href="/abbonamenti/" className="font-bold text-green-700 hover:text-lime-500">
             Scopri gli abbonamenti →
           </Link>
         </div>

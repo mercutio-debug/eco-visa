@@ -239,7 +239,7 @@ export function CalcolatoreImpronta({
               non una semplice somma di chilometri.
             </p>
             <Link
-              href="/semaforo"
+              href="/semaforo/"
               className="mt-1 inline-block text-xs font-semibold text-lime-300 hover:underline"
             >
               Come funziona il semaforo →
@@ -248,7 +248,7 @@ export function CalcolatoreImpronta({
             {/* Verificare è gratis; pubblicare richiede registrazione */}
             {!nascondiPubblica && (
               <>
-                <Link href="/registrati" className="btn-lime mt-5 inline-flex w-full justify-center">
+                <Link href="/registrati/" className="btn-lime mt-5 inline-flex w-full justify-center">
                   Pubblica questo prodotto
                 </Link>
                 <p className="mt-2 text-center text-[11px] font-semibold text-lime-200">

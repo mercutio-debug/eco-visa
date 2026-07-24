@@ -17,19 +17,19 @@ export function Footer() {
         <div>
           <h4 className="label mb-2">Servizi</h4>
           <ul className="space-y-1 text-sm">
-            <li><Link href="/prodotti" className="hover:text-lime-500">Schede prodotto</Link></li>
-            <li><Link href="/spesa-km0" className="hover:text-lime-500">Spesa a km zero</Link></li>
-            <li><Link href="/calcola" className="hover:text-lime-500">Calcola impronta</Link></li>
-            <li><Link href="/biofido" className="hover:text-lime-500">BioFido</Link></li>
-            <li><Link href="/accedi" className="hover:text-lime-500">Admin</Link></li>
+            <li><Link href="/prodotti/" className="hover:text-lime-500">Schede prodotto</Link></li>
+            <li><Link href="/spesa-km0/" className="hover:text-lime-500">Spesa a km zero</Link></li>
+            <li><Link href="/calcola/" className="hover:text-lime-500">Calcola impronta</Link></li>
+            <li><Link href="/biofido/" className="hover:text-lime-500">BioFido</Link></li>
+            <li><Link href="/accedi/" className="hover:text-lime-500">Admin</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="label mb-2">Progetto</h4>
           <ul className="space-y-1 text-sm text-green-900/80">
-            <li><Link href="/semaforo" className="hover:text-lime-500">Impronta del trasporto</Link></li>
-            <li><Link href="/spesa-km0" className="hover:text-lime-500">Spesa km0</Link></li>
-            <li><Link href="/prodotti" className="hover:text-lime-500">Filiera corta</Link></li>
+            <li><Link href="/semaforo/" className="hover:text-lime-500">Impronta del trasporto</Link></li>
+            <li><Link href="/spesa-km0/" className="hover:text-lime-500">Spesa km0</Link></li>
+            <li><Link href="/prodotti/" className="hover:text-lime-500">Filiera corta</Link></li>
           </ul>
         </div>
       </div>

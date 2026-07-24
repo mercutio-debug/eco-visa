@@ -413,7 +413,7 @@ export function PrenotaModal({
               <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
                 ⚠️ Per prenotare devi prima <strong>completare i tuoi dati</strong> (nome, codice
                 fiscale, indirizzo): servono all&apos;azienda per la fattura.{" "}
-                <Link href="/account#anagrafica-cliente" className="font-bold underline">
+                <Link href="/account/#anagrafica-cliente" className="font-bold underline">
                   Completa ora i tuoi dati →
                 </Link>
               </div>

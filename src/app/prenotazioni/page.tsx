@@ -50,7 +50,7 @@ export default function PrenotazioniPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.replace("/accedi");
+      router.replace("/accedi/");
       return;
     }
     load(user.id);
@@ -76,7 +76,7 @@ export default function PrenotazioniPage() {
       {items.length === 0 ? (
         <p className="mt-6 text-green-900/70">
           Non hai ancora prenotazioni. Trova un servizio sulla scheda di un&apos;{" "}
-          <Link href="/prodotti" className="font-bold text-green-700 hover:text-lime-500">
+          <Link href="/prodotti/" className="font-bold text-green-700 hover:text-lime-500">
             azienda
           </Link>
           .

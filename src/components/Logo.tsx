@@ -85,7 +85,7 @@ export function BioFidoBadge({ size = 56 }: { size?: number }) {
 
 export function BioFidoWordmark() {
   return (
-    <Link href="/biofido" className="inline-flex items-center gap-2">
+    <Link href="/biofido/" className="inline-flex items-center gap-2">
       <BioFidoBadge size={34} />
       <span className="font-display text-2xl">
         <span className="text-cape-red">Bio</span>

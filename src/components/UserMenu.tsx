@@ -86,14 +86,14 @@ export function UserMenu() {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Link href="/accedi" className="text-sm font-semibold text-green-800 hover:text-lime-500">
+        <Link href="/accedi/" className="text-sm font-semibold text-green-800 hover:text-lime-500">
           Accedi
         </Link>
-        <Link href="/registrati" className="btn-lime text-xs">
+        <Link href="/registrati/" className="btn-lime text-xs">
           Iscrivi attività
         </Link>
         <Link
-          href="/registrati?tipo=cliente"
+          href="/registrati/?tipo=cliente"
           className="rounded-full border border-green-700/40 px-3 py-1.5 text-xs font-semibold text-green-800 hover:bg-leaf"
         >
           Cliente
@@ -169,35 +169,35 @@ export function UserMenu() {
           {/* navigazione attività (solo aziende) */}
           {!isCliente && (
             <>
-              <Link href="/dashboard" role="menuitem" onClick={() => setOpen(false)} className={base}>
+              <Link href="/dashboard/" role="menuitem" onClick={() => setOpen(false)} className={base}>
                 <span className={iconMuted}><Ico k="dashboard" /></span>
                 <span className="flex-1 truncate">La mia dashboard</span>
               </Link>
-              <Link href="/dashboard?p=msg" role="menuitem" onClick={(e) => vaiPannello(e, "msg")} className={base}>
+              <Link href="/dashboard/?p=msg" role="menuitem" onClick={(e) => vaiPannello(e, "msg")} className={base}>
                 <span className={iconMuted}><Ico k="chat" /></span>
                 <span className="flex-1 truncate">Messaggi</span>
               </Link>
-              <Link href="/ordini-ricevuti" role="menuitem" onClick={() => setOpen(false)} className={base}>
+              <Link href="/ordini-ricevuti/" role="menuitem" onClick={() => setOpen(false)} className={base}>
                 <span className={iconMuted}><Ico k="cart" /></span>
                 <span className="flex-1 truncate">Ordini ricevuti</span>
                 <Badge n={conte.ordini} />
               </Link>
-              <Link href="/dashboard?p=pren" role="menuitem" onClick={(e) => vaiPannello(e, "pren")} className={base}>
+              <Link href="/dashboard/?p=pren" role="menuitem" onClick={(e) => vaiPannello(e, "pren")} className={base}>
                 <span className={iconMuted}><Ico k="calcheck" /></span>
                 <span className="flex-1 truncate">Prenotazioni ricevute</span>
                 <Badge n={conte.prenotazioni} />
               </Link>
             </>
           )}
-          <Link href="/ordini" role="menuitem" onClick={() => setOpen(false)} className={base}>
+          <Link href="/ordini/" role="menuitem" onClick={() => setOpen(false)} className={base}>
             <span className={iconMuted}><Ico k="box" /></span>
             <span className="flex-1 truncate">I miei ordini</span>
           </Link>
-          <Link href="/account#fatture-ricevute" role="menuitem" onClick={() => setOpen(false)} className={base}>
+          <Link href="/account/#fatture-ricevute" role="menuitem" onClick={() => setOpen(false)} className={base}>
             <span className={iconMuted}><Ico k="card" /></span>
             <span className="flex-1 truncate">Fatture ricevute</span>
           </Link>
-          <Link href="/prenotazioni" role="menuitem" onClick={() => setOpen(false)} className={base}>
+          <Link href="/prenotazioni/" role="menuitem" onClick={() => setOpen(false)} className={base}>
             <span className={iconMuted}><Ico k="calendar" /></span>
             <span className="flex-1 truncate">Le mie prenotazioni</span>
           </Link>
@@ -205,12 +205,12 @@ export function UserMenu() {
           <div className="my-1 border-t border-[#eef3e6]" />
 
           {/* account */}
-          <Link href="/account" role="menuitem" onClick={() => setOpen(false)} className={base}>
+          <Link href="/account/" role="menuitem" onClick={() => setOpen(false)} className={base}>
             <span className={iconMuted}><Ico k="user" /></span>
             <span className="flex-1 truncate">Credenziali di accesso</span>
           </Link>
           {!isCliente && (
-            <Link href="/dashboard?p=bio" role="menuitem" onClick={(e) => vaiPannello(e, "bio")} className={base}>
+            <Link href="/dashboard/?p=bio" role="menuitem" onClick={(e) => vaiPannello(e, "bio")} className={base}>
               <span className={iconMuted}><Ico k="cert" /></span>
               <span className="flex-1 truncate">La mia certificazione bio</span>
             </Link>
@@ -234,7 +234,7 @@ export function UserMenu() {
           ))}
 
           {isAdmin && (
-            <Link href="/admin" role="menuitem" onClick={() => setOpen(false)} className={base}>
+            <Link href="/admin/" role="menuitem" onClick={() => setOpen(false)} className={base}>
               <span className={iconMuted}><Ico k="settings" /></span>
               <span className="flex-1 truncate">Area admin</span>
             </Link>
@@ -243,7 +243,7 @@ export function UserMenu() {
           <div className="my-1 border-t border-[#eef3e6]" />
 
           <Link
-            href="/account#elimina"
+            href="/account/#elimina"
             role="menuitem"
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 px-4 py-2.5 text-[14px] text-traffic-red transition hover:bg-red-50"

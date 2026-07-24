@@ -31,7 +31,7 @@ export function OnboardingPromo() {
             >
               ▶ Schermo intero
             </a>
-            <Link href="/servizi-extra" className="btn-ghost justify-center text-sm">
+            <Link href="/servizi-extra/" className="btn-ghost justify-center text-sm">
               Tutti i servizi
             </Link>
           </div>

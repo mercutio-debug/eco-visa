@@ -32,7 +32,7 @@ export function CookieBanner() {
           Usiamo solo <strong>cookie tecnici</strong> necessari al funzionamento del
           sito (accesso, preferenze, consenso). Nessun cookie di profilazione
           pubblicitaria.{" "}
-          <Link href="/privacy" className="font-semibold text-green-700 underline">
+          <Link href="/privacy/" className="font-semibold text-green-700 underline">
             Maggiori informazioni
           </Link>
           .

@@ -60,7 +60,7 @@ export default async function RegionePage({
       />
 
       <nav className="text-sm text-green-900/60">
-        <Link href="/spesa-km0" className="font-bold text-green-700 hover:text-lime-500">
+        <Link href="/spesa-km0/" className="font-bold text-green-700 hover:text-lime-500">
           Spesa a km zero
         </Link>{" "}
         / <span>{r.nome}</span>
@@ -102,7 +102,7 @@ export default async function RegionePage({
           {r.zone.map((z) => (
             <Link
               key={z.slug}
-              href={`/spesa-km0/${z.slug}`}
+              href={`/spesa-km0/${z.slug}/`}
               className="card p-5 transition hover:-translate-y-1"
             >
               <h3 className="font-display text-2xl text-green-800">{z.citta}</h3>
@@ -129,7 +129,7 @@ export default async function RegionePage({
           Mostra l&apos;impronta del trasporto dei tuoi prodotti e fatti trovare da chi
           cerca prodotti locali nella tua zona. La scheda base è gratuita.
         </p>
-        <Link href="/registrati" className="btn-lime mt-4 inline-block">
+        <Link href="/registrati/" className="btn-lime mt-4 inline-block">
           Iscrivi la tua azienda
         </Link>
       </div>
@@ -142,7 +142,7 @@ export default async function RegionePage({
             {altre.map((x) => (
               <Link
                 key={x.slug}
-                href={`/spesa-km0/regione/${x.slug}`}
+                href={`/spesa-km0/regione/${x.slug}/`}
                 className="font-bold text-green-700 hover:text-lime-500"
               >
                 {x.nome}

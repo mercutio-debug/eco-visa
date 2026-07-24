@@ -44,7 +44,7 @@ export default function ResetPage() {
       return;
     }
     setOk(true);
-    setTimeout(() => router.push("/dashboard"), 1400);
+    setTimeout(() => router.push("/dashboard/"), 1400);
   }
 
   return (

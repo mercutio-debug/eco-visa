@@ -123,10 +123,10 @@ export default function SemaforoPage() {
       </section>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/calcola" className="btn-lime">
+        <Link href="/calcola/" className="btn-lime">
           Calcola l&apos;impronta del tuo prodotto
         </Link>
-        <Link href="/registrati" className="btn-ghost">
+        <Link href="/registrati/" className="btn-ghost">
           Pubblica i tuoi prodotti su ECO-VISA
         </Link>
       </div>
